@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1"/>
+<title>Websites — Admin</title>
+<link rel="stylesheet" href="../css/main.css"/>
+<link rel="stylesheet" href="../css/admin.css"/>
+<link rel="stylesheet" href="../css/console.css"/>
+<link rel="stylesheet" href="../css/responsive.css"/>
+</head>
+<body class="admin-body">
+<aside id="admin-sidebar" class="admin-sidebar"></aside>
+<div class="admin-main">
+  <header id="admin-topbar" class="admin-topbar"></header>
+  <div class="admin-content">
+    <p id="admin-subtitle" class="admin-sub"></p>
+
+    <div class="admin-toolbar">
+      <input id="w-search" placeholder="Search by name, webId, domain, seller…"/>
+      <select id="w-filter">
+        <option value="">All statuses</option>
+        <option value="active">Active</option>
+        <option value="pending_payment">Pending payment</option>
+        <option value="sold">Sold</option>
+      </select>
+      <button class="aw-btn aw-btn-ghost" id="w-refresh">Refresh</button>
+    </div>
+
+    <div id="ws-host"></div>
+  </div>
+</div>
+
+<script src="../js/api.js"></script>
+<script src="../js/app.js"></script>
+<script src="../js/auth.js"></script>
+<script src="../js/admin.js"></script>
+<script src="../components/modals.js"></script>
+<script src="../components/admin-console.js"></script>
+
+<script>
+(async () => {
+  await loadRates();
+  if (!(await Admin.requireAdmin())) return;
+  adminPage('Websites', 'All marketplace listings');
+
+  let all = [];
+  const host = document.getElementById('ws-host');
+
+  async function load() {
+    host.innerHTML = '<div class="admin-loading">Loading…</div>';
+    const r = await API.adminWebsites();
+    if (!r.success) { host.innerHTML = '<div class="admin-empty">Failed to load.</div>'; return; }
+    all = r.data.items;
+    render();
+  }
+
+  function render() {
+    const q = document.getElementById('w-search').value.trim().toLowerCase();
+    const f = document.getElementById('w-filter').value;
+    let list = all.slice();
+    if (q) list = list.filter(w =>
+      (w.name || '').toLowerCase().includes(q) ||
+      (w.webId || '').toLowerCase().includes(q) ||
+      (w.domain || '').toLowerCase().includes(q) ||
+      (w.sellerId || '').includes(q)
+    );
+    if (f) list = list.filter(w => w.status === f);
+
+    renderTable(host,
+      [
+        { label: 'Web ID', render: r => `<code>${esc(r.webId)}</code>` },
+        { label: 'Name', render: r => esc(r.name) },
+        { label: 'Domain', render: r => esc(r.domain) },
+        { label: 'Topic', render: r => esc(r.topic) },
+        { label: 'Price', render: r => `${fmtMoney(r.priceUZS)}<br><small>${fmtUSD(r.priceUSD)}</small>` },
+        { label: 'Type', render: r => r.saleType === 'safe' ? '<span class="aw-badge aw-badge-safe">safe</span>' : '<span class="aw-badge aw-badge-fast">fast</span>' },
+        { label: 'Status', render: r => statusPill(r.status) },
+        { label: 'Views', render: r => r.views || 0 },
+        { label: 'Created', render: r => fmtDateShort(r.createdAt) },
+        { label: 'Actions', render: r => `<button class="admin-btn-sm" data-id="${esc(r.webId)}" data-act="view">View</button>` }
+      ],
+      list,
+      { emptyText: 'No websites.' }
+    );
+
+    host.querySelectorAll('button[data-act="view"]').forEach(b => {
+      b.addEventListener('click', () => {
+        const w = all.find(x => x.webId === b.dataset.id);
+        if (!w) return;
+        openModal({
+          title: w.name,
+          body: `
+            <div class="admin-kv">
+              <div><span>Web ID</span><code>${esc(w.webId)}</code></div>
+              <div><span>Order ID</span><code>${esc(w.orderId)}</code></div>
+              <div><span>Seller</span>${esc(w.sellerId)}</div>
+              <div><span>Domain</span>${esc(w.domain)}</div>
+              <div><span>Topic</span>${esc(w.topic)}</div>
+              <div><span>Price UZS</span>${fmtMoney(w.priceUZS)}</div>
+              <div><span>Price USD</span>${fmtUSD(w.priceUSD)}</div>
+              <div><span>Price AWC</span>${fmtAWC(w.priceAWC)}</div>
+              <div><span>Sale type</span>${esc(w.saleType)}</div>
+              <div><span>Status</span>${esc(w.status)}</div>
+              <div><span>Views</span>${w.views || 0}</div>
+              <div><span>Created</span>${fmtDateShort(w.createdAt)}</div>
+              <div><span>Sold at</span>${fmtDateShort(w.soldAt)}</div>
+            </div>
+            <p class="aw-muted" style="margin-top:12px">${esc(w.description || '')}</p>
+          `,
+          actions: [
+            { label: 'Close', className: 'aw-btn-ghost', onClick: () => closeModal() },
+            { label: 'Open public page', className: 'aw-btn', onClick: () => {
+              window.open('../pages/website-detail.html?id=' + w.webId, '_blank');
+            }}
+          ]
+        });
+      });
+    });
+  }
+
+  document.getElementById('w-search').addEventListener('input', render);
+  document.getElementById('w-filter').addEventListener('change', render);
+  document.getElementById('w-refresh').addEventListener('click', load);
+
+  load();
+})();
+</script>
+</body>
+</html>

@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1"/>
+<title>Admin Dashboard — AWebShop</title>
+<link rel="stylesheet" href="../css/main.css"/>
+<link rel="stylesheet" href="../css/admin.css"/>
+<link rel="stylesheet" href="../css/console.css"/>
+<link rel="stylesheet" href="../css/responsive.css"/>
+</head>
+<body class="admin-body">
+<aside id="admin-sidebar" class="admin-sidebar"></aside>
+<div class="admin-main">
+  <header id="admin-topbar" class="admin-topbar"></header>
+  <div class="admin-content">
+    <p id="admin-subtitle" class="admin-sub"></p>
+
+    <div class="admin-kpis" id="kpis"></div>
+
+    <div class="admin-grid-2">
+      <div class="admin-card">
+        <h3>New users (last 14 days)</h3>
+        <canvas id="chart-users" class="admin-chart"></canvas>
+      </div>
+      <div class="admin-card">
+        <h3>Websites by status</h3>
+        <canvas id="chart-websites" class="admin-chart"></canvas>
+        <div class="admin-legend" id="chart-websites-legend"></div>
+      </div>
+    </div>
+
+    <div class="admin-card">
+      <div class="admin-card-head">
+        <h3>Recent admin activity</h3>
+        <a href="logs.html">View all →</a>
+      </div>
+      <div id="recent-logs"></div>
+    </div>
+
+    <div class="admin-card">
+      <div class="admin-card-head">
+        <h3>Recent escrow</h3>
+        <a href="escrow.html">Open escrow →</a>
+      </div>
+      <div id="recent-escrow"></div>
+    </div>
+  </div>
+</div>
+
+<script src="../js/api.js"></script>
+<script src="../js/app.js"></script>
+<script src="../js/auth.js"></script>
+<script src="../js/admin.js"></script>
+<script src="../components/charts.js"></script>
+<script src="../components/admin-console.js"></script>
+
+<script>
+(async () => {
+  await loadRates();
+  const ok = await Admin.requireAdmin();
+  if (!ok) return;
+  adminPage('Dashboard', 'Overview of AWebShop activity');
+
+  const stats = Admin.adminData;
+
+  const kpis = [
+    { label: 'Users', value: stats.users, ico: '👤' },
+    { label: 'Websites', value: stats.websites, ico: '🌐' },
+    { label: 'Active listings', value: stats.activeWebsites, ico: '✅' },
+    { label: 'Orders', value: stats.orders, ico: '🛒' },
+    { label: 'Transactions', value: stats.transactions, ico: '💳' },
+    { label: 'Escrows', value: stats.escrows, ico: '🔐' },
+    { label: 'Withdrawals', value: stats.withdrawals, ico: '💸' },
+    { label: 'Revenue', value: fmtMoney(stats.revenue), ico: '💰' }
+  ];
+  document.getElementById('kpis').innerHTML = kpis.map(k => `
+    <div class="admin-kpi">
+      <div class="admin-kpi-ico">${k.ico}</div>
+      <div>
+        <div class="admin-kpi-value">${esc(k.value)}</div>
+        <div class="admin-kpi-label">${esc(k.label)}</div>
+      </div>
+    </div>
+  `).join('');
+
+  // Fake "new users per day" trend derived from current total (visual only, from real users if createdAt exists)
+  const usersRes = await API.adminUsers();
+  const users = usersRes.success ? usersRes.data.items : [];
+  const days = [...Array(14)].map((_, i) => {
+    const d = new Date(); d.setDate(d.getDate() - (13 - i));
+    return d.toISOString().slice(0, 10);
+  });
+  const counts = days.map(d => users.filter(u => (u.createdAt || '').slice(0, 10) === d).length);
+  lineChart(document.getElementById('chart-users'), { labels: days, values: counts });
+
+  const ws = Admin.adminData;
+  const websiteStats = Admin.adminData;
+  const activeCount = stats.activeWebsites;
+  const soldCount = Math.max(0, stats.websites - activeCount);
+  barChart(document.getElementById('chart-websites'), {
+    labels: ['Active', 'Sold/Other'],
+    values: [activeCount, soldCount],
+    color: '#22c55e'
+  });
+  document.getElementById('chart-websites-legend').innerHTML = `
+    <span><i style="background:#22c55e"></i> Active: ${activeCount}</span>
+    <span><i style="background:#f59e0b"></i> Sold/Other: ${soldCount}</span>
+  `;
+
+  // Recent logs
+  const logsRes = await API.adminLogs();
+  const logsHost = document.getElementById('recent-logs');
+  if (logsRes.success && logsRes.data.items.length) {
+    renderTable(logsHost,
+      [
+        { label: 'Time', render: r => fmtDateShort(r.timestamp) },
+        { label: 'Admin', render: r => esc(r.adminId) },
+        { label: 'Action', render: r => esc(r.action) },
+        { label: 'Target', render: r => esc(r.target || '—') }
+      ],
+      logsRes.data.items.slice(-8).reverse()
+    );
+  } else {
+    logsHost.innerHTML = '<div class="admin-empty">No activity yet.</div>';
+  }
+
+  // Recent escrow
+  const escRes = await API.adminEscrow();
+  const escHost = document.getElementById('recent-escrow');
+  if (escRes.success && escRes.data.items.length) {
+    renderTable(escHost,
+      [
+        { label: 'ID', render: r => esc(r.id) },
+        { label: 'Website', render: r => esc(r.websiteId) },
+        { label: 'Buyer', render: r => esc(r.buyerId) },
+        { label: 'Amount', render: r => fmtMoney(r.amountUZS) },
+        { label: 'Status', render: r => statusPill(r.status) }
+      ],
+      escRes.data.items.slice(-8).reverse()
+    );
+  } else {
+    escHost.innerHTML = '<div class="admin-empty">No escrows yet.</div>';
+  }
+})();
+</script>
+</body>
+</html>

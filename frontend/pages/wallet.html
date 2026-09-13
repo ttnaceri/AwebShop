@@ -1,0 +1,233 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1"/>
+<title>Wallet — AWebShop</title>
+<link rel="stylesheet" href="../css/main.css"/>
+<link rel="stylesheet" href="../css/responsive.css"/>
+</head>
+<body class="aw-body">
+<div id="aw-header"></div>
+
+<main class="aw-page">
+  <h1>Wallet</h1>
+
+  <div class="aw-wallet-top">
+    <div class="aw-balance-card">
+      <div class="aw-muted">AWC Balance</div>
+      <div class="aw-balance-big" id="awc-balance">…</div>
+      <div class="aw-muted" id="awc-approx"></div>
+    </div>
+
+    <div class="aw-wallet-actions">
+      <button class="aw-btn aw-btn-primary" id="btn-topup">Top up</button>
+      <button class="aw-btn" id="btn-transfer">Transfer</button>
+      <button class="aw-btn aw-btn-ghost" id="btn-withdraw">Withdraw</button>
+    </div>
+  </div>
+
+  <section class="aw-section">
+    <div class="aw-section-head"><h2>Recent transactions</h2></div>
+    <div class="aw-table-wrap">
+      <table class="aw-table" id="tx-table">
+        <thead>
+          <tr><th>Date</th><th>Type</th><th>Amount</th><th>Status</th><th>Description</th></tr>
+        </thead>
+        <tbody><tr><td colspan="5" class="aw-loading">Loading…</td></tr></tbody>
+      </table>
+    </div>
+  </section>
+
+  <section class="aw-section" id="premium">
+    <div class="aw-section-head"><h2>Premium Plans</h2></div>
+    <div class="aw-grid aw-grid-plans" id="plans-grid"></div>
+  </section>
+</main>
+
+<div id="aw-footer"></div>
+
+<script src="../js/api.js"></script>
+<script src="../js/app.js"></script>
+<script src="../js/auth.js"></script>
+<script src="../components/header.js"></script>
+<script src="../components/footer.js"></script>
+<script src="../components/modals.js"></script>
+<script src="../js/shortcuts.js"></script>
+
+<script>
+(async () => {
+  await loadRates();
+  await Auth.load();
+  if (!Auth.requireLogin('wallet.html')) return;
+
+  async function loadBalance() {
+    const res = await API.tokenBalance();
+    if (!res.success) return;
+    const { balanceAWC, balanceUZS, balanceUSD, awcPriceUZS, usdRate } = res.data;
+    document.getElementById('awc-balance').textContent = fmtAWC(balanceAWC);
+    document.getElementById('awc-approx').textContent =
+      fmtUZS(balanceUZS) + '  ≈  ' + fmtUSD(balanceUSD) + `  •  1 AWC = ${fmtUZS(awcPriceUZS)}`;
+  }
+
+  async function loadTx() {
+    const res = await API.tokenHistory();
+    const tbody = document.querySelector('#tx-table tbody');
+    if (!res.success) { tbody.innerHTML = '<tr><td colspan="5">Failed.</td></tr>'; return; }
+    const items = res.data.items.slice(0, 50);
+    if (!items.length) { tbody.innerHTML = '<tr><td colspan="5" class="aw-muted">No transactions yet.</td></tr>'; return; }
+    tbody.innerHTML = items.map(t => `
+      <tr>
+        <td>${fmtDate(t.createdAt)}</td>
+        <td>${esc(t.type)}</td>
+        <td>${t.amountAWC ? fmtAWC(t.amountAWC) : (t.amountUZS ? fmtUZS(t.amountUZS) : '—')}</td>
+        <td><span class="aw-status aw-status-${esc(t.status)}">${esc(t.status)}</span></td>
+        <td>${esc(t.description || '')}</td>
+      </tr>
+    `).join('');
+  }
+
+  async function loadPlans() {
+    const res = await API.premiumPlans();
+    const grid = document.getElementById('plans-grid');
+    if (!res.success) { grid.innerHTML = ''; return; }
+    grid.innerHTML = res.data.items.map(p => `
+      <div class="aw-plan-card">
+        <h3>${esc(p.name)}</h3>
+        <div class="aw-plan-price">
+          <strong>${fmtUZS(p.monthlyPriceUZS)}</strong>
+          <small>${fmtUSD(p.monthlyPriceUSD)} / month</small>
+          <div class="aw-muted">${fmtUZS(p.yearlyPriceUZS)} / year</div>
+        </div>
+        <ul class="aw-plan-features">${p.features.map(f => `<li>${esc(f)}</li>`).join('')}</ul>
+        <div class="aw-plan-commission">${p.commission}% commission</div>
+        <button class="aw-btn aw-btn-primary aw-btn-block" data-plan="${p.id}">Subscribe</button>
+      </div>
+    `).join('');
+
+    grid.querySelectorAll('button[data-plan]').forEach(btn => {
+      btn.addEventListener('click', () => openSubscribe(btn.dataset.plan));
+    });
+  }
+
+  async function openSubscribe(planId) {
+    openModal({
+      title: 'Subscribe',
+      body: `
+        <div class="aw-form">
+          <label><span>Billing period</span>
+            <select id="sub-period">
+              <option value="monthly">Monthly</option>
+              <option value="yearly">Yearly (25% off)</option>
+            </select>
+          </label>
+          <p class="aw-muted">Payment is manual: admin verifies your card payment after submission.</p>
+          <div class="aw-form-error" id="sub-err" hidden></div>
+        </div>
+      `,
+      actions: [
+        { label: 'Cancel', className: 'aw-btn-ghost', onClick: () => closeModal() },
+        { label: 'Continue', className: 'aw-btn-primary', onClick: async () => {
+          const billingPeriod = document.getElementById('sub-period').value;
+          const r = await API.premiumSubscribe({ planId, billingPeriod });
+          if (r.success) {
+            toast('Subscription created. Awaiting payment verification.', 'success', 5000);
+            closeModal();
+          } else {
+            const e = document.getElementById('sub-err');
+            e.textContent = r.message; e.hidden = false;
+          }
+        }}
+      ]
+    });
+  }
+
+  // Top up
+  document.getElementById('btn-topup').addEventListener('click', () => {
+    openModal({
+      title: 'Top up AWC',
+      body: `
+        <div class="aw-form">
+          <label><span>Amount (UZS)</span><input type="number" id="tu-amount" min="1000" step="1000" placeholder="50000"/></label>
+          <label><span>Payment reference (optional)</span><input type="text" id="tu-ref" placeholder="Card last 4 / transaction ID"/></label>
+          <p class="aw-muted">You will be shown the admin card after submitting. Admin verifies manually.</p>
+          <div class="aw-form-error" id="tu-err" hidden></div>
+        </div>
+      `,
+      actions: [
+        { label: 'Cancel', className: 'aw-btn-ghost', onClick: () => closeModal() },
+        { label: 'Submit', className: 'aw-btn-primary', onClick: async () => {
+          const amountUZS = Number(document.getElementById('tu-amount').value);
+          const reference = document.getElementById('tu-ref').value;
+          if (!amountUZS || amountUZS < 1000) {
+            const e = document.getElementById('tu-err');
+            e.textContent = 'Minimum 1000 UZS.'; e.hidden = false; return;
+          }
+          const r = await API.tokenTopup({ amountUZS, reference });
+          if (r.success) {
+            toast('Top-up pending admin verification.', 'success', 5000);
+            closeModal(); loadTx();
+          } else {
+            const e = document.getElementById('tu-err');
+            e.textContent = r.message; e.hidden = false;
+          }
+        }}
+      ]
+    });
+  });
+
+  // Transfer
+  document.getElementById('btn-transfer').addEventListener('click', () => {
+    openModal({
+      title: 'Transfer AWC',
+      body: `
+        <div class="aw-form">
+          <label><span>Recipient nickname</span><input id="tr-to"/></label>
+          <label><span>Amount (AWC)</span><input id="tr-amount" type="number" step="0.0001" min="0.0001"/></label>
+          <div class="aw-form-error" id="tr-err" hidden></div>
+        </div>
+      `,
+      actions: [
+        { label: 'Cancel', className: 'aw-btn-ghost', onClick: () => closeModal() },
+        { label: 'Send', className: 'aw-btn-primary', onClick: async () => {
+          const toNickname = document.getElementById('tr-to').value.trim();
+          const amountAWC = Number(document.getElementById('tr-amount').value);
+          const r = await API.tokenTransfer({ toNickname, amountAWC });
+          if (r.success) { toast('Transfer completed.', 'success'); closeModal(); loadBalance(); loadTx(); }
+          else { const e = document.getElementById('tr-err'); e.textContent = r.message; e.hidden = false; }
+        }}
+      ]
+    });
+  });
+
+  // Withdraw
+  document.getElementById('btn-withdraw').addEventListener('click', () => {
+    openModal({
+      title: 'Withdraw AWC',
+      body: `
+        <div class="aw-form">
+          <label><span>Amount (AWC)</span><input id="wd-amount" type="number" step="0.0001" min="0.0001"/></label>
+          <label><span>Card number (UZS payout)</span><input id="wd-card"/></label>
+          <div class="aw-form-error" id="wd-err" hidden></div>
+        </div>
+      `,
+      actions: [
+        { label: 'Cancel', className: 'aw-btn-ghost', onClick: () => closeModal() },
+        { label: 'Request', className: 'aw-btn-primary', onClick: async () => {
+          const amountAWC = Number(document.getElementById('wd-amount').value);
+          const cardNumber = document.getElementById('wd-card').value.trim();
+          const r = await API.tokenWithdraw({ amountAWC, cardNumber });
+          if (r.success) { toast('Withdrawal request created.', 'success'); closeModal(); loadTx(); }
+          else { const e = document.getElementById('wd-err'); e.textContent = r.message; e.hidden = false; }
+        }}
+      ]
+    });
+  });
+
+  loadBalance();
+  loadTx();
+  loadPlans();
+})();
+</script>
+</body>
+</html>

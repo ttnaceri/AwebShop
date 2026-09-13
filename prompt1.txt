@@ -1,0 +1,1699 @@
+AWebShop — Professional Complete Development Prompt
+
+1. PROJECT OVERVIEW
+
+Build AWebShop, an online marketplace where users can buy and sell fully
+functional websites.
+
+Core goals: - Users can browse websites. - Registered users can buy and
+sell websites. - Sellers can choose Safe (escrow) or Fast (direct)
+sale. - AWC (AwebShop Coin) is the platform token. - Manual card
+payments are used initially. - Payme, Hamkorbank, and other payment APIs
+must be designed as future integrations, not implemented as live
+gateways now. - Telegram Bot is used for verification, account recovery,
+and important notifications. - Admins have a complete management panel
+and terminal-style Admin Console. - The project must use one personal
+JSON backend: backend.json, accessed through Node.js. - Do not use
+PostgreSQL, Redis, Docker, or any other database. - Do not add
+unnecessary frameworks or dependencies. - Frontend uses vanilla HTML,
+CSS, and JavaScript. - Backend uses vanilla Node.js.
+
+Important implementation rule: Do not claim a feature is implemented
+unless the generated code actually implements it. Do not leave
+disconnected UI buttons, pages, APIs, database models, or configuration
+entries. Every retained feature must have a clear connection to the
+frontend, backend, and backend.json where applicable.
+
+------------------------------------------------------------------------
+
+2. DEPLOYMENT
+
+Main website: https://ttnaceri.github.io/AwebShop/
+
+API endpoint/base URL: https://ttnaceri.github.io/AwebShop/55668576
+
+Deployment: - Frontend: GitHub Pages. - Node.js backend: deploy to a
+Node.js-compatible hosting service. - Keep the frontend and backend API
+configuration separate. - Custom domain: future option.
+
+Do not describe GitHub Pages as a Node.js server. GitHub Pages serves
+static frontend files only.
+
+------------------------------------------------------------------------
+
+3. TECHNOLOGY STACK
+
+  Component          Technology
+  ------------------ ----------------------------------------------------
+  Frontend           HTML5, CSS3, Vanilla JavaScript
+  Backend            Node.js, vanilla
+  Data storage       One backend.json file
+  Bot                Telegram Bot API + Node.js
+  Authentication     Username/Password + Telegram verification/recovery
+  Initial payments   Manual card payment
+  Future payments    Payme / Hamkorbank / other APIs
+  Fonts              Inter + Poppins
+  Analytics          Optional Google Analytics configuration
+  PWA                Only if actually implemented
+  Mobile app         Future, not part of current implementation
+
+Rules: - No PostgreSQL. - No Redis. - No Prisma. - No MongoDB. - No
+Docker. - No unnecessary frontend package manager. - Do not create
+package-lock files unless a real Node.js dependency installation
+requires them. - Keep the architecture lightweight and suitable for a
+personal Node.js backend.
+
+------------------------------------------------------------------------
+
+4. FINAL PROJECT STRUCTURE
+
+Use a practical structure instead of the previous oversized structure.
+
+    AwebShop/
+    │
+    ├── index.html
+    ├── .gitignore
+    ├── README.md
+    │
+    ├── frontend/
+    │   ├── pages/
+    │   │   ├── login.html
+    │   │   ├── register.html
+    │   │   ├── main.html
+    │   │   ├── store.html
+    │   │   ├── website-detail.html
+    │   │   ├── sell.html
+    │   │   ├── wallet.html
+    │   │   ├── profile.html
+    │   │   └── about.html
+    │   │
+    │   ├── admin/
+    │   │   ├── dashboard.html
+    │   │   ├── users.html
+    │   │   ├── admins.html
+    │   │   ├── websites.html
+    │   │   ├── escrow.html
+    │   │   ├── reports.html
+    │   │   ├── promocodes.html
+    │   │   ├── discounts.html
+    │   │   ├── prices.html
+    │   │   ├── events.html
+    │   │   ├── announcements.html
+    │   │   ├── orders.html
+    │   │   ├── themes.html
+    │   │   ├── ads.html
+    │   │   ├── payments.html
+    │   │   ├── notifications.html
+    │   │   ├── words.html
+    │   │   ├── domains.html
+    │   │   ├── withdraw.html
+    │   │   ├── security.html
+    │   │   ├── settings.html
+    │   │   ├── backup.html
+    │   │   ├── export-import.html
+    │   │   ├── analytics.html
+    │   │   ├── telegram-settings.html
+    │   │   ├── seo-settings.html
+    │   │   ├── logs.html
+    │   │   ├── maintenance.html
+    │   │   ├── reviews.html
+    │   │   ├── featured.html
+    │   │   ├── todo.html
+    │   │   ├── messages.html
+    │   │   ├── attachments.html
+    │   │   ├── invoice.html
+    │   │   ├── popup.html
+    │   │   ├── stock.html
+    │   │   ├── badges.html
+    │   │   ├── chat.html
+    │   │   ├── schedule.html
+    │   │   ├── cards.html
+    │   │   ├── environment.html
+    │   │   ├── console.html
+    │   │   ├── premium.html
+    │   │   ├── force-subscribe.html
+    │   │   └── help.html
+    │   │
+    │   ├── components/
+    │   │   ├── header.js
+    │   │   ├── footer.js
+    │   │   ├── sidebar.js
+    │   │   ├── website-card.js
+    │   │   ├── pagination.js
+    │   │   ├── modals.js
+    │   │   ├── charts.js
+    │   │   └── admin-console.js
+    │   │
+    │   ├── css/
+    │   │   ├── main.css
+    │   │   ├── dark.css
+    │   │   ├── responsive.css
+    │   │   ├── admin.css
+    │   │   ├── console.css
+    │   │   └── premium.css
+    │   │
+    │   ├── js/
+    │   │   ├── app.js
+    │   │   ├── auth.js
+    │   │   ├── api.js
+    │   │   ├── shortcuts.js
+    │   │   ├── console.js
+    │   │   ├── validation.js
+    │   │   ├── notifications.js
+    │   │   └── admin.js
+    │   │
+    │   └── assets/
+    │       ├── image/
+    │       │   ├── logo.png
+    │       │   ├── galochka.png
+    │       │   └── favicon.png
+    │       └── token/
+    │           └── value1.png
+    │
+    ├── backend/
+    │   ├── server.js
+    │   ├── api/
+    │   │   ├── auth.js
+    │   │   ├── users.js
+    │   │   ├── websites.js
+    │   │   ├── payments.js
+    │   │   ├── escrow.js
+    │   │   ├── token.js
+    │   │   ├── premium.js
+    │   │   ├── admin.js
+    │   │   └── telegram.js
+    │   ├── services/
+    │   │   ├── authService.js
+    │   │   ├── paymentService.js
+    │   │   ├── escrowService.js
+    │   │   ├── tokenService.js
+    │   │   ├── premiumService.js
+    │   │   └── telegramService.js
+    │   ├── middleware/
+    │   │   ├── auth.js
+    │   │   ├── admin.js
+    │   │   ├── rateLimiter.js
+    │   │   └── security.js
+    │   ├── utils/
+    │   │   ├── validators.js
+    │   │   ├── helpers.js
+    │   │   └── idGenerator.js
+    │   └── config/
+    │       ├── constants.js
+    │       └── api-config.example.js
+    │
+    ├── bot/
+    │   ├── bot.js
+    │   └── telegramService.js
+    │
+    ├── data/
+    │   └── backend.json
+    │
+    ├── config.example.js
+    │
+    └── package.json
+
+Important: - There must be only one actual data file:
+data/backend.json. - Do not create SQL migrations or database models. -
+Do not create duplicate backend.json files. - Do not create a second
+root index.html; the root index.html should be the entry point and can
+redirect/load the main frontend page. - Do not create duplicate
+frontend/backend package files unless technically required.
+
+------------------------------------------------------------------------
+
+5. BACKEND.JSON
+
+data/backend.json is the single persistent data store.
+
+It should contain structured sections such as:
+
+    {
+      "users": [],
+      "admins": [],
+      "websites": [],
+      "orders": [],
+      "transactions": [],
+      "escrows": [],
+      "withdrawals": [],
+      "premiumSubscriptions": [],
+      "premiumPlans": [],
+      "promocodes": [],
+      "discounts": [],
+      "events": [],
+      "announcements": [],
+      "reviews": [],
+      "messages": [],
+      "notifications": [],
+      "paymentCards": [],
+      "paymentMethods": [],
+      "forceSubscribeChannels": [],
+      "environmentUsers": [],
+      "badges": [],
+      "featuredWebsites": [],
+      "popupNotifications": [],
+      "scheduledTasks": [],
+      "adminLogs": [],
+      "securityLogs": [],
+      "settings": {},
+      "apiConfig": {}
+    }
+
+All read/write operations must go through the Node.js backend.
+
+Do not expose backend.json directly to the public web.
+
+Use safe file read/write operations and avoid corrupting the JSON file
+during simultaneous writes.
+
+------------------------------------------------------------------------
+
+6. CONFIGURATION AND API KEYS
+
+Never place real secret API keys, passwords, bot tokens, JWT secrets,
+card credentials, or OAuth secrets directly inside the public source
+code.
+
+Create:
+
+config.example.js
+
+with placeholders such as:
+
+    module.exports = {
+      exchangeRate: {
+        provider: "YOUR_PROVIDER",
+        apiKey: "YOUR_EXCHANGE_RATE_API_KEY",
+        baseCurrency: "USD"
+      },
+
+      paymentApis: {
+        payme: {
+          enabled: false,
+          apiKey: "YOUR_PAYME_API_KEY",
+          merchantId: "YOUR_PAYME_MERCHANT_ID"
+        },
+        hamkorbank: {
+          enabled: false,
+          apiKey: "YOUR_HAMKORBANK_API_KEY",
+          merchantId: "YOUR_HAMKORBANK_MERCHANT_ID"
+        }
+      },
+
+      telegram: {
+        botToken: "YOUR_TELEGRAM_BOT_TOKEN"
+      },
+
+      jwt: {
+        secret: "YOUR_JWT_SECRET"
+      }
+    };
+
+The application must work with APIs through configurable providers.
+
+Exchange-rate configuration must support: - USD → UZS. - UZS → USD. -
+Future exchange-rate providers. - Admin enable/disable. - API endpoint
+configuration. - API key placeholder. - Fallback behavior if the API is
+unavailable.
+
+Do not hard-code the previous exposed ExchangeRate-API key.
+
+Payment APIs are future integrations. Keep their configuration structure
+ready, but keep them disabled until properly integrated.
+
+------------------------------------------------------------------------
+
+7. USER AUTHENTICATION
+
+Registration
+
+Registration uses: 1. Telegram username. 2. Phone number. 3. Telegram
+ID. 4. Telegram verification code. 5. Custom nickname. 6. Password.
+
+System generates a unique 9-digit user ID.
+
+Nickname: - Required. - Editable once every 2 weeks.
+
+Telegram is used for: - Registration verification. - Account recovery. -
+Important security notifications. - Purchase/payment notifications. -
+Seller/buyer transaction notifications.
+
+Telegram is NOT required to replace the normal website password login.
+
+Login
+
+Primary login: - Nickname + Password.
+
+Do not include Google OAuth in the current implementation.
+
+Recovery
+
+Recovery flow: 1. User requests account recovery. 2. Backend verifies
+the available account information. 3. Telegram sends a recovery code. 4.
+Code expires after a limited period. 5. User creates a new password.
+
+Never expose recovery codes in frontend logs.
+
+------------------------------------------------------------------------
+
+8. WEBSITE SELLING SYSTEM
+
+Sale types
+
+Safe
+
+Escrow-protected transaction.
+
+Fast
+
+Direct seller-to-buyer transaction.
+
+Listing fee
+
+Initial listing fee: - 10,000 UZS.
+
+Admin can configure this value.
+
+Commission
+
+Default: - 5% sale commission. - 0.4% escrow fee.
+
+Premium users may receive reduced commission according to their plan.
+
+All rates must be configurable by Admin.
+
+Seller fields
+
+-   Website Name.
+-   Website Domain.
+-   Description.
+-   Topic.
+-   Website image.
+-   Price.
+-   Sale Type.
+
+Domain validation must be practical. Do not require www. for every
+legitimate domain. HTTPS should be preferred, but validation must not
+reject valid domains simply because they do not use www.
+
+Description: - Maximum 200 characters, excluding spaces when counting
+the limit.
+
+Topics: - AI. - Online Shop. - 3D Game. - Other/custom topics controlled
+by Admin.
+
+Image: - One primary image. - Compress when possible. - WebP conversion
+can be used if supported by the backend.
+
+Buttons: - Sell. - Cancel.
+
+------------------------------------------------------------------------
+
+9. WEBSITE IDENTIFICATION
+
+Each listing has:
+
+webId - Public identifier. - 7-character alphanumeric format.
+
+orderId - Private transaction identifier. - 10-character alphanumeric
+format.
+
+Use secure/random generation and prevent collisions.
+
+------------------------------------------------------------------------
+
+10. SAFE / ESCROW TRANSACTION
+
+Flow:
+
+1.  Buyer starts purchase.
+2.  Buyer pays according to the selected payment method.
+3.  Payment is recorded as pending/manual verification.
+4.  Admin verifies payment.
+5.  Seller transfers the website to the Admin, for example through a
+    GitHub repository transfer or another agreed delivery method.
+6.  Admin verifies the website.
+7.  Buyer confirms that the delivered website is correct.
+8.  Admin releases the payment to the Seller.
+9.  Listing is marked Sold/Completed and removed from active marketplace
+    listings.
+
+Statuses:
+
+    pending
+    paid
+    transferred
+    verified
+    completed
+    cancelled
+    disputed
+    refunded
+
+Time limits: - Seller transfer: 7 days. - Verification: 3 days. -
+Auto-release: 7 days when applicable. - Dispute response: 3 days. -
+Refund processing target: 5 days.
+
+Admin must be able to configure these limits.
+
+------------------------------------------------------------------------
+
+11. FAST TRANSACTION
+
+Flow:
+
+1.  Buyer pays Seller directly.
+2.  Seller delivers the website directly.
+3.  Buyer confirms completion when applicable.
+4.  Listing is marked sold.
+5.  Listing is removed from active marketplace listings.
+
+Fast transactions have fewer protections than Safe transactions. The UI
+must clearly explain this difference.
+
+------------------------------------------------------------------------
+
+12. REFUND SYSTEM
+
+Create a Refund section for eligible transactions.
+
+Refund rules must be configurable.
+
+Default premium refund statement from the previous specification should
+not be treated as a universal automatic rule. Admin must configure the
+applicable refund percentage and eligibility.
+
+Refund status must be stored in backend.json.
+
+------------------------------------------------------------------------
+
+13. AWC TOKEN SYSTEM
+
+Name: AwebShop Coin
+
+Symbol: AWC
+
+Initial configured value: 1 AWC = 10,000 UZS
+
+However, the displayed USD equivalent must be calculated from the
+current exchange-rate configuration rather than permanently hard-coded.
+
+AWC uses: - Website purchases. - Listing fees. - Commissions. - Escrow
+fees. - Promotions. - Other platform transactions approved by Admin.
+
+Ways to earn/use AWC
+
+-   Top-up.
+-   Website sales.
+-   Referral bonuses.
+-   Promotions.
+-   Rewarded advertisements.
+-   Cashback.
+
+Referral bonus: - Default: 1 AWC. - Admin configurable.
+
+Rewarded ads: - Default: 15 completed ads = one free website listing. -
+One free listing per website/listing campaign unless Admin changes the
+rule. - Do not count fake/incomplete ad views.
+
+Cashback: - Default: 1%. - Premium default: 3%. - Admin configurable.
+
+AWC must support: - Balance. - Transaction history. - Transfer. -
+Top-up. - Withdrawal where enabled. - Current UZS/USD display.
+
+------------------------------------------------------------------------
+
+14. EXCHANGE RATE SYSTEM
+
+Display: - UZS. - USD.
+
+The exchange rate is obtained through a configurable external API.
+
+Requirements: - API provider is configurable. - API key is stored
+securely. - Admin can enable/disable automatic rates. - Manual fallback
+rate can be configured. - Last successful rate should be cached in
+backend.json. - If the API fails, use the last valid rate or configured
+fallback. - Never expose the API key to the browser.
+
+The UI must support conversion: - USD → UZS. - UZS → USD.
+
+Admin must be able to choose the direction when converting prices.
+
+------------------------------------------------------------------------
+
+15. PREMIUM SYSTEM
+
+There are exactly 4 Premium plans.
+
+Correct names:
+
+1.  Plus
+2.  Prime
+3.  Pro
+4.  Enterprise
+
+Monthly plans
+
+  Plan           Websites/Month Badge     Commission   Price UZS    Price USD
+  ------------ ---------------- ------- ------------ ----------- ------------
+  Plus                       10 No              3.0%      20,000   calculated
+  Prime                      20 No              1.0%      40,000   calculated
+  Pro                        30 No              0.5%      60,000   calculated
+  Enterprise                 50 Yes               0%     100,000   calculated
+
+Yearly plans
+
+Yearly pricing should use the requested 25% discount from the
+corresponding monthly total.
+
+The user pays the yearly plan as a recurring monthly installment only if
+a real payment provider supports such a subscription arrangement. Do not
+falsely represent a manually paid yearly plan as automatic recurring
+billing.
+
+Recommended annual price: - Plus: 180,000 UZS/year. - Prime: 360,000
+UZS/year. - Pro: 540,000 UZS/year. - Enterprise: 900,000 UZS/year.
+
+These are 12 × monthly price × 75%.
+
+USD prices must be calculated dynamically from the configured exchange
+rate.
+
+Admin can: - Create plans. - Edit plans. - Disable/enable plans. - Edit
+prices. - Edit commission. - Edit website limits. - Edit badge. -
+Configure yearly discount. - Configure trial. - Configure refund policy.
+
+Do not create 10 plans.
+
+------------------------------------------------------------------------
+
+16. PREMIUM TRIAL
+
+Trial functionality may be enabled by Admin.
+
+Rules: - Trial can only be used according to configured eligibility. -
+Card requirement must not be falsely claimed unless the selected payment
+provider supports it. - User receives a notification before trial
+expiration. - Trial usage is stored in backend.json.
+
+Premium badge: - Badge image: frontend/assets/image/galochka.png. -
+Display according to the selected plan configuration. - Do not hard-code
+the badge to an unrelated plan.
+
+------------------------------------------------------------------------
+
+17. TELEGRAM BOT
+
+Telegram is used for:
+
+Verification
+
+-   Registration code.
+-   Recovery code.
+
+Notifications
+
+-   Login/security notification.
+-   New buyer alert.
+-   Payment received.
+-   Transfer request.
+-   Website verification.
+-   Sale completed.
+-   Dispute.
+-   Refund.
+-   Promotion.
+-   Important admin/system announcements.
+
+Telegram must not be the primary storage.
+
+Bot menu
+
+Reply keyboard: - Wallet. - Profile. - Support.
+
+Wallet: - Nickname. - Phone. - Telegram ID. - Telegram username. -
+WebShop ID. - AWC balance.
+
+Top-Up: - Show currently active payment card/method configured by Admin.
+
+Profile: - Phone. - Telegram ID. - Telegram username. - WebShop ID. -
+Nickname. - AWC balance. - Verification status. - Rating. - Join date.
+
+Support: Allow users to send a support message to the Admin/support
+system.
+
+------------------------------------------------------------------------
+
+18. FORCE SUBSCRIBE
+
+Admin can manage mandatory Telegram channels.
+
+Fields: - Channel ID. - Channel name. - Channel link. - Status.
+
+Bot checks whether a user is subscribed before allowing protected bot
+actions.
+
+Admin: - Add. - Edit. - Delete. - Enable/disable channels.
+
+Store subscription checks in backend.json only when necessary for
+tracking.
+
+------------------------------------------------------------------------
+
+19. ADMIN PANEL
+
+Admin panel must be functional, not just visual.
+
+Dashboard
+
+-   Statistics.
+-   Charts.
+-   Users.
+-   Websites.
+-   Orders.
+-   Transactions.
+-   Escrow.
+-   Revenue.
+-   AWC circulation.
+-   System status.
+-   Activity logs.
+
+Users
+
+-   Search.
+-   View.
+-   Block.
+-   Unblock.
+-   Soft delete.
+-   Restore.
+-   Delete permanently where authorized.
+-   Badge assignment.
+-   User details.
+
+Admin Rights
+
+-   Admin list.
+-   Permission toggles.
+-   Unique admin code.
+-   Collaborator management.
+
+Use role-based permissions instead of giving every admin unrestricted
+access.
+
+Suggested roles: - Super Admin. - Admin. - Moderator.
+
+Escrow
+
+-   View all.
+-   Check.
+-   Approve.
+-   Reject.
+-   Change status.
+-   Add admin notes.
+-   Resolve disputes.
+
+Reports
+
+-   Reports table.
+-   Period comparison.
+-   Export to CSV/Excel when implemented.
+
+Promocodes
+
+-   Add.
+-   Edit.
+-   Delete.
+-   Usage tracking.
+-   Expiration.
+-   Usage limits.
+
+Discounts
+
+Target: - New users. - Existing users. - All users. - Selected users.
+
+Website topics: - AI. - Online Shop. - 3D Game. - Other topics.
+
+Discount: - Percentage. - Fixed AWC.
+
+Display original price crossed out when applicable.
+
+Prices
+
+Admin can edit: - Listing fee. - Commission. - Escrow fee. - AWC
+value. - Exchange-rate fallback. - Premium prices. - Rewarded ad
+requirement. - Cashback. - Other platform pricing.
+
+Events
+
+-   Six-page rotating event area.
+-   Auto-scroll every 5 seconds.
+-   Page 6 returns to Page 1.
+-   Add/Edit/Delete.
+-   Adding a new event removes the oldest when the configured limit is
+    reached (FIFO).
+
+Announcements
+
+Targets: - Admins. - Users. - Collaborators.
+
+Support scheduled announcements.
+
+Orders
+
+-   View.
+-   Create special order.
+-   Delete where authorized.
+-   Special orders can appear on the main page with a Recommended badge.
+
+Themes
+
+-   View themes.
+-   Website/theme statistics.
+-   Add/Edit/Delete.
+
+Ads
+
+-   Add/Edit/Delete.
+-   Ad block ID.
+-   Rewarded-ad configuration.
+
+Payment Methods
+
+Current system: - Manual card payment.
+
+Admin can: - Add payment method. - Edit. - Delete. - Enable/disable.
+
+Future API fields may include: - Provider. - Merchant ID. - API key
+placeholder. - API endpoint. - Status.
+
+Do not enable future APIs automatically.
+
+Notifications / Notes
+
+-   Admin notes.
+-   Date/time.
+-   Delete.
+-   User/system notifications.
+
+Domain/Word Restrictions
+
+Banned words
+
+Admin can manage words.
+
+Default examples: - porn - porno - bet - 1x - xx
+
+Do not automatically block a legitimate website merely because an
+unrelated word appears in a description without applying a reasonable
+moderation rule.
+
+Unsalable domains
+
+Admin can manage domains.
+
+Default examples from the original specification: - google - github -
+chatgpt - deepseek
+
+Use domain matching carefully and allow Admin to modify this list.
+
+Withdrawals
+
+-   Pending.
+-   Approve.
+-   Reject.
+-   Check.
+-   Approved history.
+-   Rejected history.
+-   Statistics.
+
+Cards
+
+Admin can manage payment cards: - Card number. - Owner. - Bank. -
+Type. - Expiry. - Status. - Default.
+
+Never expose private card data to unauthorized users.
+
+Environment
+
+Special restricted area for authorized government/bank-related users as
+originally specified.
+
+Access: - ID. - Access code.
+
+Admin: - Add/Edit/Delete. - View ratings/statistics.
+
+Store access codes securely rather than as plain passwords.
+
+Export / Import
+
+Supported data: - Users. - Websites. - Orders. - Transactions.
+
+Formats: - CSV. - Excel when implemented.
+
+Validate imported data before writing it to backend.json.
+
+Backup / Restore
+
+Backup: - backend.json. - Uploaded website-related files where
+applicable.
+
+Support: - Manual backup. - Restore. - Scheduled backup.
+
+Schedules: - Daily. - Weekly. - Monthly.
+
+Never overwrite the current data without confirmation.
+
+Security
+
+-   Rate limiting.
+-   IP blocking.
+-   CAPTCHA configuration.
+-   Login attempt tracking.
+-   Suspicious activity detection.
+-   Password policy.
+-   Fraud detection.
+-   Session management.
+-   Security logs.
+
+Hacking/Suspicious Activity
+
+Use the section for defensive monitoring only: - Suspicious requests. -
+Failed login patterns. - Abnormal transactions. - Block. - Report. -
+Notify.
+
+Do not include offensive hacking tools.
+
+Settings
+
+-   Site name.
+-   Logo.
+-   Favicon.
+-   Contact information.
+-   Social links.
+-   Footer text.
+-   Default language.
+-   Default currency.
+-   Tax/invoice settings.
+
+Analytics
+
+-   Google Analytics ID/configuration.
+-   Optional custom scripts.
+-   Optional pixel configuration.
+-   A/B testing configuration.
+
+Do not execute arbitrary scripts without Admin authorization and
+validation.
+
+Telegram Settings
+
+-   Bot token placeholder.
+-   Channel configuration.
+-   Message templates.
+-   Enable/disable.
+-   Test bot.
+
+SEO
+
+-   Meta title.
+-   Description.
+-   Keywords.
+-   Sitemap.
+-   Robots.txt.
+-   Canonical tags.
+-   Short links.
+
+PWA
+
+Only include PWA settings if the service worker and manifest are
+actually implemented.
+
+Logs
+
+-   Error logs.
+-   Request logs.
+-   Admin logs.
+-   Login logs.
+-   Date filters.
+-   Export.
+
+Maintenance
+
+-   Enable/disable.
+-   Message.
+-   Start/end time.
+-   Whitelisted access.
+
+Reviews
+
+-   View.
+-   Approve.
+-   Delete.
+-   Average rating.
+
+Featured Websites
+
+-   Add.
+-   Edit.
+-   Delete.
+-   Show/hide on homepage.
+
+Todo
+
+-   Add.
+-   Complete.
+-   Delete.
+
+Contact Messages
+
+-   View.
+-   Read/unread.
+-   Reply.
+-   Delete.
+
+Attachments
+
+-   Upload.
+-   View.
+-   Delete.
+
+Invoice
+
+-   Generate invoice.
+-   View.
+-   Download PDF if PDF generation is actually implemented.
+
+Popup Notifications
+
+-   Add.
+-   Edit.
+-   Delete.
+-   Page targeting.
+-   Start/end time.
+
+Stock Manager
+
+Website listing status: - Active. - Sold. - Pending.
+
+Display counts.
+
+Badge Manager
+
+-   Add.
+-   Edit.
+-   Delete.
+-   Assign to user.
+
+Live Chat
+
+-   View chats.
+-   Online/offline.
+-   Reply.
+-   Close.
+
+If real-time chat is not implemented, provide a normal message system
+instead of a fake real-time status.
+
+Schedule
+
+Scheduled task types: - Announcement. - Note. - Backup. - Discount.
+
+Store: - Type. - Date/time. - Note. - Status.
+
+------------------------------------------------------------------------
+
+20. ADMIN CONSOLE
+
+Terminal/CMD-style Admin Console.
+
+Open/close: - Press the backtick key: `.
+
+Features: - Auto-complete. - Maximum 3 suggestions. - Up/Down arrow
+navigation. - Command history stored only in the current session. -
+Resizable panel. - Minimize/maximize. - Clear. - Exit. - Confirmation
+prompts.
+
+Colors: - Red = error. - Green = success. - Yellow =
+warning/confirmation.
+
+Commands:
+
+    help
+    users
+    websites
+    escrow
+    payments
+    withdraw
+    promocodes
+    discount
+    events
+    announce
+    orders
+    themes
+    ads
+    settings
+    backup
+    export
+    import
+    security
+    analytics
+    logs
+    maintenance
+    reviews
+    featured
+    todo
+    messages
+    invoice
+    popup
+    stock
+    badge
+    chat
+    schedule
+    cards
+    environment
+    premium
+    force-subscribe
+    clear
+    exit
+
+ID syntax: - id. = single/last item. - id, = multiple items.
+
+All dangerous commands require confirmation: Y/N.
+
+Console must enforce admin permissions on the backend. Hiding a console
+in the frontend is not security.
+
+------------------------------------------------------------------------
+
+21. FRONTEND PAGES
+
+Login
+
+-   Nickname.
+-   Password.
+-   Login.
+-   Recover Account.
+
+Do not show Google OAuth.
+
+Register
+
+-   Telegram username.
+-   Phone.
+-   Telegram ID.
+-   Verification.
+-   Nickname.
+-   Password.
+
+Main
+
+-   Notifications.
+-   Events.
+-   Latest message preview.
+-   Theme/dark-mode control.
+-   Recommended websites.
+
+Store
+
+-   Website cards.
+-   Search.
+-   Filter.
+-   Sort.
+-   Pagination.
+-   30 websites per page by default.
+
+Website Detail
+
+-   Image.
+-   Name.
+-   Description.
+-   Price.
+-   Seller.
+-   Rating.
+-   Reviews.
+-   Sale type.
+-   Buy.
+
+Sell
+
+-   Website information.
+-   Price.
+-   Image.
+-   Sale type.
+-   Sell/Cancel.
+
+Wallet
+
+-   AWC balance.
+-   UZS/USD display.
+-   Top-up.
+-   Payment methods.
+-   Transactions.
+-   Withdraw when enabled.
+
+Profile
+
+-   Avatar.
+-   ID.
+-   Nickname.
+-   Rating.
+-   Balance.
+-   Dashboard.
+
+Tabs: - Dashboard. - Orders. - Transactions. - Messages. - Promocodes. -
+Support. - FAQ. - Terms & Privacy. - Settings.
+
+About
+
+Desktop: - Header. - Content. - Footer.
+
+Mobile: - Burger menu.
+
+Content: - Company information. - Mission. - Statistics. - Team. -
+Contact.
+
+------------------------------------------------------------------------
+
+22. KEYBOARD SHORTCUTS
+
+  Key          Action
+  ------------ ----------------------------
+  Enter        Confirm focused action
+  `            Open/close Admin Console
+  Arrow Up     Previous selectable item
+  Arrow Down   Next selectable item
+  Shift + F    Fullscreen mode
+  Esc          Close popup/modal/dropdown
+  Ctrl + S     Focus search
+  Ctrl + N     Open Messages
+  Ctrl + P     Open Profile
+  Shift + S    Open Store
+  Shift + L    Open Sell
+  Shift + W    Open Wallet
+  Shift + ?    Show shortcuts
+
+Shortcuts must not override normal browser behavior when doing so would
+be harmful. For example, avoid breaking browser Save/Print behavior
+unnecessarily.
+
+------------------------------------------------------------------------
+
+23. DATA STRUCTURE
+
+The single backend.json must represent at least:
+
+users
+
+-   id
+-   nickname
+-   passwordHash
+-   telegramUsername
+-   telegramId
+-   phone
+-   email if later enabled
+-   role
+-   balanceAWC
+-   totalSpent
+-   totalEarned
+-   rating
+-   verified
+-   darkMode
+-   language
+-   currency
+-   createdAt
+-   updatedAt
+
+websites
+
+-   webId
+-   orderId
+-   sellerId
+-   name
+-   domain
+-   description
+-   topic
+-   imageUrl
+-   price
+-   priceAWC when applicable
+-   priceUSD
+-   priceUZS
+-   saleType
+-   status
+-   views
+-   createdAt
+-   soldAt
+
+transactions
+
+-   id
+-   userId
+-   type
+-   amountAWC
+-   amountUSD
+-   amountUZS
+-   status
+-   paymentMethod
+-   paymentDetailsReference
+-   description
+-   referenceId
+-   adminNotes
+-   createdAt
+-   updatedAt
+
+escrow
+
+-   id
+-   websiteId
+-   buyerId
+-   sellerId
+-   amount
+-   status
+-   adminNotes
+-   createdAt
+-   updatedAt
+
+premiumSubscriptions
+
+-   id
+-   userId
+-   plan
+-   billingPeriod
+-   status
+-   startDate
+-   endDate
+-   autoRenew
+-   paymentMethod
+-   trialUsed
+-   trialStartDate
+-   trialEndDate
+-   createdAt
+-   updatedAt
+
+premiumPlans
+
+-   id
+-   name
+-   monthlyPriceUZS
+-   yearlyPriceUZS
+-   commission
+-   websitesPerMonth
+-   badge
+-   enabled
+-   features
+
+forceSubscribeChannels
+
+-   id
+-   channelId
+-   channelName
+-   channelLink
+-   status
+-   createdAt
+-   updatedAt
+
+------------------------------------------------------------------------
+
+24. API ENDPOINTS
+
+Authentication
+
+    POST /api/auth/register
+    POST /api/auth/login
+    POST /api/auth/logout
+    POST /api/auth/verify
+    POST /api/auth/forgot-password
+    POST /api/auth/reset-password
+
+No Google OAuth endpoint.
+
+Users
+
+    GET  /api/users/profile
+    PUT  /api/users/profile
+    POST /api/users/avatar
+    GET  /api/users/status
+    GET  /api/users/websites
+    GET  /api/users/transactions
+    GET  /api/users/reviews
+
+Websites
+
+    GET    /api/websites
+    GET    /api/websites/:id
+    POST   /api/websites
+    PUT    /api/websites/:id
+    DELETE /api/websites/:id
+    POST   /api/websites/:id/buy
+    GET    /api/websites/search
+
+Payments
+
+    POST /api/payments/initiate
+    POST /api/payments/submit-proof
+    POST /api/payments/confirm
+    GET  /api/payments/status/:id
+
+Initial payment flow is manual.
+
+Escrow
+
+    POST /api/escrow/transfer
+    POST /api/escrow/verify
+    GET  /api/escrow/status/:id
+    POST /api/escrow/dispute
+    POST /api/escrow/refund
+
+Token
+
+    GET  /api/token/balance
+    POST /api/token/topup
+    POST /api/token/transfer
+    POST /api/token/withdraw
+    GET  /api/token/history
+    GET  /api/token/rate
+
+Premium
+
+    GET  /api/premium/plans
+    POST /api/premium/subscribe
+    POST /api/premium/cancel
+    GET  /api/premium/status
+    POST /api/premium/trial
+
+Admin
+
+    POST /api/admin/verify
+    GET  /api/admin/users
+    GET  /api/admin/websites
+    GET  /api/admin/escrow
+    GET  /api/admin/withdraw
+    POST /api/admin/withdraw/approve
+    POST /api/admin/withdraw/reject
+
+Force Subscribe:
+
+    GET    /api/admin/force-subscribe/channels
+    POST   /api/admin/force-subscribe/channels
+    PUT    /api/admin/force-subscribe/channels/:id
+    DELETE /api/admin/force-subscribe/channels/:id
+
+Admin endpoints must require authenticated admin privileges.
+
+------------------------------------------------------------------------
+
+25. SECURITY
+
+Implement: - Password hashing. - JWT or secure session authentication. -
+Rate limiting. - Login attempt limits. - Input validation. - Output
+escaping. - CSRF protection where applicable. - Secure HTTP headers. -
+Admin permission checks. - Audit logs. - Suspicious transaction
+detection. - IP blocking. - Soft delete. - Secure recovery codes. -
+Secret configuration outside public source. - No direct public access to
+backend.json.
+
+Do not store plain-text passwords.
+
+Do not store API secrets in backend.json if they are sensitive. Use
+server-side environment/configuration instead.
+
+Biometric login and QR login are not required for the current version
+and should not be added as fake features.
+
+------------------------------------------------------------------------
+
+26. RESPONSIVE DESIGN
+
+Breakpoints:
+
+-   Desktop: 1200px+
+-   Laptop: 992px–1199px
+-   Tablet: 768px–991px
+-   Mobile portrait: 576px–767px
+-   Small mobile: 320px–575px
+
+Landscape phones: - Optimize the layout for horizontal orientation. -
+Use the desktop-style layout scaled for the smaller viewport where
+appropriate. - Do not literally change the device into desktop mode. -
+Maintain touch-friendly controls.
+
+Responsive requirements: - Desktop: full functionality. - Laptop:
+optimized spacing. - Tablet: optimized layout and touch targets. -
+Mobile: bottom navigation/burger menu where appropriate. - Small mobile:
+compact layout and typography.
+
+------------------------------------------------------------------------
+
+27. DESIGN SYSTEM
+
+Primary colors:
+
+    Black: #000000
+    White: #FFFFFF
+    Gray: #808080
+    Background: #121214
+    Console success: #00C851
+    Console warning: #FFBB33
+
+Correct text color should be a readable light/dark value depending on
+the selected theme. Do not use the invalid #0000000.
+
+Fonts: - Inter. - Poppins.
+
+Base size: - 16px.
+
+Style: - Minimalist. - Modern. - Clean. - Subtle glassmorphism. -
+Responsive. - Professional marketplace UI.
+
+Dark mode must remain readable and accessible.
+
+------------------------------------------------------------------------
+
+28. LANGUAGES AND CURRENCIES
+
+Languages: - English (default). - Uzbek.
+
+Currencies: - UZS (so’m). - USD.
+
+Use consistent terminology: - so'm for Uzbek currency. - USD for US
+dollars. - AWC for AwebShop Coin.
+
+Language and currency settings are stored per user and can have a
+site-wide default.
+
+------------------------------------------------------------------------
+
+29. FOOTER
+
+Footer text:
+
+© 2026 UPDATE Inc. All Rights Reserved.
+
+Links: - GitHub. - Telegram. - Instagram. - LinkedIn.
+
+Also show: - Help. - About. - Contact. - Quality Services.
+
+Use icons.
+
+Use these configured destinations:
+
+GitHub: https://github.com/ttnaceri/
+
+Telegram: https://t.me/updateDevNews
+
+Instagram: https://www.instagram.com/update.dev26/
+
+LinkedIn: https://www.linkedin.com/in/ttnaceri-fan-506b57431
+
+Footer: Made with ❤️ in Uzbekistan
+
+------------------------------------------------------------------------
+
+30. MARKETPLACE RULE
+
+In this website: - Users and developers can buy websites. - Users and
+developers can sell websites. - Visitors can browse/view websites. -
+Only registered and authenticated users can buy or sell websites.
+
+Clearly distinguish visitor functionality from registered-user
+functionality.
+
+------------------------------------------------------------------------
+
+31. CONTENT MODERATION
+
+The platform must prevent clearly prohibited website listings according
+to Admin-configured moderation rules.
+
+Moderation should check: - Domain. - Website name. - Description. -
+Topic. - Uploaded listing information.
+
+Admin can manage blocked words and domains.
+
+Do not use an overly broad substring filter that causes legitimate
+domains or words to be blocked accidentally.
+
+------------------------------------------------------------------------
+
+32. ERROR HANDLING
+
+Every API must return consistent JSON responses.
+
+Example:
+
+    {
+      "success": false,
+      "message": "Something went wrong.",
+      "code": "ERROR_CODE"
+    }
+
+Successful response:
+
+    {
+      "success": true,
+      "data": {}
+    }
+
+Frontend must show clear user-friendly errors.
+
+Never expose: - Stack traces. - Passwords. - API keys. - Bot tokens. -
+Internal file paths. - Sensitive backend data.
+
+------------------------------------------------------------------------
+
+33. ADMIN AUDIT LOGGING
+
+Record important Admin actions:
+
+-   Login.
+-   User block/unblock.
+-   Website edit/delete.
+-   Payment verification.
+-   Escrow action.
+-   Refund.
+-   Withdrawal approval/rejection.
+-   Premium changes.
+-   Price changes.
+-   Settings changes.
+-   Backup/restore.
+-   Import/export.
+
+Store: - Admin ID. - Action. - Target. - Timestamp. - Relevant metadata.
+
+------------------------------------------------------------------------
+
+34. MANUAL PAYMENT FLOW
+
+Current payment system is manual.
+
+Example flow:
+
+1.  User selects top-up/purchase.
+2.  System shows active Admin-configured payment card.
+3.  User makes payment manually.
+4.  User submits payment confirmation/proof through the supported
+    interface.
+5.  Admin reviews it.
+6.  Admin approves or rejects.
+7.  Transaction status updates.
+8.  AWC or purchase state updates.
+9.  Telegram notification is sent when applicable.
+
+Payment API integration is future functionality.
+
+Do not pretend manual payments are automatically verified.
+
+------------------------------------------------------------------------
+
+35. FUTURE PAYMENT API ARCHITECTURE
+
+Prepare a provider abstraction so future providers can be added without
+rewriting the entire payment system.
+
+Possible providers: - Payme. - Hamkorbank. - Other providers.
+
+Each provider should have: - Name. - Enabled. - API endpoint. - Merchant
+ID. - API key placeholder. - Callback/webhook configuration. -
+Currency. - Status.
+
+Keep all future providers disabled by default.
+
+------------------------------------------------------------------------
+
+36. FILES REMOVED FROM THE ORIGINAL SPECIFICATION
+
+Do NOT create these unnecessary systems from the previous version:
+
+-   PostgreSQL database.
+-   Redis.
+-   SQL migration files.
+-   SQL seed files.
+-   Docker Compose.
+-   Dockerfile.
+-   Shell deployment scripts.
+-   Separate database models.
+-   Duplicate backend.json.
+-   Duplicate root/frontend index files.
+-   Google OAuth files/endpoints.
+-   Google client secret configuration.
+-   Biometric login implementation.
+-   QR login implementation.
+-   Fake real-time chat infrastructure.
+-   Unused testing infrastructure.
+-   Unused PWA configuration if PWA is not implemented.
+-   Unused Flutter/mobile-app files.
+-   Public API secrets.
+-   Production test credentials.
+
+Only add a file when it is required by an actual feature.
+
+------------------------------------------------------------------------
+
+37. IMPLEMENTATION QUALITY RULES
+
+Before finishing:
+
+1.  Check every navigation link.
+2.  Check every button.
+3.  Check every API endpoint.
+4.  Check every backend route.
+5.  Check every frontend API call.
+6.  Check that all persistent data uses data/backend.json.
+7.  Check that there is no PostgreSQL/Redis dependency.
+8.  Check that there are no duplicate files with conflicting purposes.
+9.  Check that Premium has exactly 4 plans.
+10. Check that Premium names are spelled correctly.
+11. Check USD/UZS conversion.
+12. Check manual payment flow.
+13. Check Telegram verification/recovery/notifications.
+14. Check Admin permissions.
+15. Check Admin Console shortcut.
+16. Check responsive desktop/tablet/mobile/landscape behavior.
+17. Check English and Uzbek language switching.
+18. Check UZS/USD switching.
+19. Check security validation.
+20. Check that no secret values are hard-coded.
+21. Check that removed features do not leave dead UI or dead API routes.
+22. Do not claim completion until the implementation is actually
+    functional.
+
+------------------------------------------------------------------------
+
+38. FINAL REQUIREMENT
+
+Build AWebShop as a lightweight, maintainable website marketplace.
+
+The architecture must prioritize: - Simplicity. - Security. - Real
+functionality. - One personal JSON backend. - Vanilla Node.js. - Vanilla
+HTML/CSS/JS. - Clear separation between frontend and backend. - Easy
+future API integrations. - Functional Admin panel. - Functional Telegram
+verification/recovery/notifications. - Manual payments now, automated
+payment APIs later. - Exactly 4 Premium plans. - Dynamic USD/UZS
+conversion. - Responsive design. - English + Uzbek. - UZS + USD.
+
+Do not add technologies or files merely to make the project look more
+advanced. If a feature is not required, remove it. If two existing
+features are disconnected but can logically be integrated, connect them
+instead of duplicating the system.
+
+The result must be a coherent, production-oriented AWebShop architecture
+rather than a collection of unrelated pages and APIs.
+
+END OF PROMPT

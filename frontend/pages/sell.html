@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1"/>
+<title>Sell — AWebShop</title>
+<link rel="stylesheet" href="../css/main.css"/>
+<link rel="stylesheet" href="../css/responsive.css"/>
+</head>
+<body class="aw-body">
+<div id="aw-header"></div>
+
+<main class="aw-page">
+  <h1>List your website</h1>
+  <p class="aw-muted">Listing fee: <strong id="fee-label">10,000 so'm</strong></p>
+
+  <form id="sell-form" class="aw-form aw-form-narrow">
+    <label>
+      <span>Website Name</span>
+      <input type="text" id="name" maxlength="100" required/>
+    </label>
+
+    <label>
+      <span>Domain (www. optional)</span>
+      <input type="text" id="domain" placeholder="example.com" required/>
+    </label>
+
+    <label>
+      <span>Topic</span>
+      <select id="topic" required>
+        <option value="AI">AI</option>
+        <option value="Online Shop">Online Shop</option>
+        <option value="3D Game">3D Game</option>
+        <option value="Other">Other</option>
+      </select>
+    </label>
+
+    <label>
+      <span>Description <small class="aw-muted">(max 200 chars, spaces not counted)</small></span>
+      <textarea id="description" rows="4" required></textarea>
+      <small id="desc-count" class="aw-muted">0 / 200</small>
+    </label>
+
+    <label>
+      <span>Image URL (optional)</span>
+      <input type="url" id="imageUrl" placeholder="https://..."/>
+    </label>
+
+    <label>
+      <span>Price (UZS)</span>
+      <input type="number" id="price" min="1000" step="1000" required/>
+    </label>
+
+    <label>
+      <span>Sale Type</span>
+      <select id="saleType" required>
+        <option value="safe">Safe (escrow, admin holds funds)</option>
+        <option value="fast">Fast (direct to seller)</option>
+      </select>
+    </label>
+
+    <div class="aw-form-error" id="form-error" hidden></div>
+
+    <div class="aw-form-actions">
+      <button type="submit" class="aw-btn aw-btn-primary">Sell</button>
+      <button type="reset" class="aw-btn aw-btn-ghost">Cancel</button>
+    </div>
+  </form>
+</main>
+
+<div id="aw-footer"></div>
+
+<script src="../js/api.js"></script>
+<script src="../js/app.js"></script>
+<script src="../js/auth.js"></script>
+<script src="../js/validation.js"></script>
+<script src="../components/header.js"></script>
+<script src="../components/footer.js"></script>
+<script src="../components/modals.js"></script>
+<script src="../js/shortcuts.js"></script>
+
+<script>
+(async () => {
+  await loadRates();
+  await Auth.load();
+  if (!Auth.requireLogin('sell.html')) return;
+
+  document.getElementById('fee-label').textContent = fmtUZS(10000);
+
+  const desc = document.getElementById('description');
+  const count = document.getElementById('desc-count');
+  desc.addEventListener('input', () => {
+    const n = Validators.descLength(desc.value);
+    count.textContent = n + ' / 200';
+    count.style.color = n > 200 ? '#ff6b6b' : '';
+  });
+
+  const form = document.getElementById('sell-form');
+  const errBox = document.getElementById('form-error');
+
+  form.addEventListener('submit', async e => {
+    e.preventDefault();
+    errBox.hidden = true;
+
+    const payload = {
+      name: form.name.value.trim(),
+      domain: form.domain.value.trim(),
+      topic: form.topic.value,
+      description: desc.value.trim(),
+      imageUrl: form.imageUrl.value.trim(),
+      price: Number(form.price.value),
+      saleType: form.saleType.value
+    };
+
+    if (Validators.descLength(payload.description) > 200) return fail('Description exceeds 200 characters (spaces not counted).');
+    if (!Validators.domain(payload.domain)) return fail('Invalid domain.');
+    if (!payload.price || payload.price < 1000) return fail('Price must be at least 1000 UZS.');
+
+    const btn = form.querySelector('button[type=submit]');
+    btn.disabled = true; btn.textContent = 'Submitting…';
+
+    const res = await API.createWebsite(payload);
+    btn.disabled = false; btn.textContent = 'Sell';
+
+    if (res.success) {
+      toast('Listed! Web ID: ' + res.data.website.webId, 'success', 5000);
+      setTimeout(() => location.href = 'website-detail.html?id=' + res.data.website.webId, 800);
+    } else fail(res.message || 'Failed');
+
+    function fail(m) { errBox.textContent = m; errBox.hidden = false; }
+  });
+})();
+</script>
+</body>
+</html>

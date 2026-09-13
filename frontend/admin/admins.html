@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="UTF-8"/><meta name="viewport" content="width=device-width, initial-scale=1"/>
+<title>Admins — Admin</title>
+<link rel="stylesheet" href="../css/main.css"/><link rel="stylesheet" href="../css/admin.css"/>
+<link rel="stylesheet" href="../css/console.css"/><link rel="stylesheet" href="../css/responsive.css"/></head>
+<body class="admin-body">
+<aside id="admin-sidebar" class="admin-sidebar"></aside>
+<div class="admin-main">
+  <header id="admin-topbar" class="admin-topbar"></header>
+  <div class="admin-content"><p id="admin-subtitle" class="admin-sub"></p></div>
+</div>
+
+(async () => {
+  await loadRates();
+  if (!(await Admin.requireAdmin())) return;
+  adminPage('Admins', 'Roles and permissions');
+
+  const content = document.querySelector('.admin-content');
+  content.insertAdjacentHTML('beforeend', `
+    <div class="admin-toolbar">
+      <input id="ad-user" placeholder="User ID (9-digit)"/>
+      <select id="ad-role">
+        <option value="moderator">Moderator</option>
+        <option value="admin">Admin</option>
+        <option value="super_admin">Super Admin</option>
+      </select>
+      <button class="aw-btn aw-btn-primary" id="ad-add">Add admin</button>
+      <button class="aw-btn aw-btn-ghost" id="ad-refresh">Refresh</button>
+    </div>
+    <div id="ad-host"></div>
+  `);
+
+  async function load() {
+    const r = await API.adminGet('admins');
+    if (!r.success) return;
+    renderTable(document.getElementById('ad-host'),
+      [
+        { label: 'Admin ID', render: x => `<code>${esc(x.id)}</code>` },
+        { label: 'User ID', render: x => esc(x.userId) },
+        { label: 'Role', render: x => `<span class="admin-role-pill">${esc(x.role)}</span>` },
+        { label: 'Code', render: x => `<code>${esc(x.code || '—')}</code>` },
+        { label: 'Status', render: x => x.disabled ? statusPill('cancelled') : statusPill('active') },
+        { label: 'Actions', render: x => `
+          <div class="admin-actions">
+            <button class="admin-btn-sm bad" data-del="${esc(x.id)}">Remove</button>
+          </div>
+        ` }
+      ], r.data.items, { emptyText: 'No admins yet.' }
+    );
+    document.querySelectorAll('button[data-del]').forEach(b => {
+      b.addEventListener('click', async () => {
+        if (!(await confirmModal('Remove admin?', 'This admin will lose access.'))) return;
+        await API.adminDelete('admins', { id: b.dataset.del });
+        load();
+      });
+    });
+  }
+
+  document.getElementById('ad-add').addEventListener('click', async () => {
+    const userId = document.getElementById('ad-user').value.trim();
+    const role = document.getElementById('ad-role').value;
+    if (!userId) return toast('Enter a user ID.', 'error');
+    const r = await API.adminPost('admins', { userId, role });
+    if (r.success) { toast('Added.', 'success'); document.getElementById('ad-user').value = ''; load(); }
+    else toast(r.message, 'error');
+  });
+  document.getElementById('ad-refresh').addEventListener('click', load);
+  load();
+})();
+</script>
+<script src="../js/api.js"></script>
+<script src="../js/app.js"></script>
+<script src="../js/auth.js"></script>
+<script src="../js/admin.js"></script>
+<script src="../components/modals.js"></script>
+<script src="../components/charts.js"></script>
+<script src="../components/admin-console.js"></script>
+</body></html>

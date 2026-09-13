@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="UTF-8"/><meta name="viewport" content="width=device-width, initial-scale=1"/>
+<title>Announcements — Admin</title>
+<link rel="stylesheet" href="../css/main.css"/><link rel="stylesheet" href="../css/admin.css"/>
+<link rel="stylesheet" href="../css/console.css"/><link rel="stylesheet" href="../css/responsive.css"/></head>
+<body class="admin-body">
+<aside id="admin-sidebar" class="admin-sidebar"></aside>
+<div class="admin-main">
+  <header id="admin-topbar" class="admin-topbar"></header>
+  <div class="admin-content"><p id="admin-subtitle" class="admin-sub"></p></div>
+</div>
+<script src="../js/api.js"></script><script src="../js/app.js"></script><script src="../js/auth.js"></script>
+<script src="../js/admin.js"></script><script src="../components/modals.js"></script><script src="../components/admin-console.js"></script>
+<script>
+(async () => {
+  await loadRates();
+  if (!(await Admin.requireAdmin())) return;
+
+  adminPage('Announcements', 'Broadcast messages to selected groups');
+
+  const content = document.querySelector('.admin-content');
+  content.insertAdjacentHTML('beforeend', `
+    <div class="admin-toolbar">
+      <button class="aw-btn aw-btn-primary" id="new-ann">+ New announcement</button>
+      <button class="aw-btn aw-btn-ghost" id="refresh-ann">Refresh</button>
+    </div>
+    <div id="ann-host"></div>
+  `);
+
+  let items = [];
+  async function load() {
+    const r = await API.adminGet('announcements');
+    if (!r.success) return;
+    items = r.data.items;
+    renderAnn();
+  }
+  function renderAnn() {
+    renderTable(document.getElementById('ann-host'),
+      [
+        { label: 'Title', render: r => esc(r.title) },
+        { label: 'Target', render: r => esc(r.target) },
+        { label: 'Status', render: r => statusPill(r.status === 'published' ? 'active' : 'pending') },
+        { label: 'Scheduled', render: r => r.scheduledAt ? fmtDateShort(r.scheduledAt) : '—' },
+        { label: 'Created', render: r => fmtDateShort(r.createdAt) },
+        { label: 'Actions', render: r => `<button class="admin-btn-sm bad" data-id="${esc(r.id)}">Delete</button>` }
+      ], items, { emptyText: 'No announcements.' }
+    );
+    document.querySelectorAll('#ann-host button[data-id]').forEach(b => {
+      b.addEventListener('click', async () => {
+        if (!(await confirmModal('Delete?', 'Remove this announcement?'))) return;
+        await API.adminDelete('announcements', { id: b.dataset.id });
+        load();
+      });
+    });
+  }
+  document.getElementById('new-ann').addEventListener('click', () => {
+    openModal({
+      title: 'New announcement',
+      body: `
+        <div class="aw-form">
+          <label><span>Title</span><input id="a-title"/></label>
+          <label><span>Body</span><textarea id="a-body" rows="5"></textarea></label>
+          <label><span>Target</span>
+            <select id="a-target">
+              <option value="users">Users</option>
+              <option value="admins">Admins</option>
+              <option value="collaborators">Collaborators</option>
+            </select>
+          </label>
+          <label><span>Scheduled at (ISO, optional)</span><input id="a-sched"/></label>
+        </div>
+      `,
+      actions: [
+        { label: 'Cancel', className: 'aw-btn-ghost', onClick: () => closeModal() },
+        { label: 'Create', className: 'aw-btn-primary', onClick: async () => {
+          const r = await API.adminPost('announcements', {
+            title: document.getElementById('a-title').value,
+            body: document.getElementById('a-body').value,
+            target: document.getElementById('a-target').value,
+            scheduledAt: document.getElementById('a-sched').value || null
+          });
+          if (r.success) { toast('Created.', 'success'); closeModal(); load(); }
+          else toast(r.message, 'error');
+        }}
+      ]
+    });
+  });
+  document.getElementById('refresh-ann').addEventListener('click', load);
+  load();
+})();
+</script>
+</body></html>

@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1"/>
+<title>About — AWebShop</title>
+<link rel="stylesheet" href="../css/main.css"/>
+<link rel="stylesheet" href="../css/responsive.css"/>
+</head>
+<body class="aw-body">
+<div id="aw-header"></div>
+
+<main class="aw-page">
+  <section class="aw-about-hero">
+    <h1>About AWebShop</h1>
+    <p class="aw-muted">The marketplace for buying and selling real, functional websites.</p>
+  </section>
+
+  <section class="aw-section">
+    <h2>Our mission</h2>
+    <p>Give developers and businesses a simple, safe, and transparent place to trade complete websites. Escrow-protected Safe deals and direct Fast deals. Powered by AWC — AwebShop Coin.</p>
+  </section>
+
+  <section class="aw-section">
+    <h2>By the numbers</h2>
+    <div class="aw-stats">
+      <div class="aw-stat"><div class="aw-stat-num" id="s-users">—</div><div>Users</div></div>
+      <div class="aw-stat"><div class="aw-stat-num" id="s-websites">—</div><div>Websites</div></div>
+      <div class="aw-stat"><div class="aw-stat-num" id="s-orders">—</div><div>Orders</div></div>
+    </div>
+  </section>
+
+  <section class="aw-section" id="team">
+    <h2>Team</h2>
+    <p class="aw-muted">Built with ❤️ in Uzbekistan by UPDATE Inc.</p>
+  </section>
+
+  <section class="aw-section" id="contact">
+    <h2>Contact</h2>
+    <ul>
+      <li>GitHub: <a href="https://github.com/ttnaceri/" target="_blank" rel="noopener">github.com/ttnaceri</a></li>
+      <li>Telegram: <a href="https://t.me/updateDevNews" target="_blank" rel="noopener">t.me/updateDevNews</a></li>
+      <li>Instagram: <a href="https://www.instagram.com/update.dev26/" target="_blank" rel="noopener">@update.dev26</a></li>
+      <li>LinkedIn: <a href="https://www.linkedin.com/in/ttnaceri-fan-506b57431" target="_blank" rel="noopener">ttnaceri-fan</a></li>
+    </ul>
+  </section>
+
+  <section class="aw-section" id="help">
+    <h2>Help</h2>
+    <p class="aw-muted">For help, message us on Telegram or use Profile → Support.</p>
+  </section>
+
+  <section class="aw-section" id="quality">
+    <h2>Quality Services</h2>
+    <p class="aw-muted">Every listing is moderated. Safe deals are escrow-protected and manually verified by admins.</p>
+  </section>
+</main>
+
+<div id="aw-footer"></div>
+
+<script src="../js/api.js"></script>
+<script src="../js/app.js"></script>
+<script src="../js/auth.js"></script>
+<script src="../components/header.js"></script>
+<script src="../components/footer.js"></script>
+<script src="../js/shortcuts.js"></script>
+
+<script>
+(async () => {
+  await loadRates();
+  const r = await API.listWebsites({ page: 1, perPage: 1 });
+  if (r.success) {
+    document.getElementById('s-websites').textContent = r.data.total;
+  }
+  document.getElementById('s-users').textContent = '—';
+  document.getElementById('s-orders').textContent = '—';
+})();
+</script>
+</body>
+</html>

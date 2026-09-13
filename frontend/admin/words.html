@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="UTF-8"/><meta name="viewport" content="width=device-width, initial-scale=1"/>
+<title>Banned words & domains — Admin</title>
+<link rel="stylesheet" href="../css/main.css"/><link rel="stylesheet" href="../css/admin.css"/>
+<link rel="stylesheet" href="../css/console.css"/><link rel="stylesheet" href="../css/responsive.css"/></head>
+<body class="admin-body">
+<aside id="admin-sidebar" class="admin-sidebar"></aside>
+<div class="admin-main">
+  <header id="admin-topbar" class="admin-topbar"></header>
+  <div class="admin-content"><p id="admin-subtitle" class="admin-sub"></p></div>
+</div>
+<script src="../js/api.js"></script><script src="../js/app.js"></script><script src="../js/auth.js"></script>
+<script src="../js/admin.js"></script><script src="../components/admin-console.js"></script>
+<script>
+(async () => {
+  await loadRates();
+  if (!(await Admin.requireAdmin())) return;
+  adminPage('Banned Words & Domains', 'Moderation lists');
+
+  const content = document.querySelector('.admin-content');
+  content.insertAdjacentHTML('beforeend', `
+    <div class="admin-grid-2">
+      <div class="admin-card">
+        <h3>Banned words</h3>
+        <p class="aw-muted">One per line. Matched as full words (word-boundary), not substrings.</p>
+        <textarea id="bw-words" rows="8" style="width:100%;background:var(--card);color:var(--text);border:1px solid var(--border);border-radius:10px;padding:10px;font-family:inherit"></textarea>
+      </div>
+      <div class="admin-card">
+        <h3>Unsalable domains</h3>
+        <p class="aw-muted">One per line. Matches domain, subdomain, and prefix.</p>
+        <textarea id="bw-domains" rows="8" style="width:100%;background:var(--card);color:var(--text);border:1px solid var(--border);border-radius:10px;padding:10px;font-family:inherit"></textarea>
+      </div>
+    </div>
+    <button class="aw-btn aw-btn-primary" id="bw-save">Save</button>
+  `);
+
+  const r = await API.adminGet('words');
+  if (r.success) {
+    document.getElementById('bw-words').value = (r.data.words || []).join('\\n');
+    document.getElementById('bw-domains').value = (r.data.domains || []).join('\\n');
+  }
+
+  document.getElementById('bw-save').addEventListener('click', async () => {
+    const words = document.getElementById('bw-words').value.split(/\\r?\\n/).map(s => s.trim()).filter(Boolean);
+    const domains = document.getElementById('bw-domains').value.split(/\\r?\\n/).map(s => s.trim()).filter(Boolean);
+    const res = await API.adminPut('words', { words, domains });
+    if (res.success) toast('Saved.', 'success');
+    else toast(res.message, 'error');
+  });
+})();
+</script>
+</body></html>

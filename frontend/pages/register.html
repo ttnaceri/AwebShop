@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1"/>
+<title>Register — AWebShop</title>
+<link rel="stylesheet" href="../css/main.css"/>
+<link rel="stylesheet" href="../css/responsive.css"/>
+</head>
+<body class="aw-body">
+<div id="aw-header"></div>
+
+<main class="aw-page aw-auth-page">
+  <div class="aw-auth-card aw-auth-card-wide">
+    <h1>Create your account</h1>
+    <p class="aw-muted">Verification via Telegram. No Google OAuth.</p>
+
+    <form id="reg-form" class="aw-form" autocomplete="off">
+      <div class="aw-form-row">
+        <label>
+          <span>Telegram username</span>
+          <input type="text" id="tg-username" placeholder="@username" required/>
+        </label>
+        <label>
+          <span>Telegram ID</span>
+          <input type="text" id="tg-id" placeholder="123456789" required/>
+        </label>
+      </div>
+
+      <div class="aw-form-row">
+        <label>
+          <span>Phone number</span>
+          <input type="text" id="phone" placeholder="+998901234567" required/>
+        </label>
+        <label>
+          <span>Verification code</span>
+          <div class="aw-inline">
+            <input type="text" id="code" placeholder="6 digits" maxlength="6" required/>
+            <button type="button" class="aw-btn aw-btn-ghost" id="send-code">Send code</button>
+          </div>
+        </label>
+      </div>
+
+      <div class="aw-form-row">
+        <label>
+          <span>Nickname</span>
+          <input type="text" id="nickname" placeholder="unique_nickname" required/>
+        </label>
+        <label>
+          <span>Password</span>
+          <input type="password" id="password" required/>
+        </label>
+      </div>
+
+      <div class="aw-form-error" id="form-error" hidden></div>
+      <button type="submit" class="aw-btn aw-btn-primary aw-btn-block">Create account</button>
+    </form>
+
+    <div class="aw-auth-links">
+      <a href="login.html">I already have an account</a>
+    </div>
+  </div>
+</main>
+
+<div id="aw-footer"></div>
+
+<script src="../js/api.js"></script>
+<script src="../js/app.js"></script>
+<script src="../js/auth.js"></script>
+<script src="../js/validation.js"></script>
+<script src="../components/header.js"></script>
+<script src="../components/footer.js"></script>
+<script src="../components/modals.js"></script>
+
+<script>
+(async () => {
+  await loadRates();
+
+  const form = document.getElementById('reg-form');
+  const errBox = document.getElementById('form-error');
+  const showErr = m => { errBox.textContent = m; errBox.hidden = false; };
+  const hideErr = () => { errBox.hidden = true; };
+
+  document.getElementById('send-code').addEventListener('click', async () => {
+    hideErr();
+    const telegramUsername = document.getElementById('tg-username').value.trim();
+    const telegramId = document.getElementById('tg-id').value.trim();
+    if (!Validators.telegramUsername(telegramUsername)) return showErr('Invalid Telegram username.');
+    if (!Validators.telegramId(telegramId)) return showErr('Telegram ID must be numeric (5-15 digits).');
+
+    const btn = document.getElementById('send-code');
+    btn.disabled = true; btn.textContent = 'Sending…';
+
+    const res = await API.requestVerification({ telegramUsername, telegramId });
+    btn.disabled = false; btn.textContent = 'Send code';
+
+    if (res.success) {
+      toast('Code sent via Telegram.', 'success');
+      if (res.data.debugCode) {
+        toast('DEV code: ' + res.data.debugCode, 'warn', 10000);
+      }
+    } else showErr(res.message);
+  });
+
+  form.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    hideErr();
+
+    const payload = {
+      telegramUsername: document.getElementById('tg-username').value.trim(),
+      telegramId: document.getElementById('tg-id').value.trim(),
+      phone: document.getElementById('phone').value.trim(),
+      code: document.getElementById('code').value.trim(),
+      nickname: document.getElementById('nickname').value.trim(),
+      password: document.getElementById('password').value
+    };
+
+    if (!Validators.telegramUsername(payload.telegramUsername)) return showErr('Invalid Telegram username.');
+    if (!Validators.telegramId(payload.telegramId)) return showErr('Invalid Telegram ID.');
+    if (!Validators.phone(payload.phone)) return showErr('Invalid phone number.');
+    if (!Validators.code(payload.code)) return showErr('Verification code must be 6 digits.');
+    if (!Validators.nickname(payload.nickname)) return showErr('Invalid nickname (3-20 chars).');
+    if (!Validators.password(payload.password)) return showErr('Password must be at least 8 characters.');
+
+    const btn = form.querySelector('button[type=submit]');
+    btn.disabled = true; btn.textContent = 'Creating…';
+
+    const res = await API.register(payload);
+    btn.disabled = false; btn.textContent = 'Create account';
+
+    if (res.success) {
+      API.setToken(res.data.token);
+      Auth.user = res.data.user;
+      toast('Welcome, ' + res.data.user.nickname + '!', 'success');
+      setTimeout(() => location.href = 'main.html', 400);
+    } else showErr(res.message);
+  });
+})();
+</script>
+</body>
+</html>

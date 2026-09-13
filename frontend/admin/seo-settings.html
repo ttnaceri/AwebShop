@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="UTF-8"/><meta name="viewport" content="width=device-width, initial-scale=1"/>
+<title>SEO — Admin</title>
+<link rel="stylesheet" href="../css/main.css"/><link rel="stylesheet" href="../css/admin.css"/>
+<link rel="stylesheet" href="../css/console.css"/><link rel="stylesheet" href="../css/responsive.css"/></head>
+<body class="admin-body">
+<aside id="admin-sidebar" class="admin-sidebar"></aside>
+<div class="admin-main">
+  <header id="admin-topbar" class="admin-topbar"></header>
+  <div class="admin-content"><p id="admin-subtitle" class="admin-sub"></p></div>
+</div>
+<script src="../js/api.js"></script><script src="../js/app.js"></script><script src="../js/auth.js"></script>
+<script src="../js/admin.js"></script><script src="../components/admin-console.js"></script>
+<script>
+(async () => {
+  await loadRates();
+  if (!(await Admin.requireAdmin())) return;
+  adminPage('SEO Settings', 'Meta, robots, sitemap configuration');
+
+  const r = await API.adminGet('seo');
+  const s = r.success ? r.data.seo : {};
+
+  const content = document.querySelector('.admin-content');
+  content.insertAdjacentHTML('beforeend', `
+    <div class="admin-card">
+      <div class="aw-form">
+        <label><span>Meta title</span><input id="seo-t" value="${esc(s.metaTitle||'')}"/></label>
+        <label><span>Meta description</span><textarea id="seo-d" rows="2">${esc(s.metaDescription||'')}</textarea></label>
+        <label><span>Meta keywords</span><input id="seo-k" value="${esc(s.metaKeywords||'')}"/></label>
+        <label><span>Canonical base URL</span><input id="seo-c" value="${esc(s.canonicalBase||'')}"/></label>
+        <label><span>robots.txt</span><textarea id="seo-r" rows="4">${esc(s.robotsTxt||'User-agent: *\\nAllow: /')}</textarea></label>
+        <label class="aw-checkbox"><input type="checkbox" id="seo-sm" ${s.sitemapEnabled?'checked':''}/><span>Sitemap enabled</span></label>
+      </div>
+      <button class="aw-btn aw-btn-primary" id="seo-save" style="margin-top:14px">Save</button>
+    </div>
+  `);
+
+  document.getElementById('seo-save').addEventListener('click', async () => {
+    const payload = {
+      metaTitle: document.getElementById('seo-t').value,
+      metaDescription: document.getElementById('seo-d').value,
+      metaKeywords: document.getElementById('seo-k').value,
+      canonicalBase: document.getElementById('seo-c').value,
+      robotsTxt: document.getElementById('seo-r').value,
+      sitemapEnabled: document.getElementById('seo-sm').checked
+    };
+    const r2 = await API.adminPut('seo', payload);
+    if (r2.success) toast('Saved.', 'success');
+    else toast(r2.message, 'error');
+  });
+})();
+</script>
+</body></html>

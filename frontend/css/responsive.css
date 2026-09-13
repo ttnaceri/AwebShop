@@ -1,0 +1,58 @@
+/* AWebShop responsive */
+
+@media (max-width: 1199px) {
+  .aw-grid { grid-template-columns: repeat(3, 1fr); }
+  .aw-grid-plans { grid-template-columns: repeat(2, 1fr); }
+  .aw-footer-grid { grid-template-columns: 1fr 1fr; }
+}
+
+@media (max-width: 991px) {
+  .aw-nav { display: none; }
+  .aw-burger { display: inline-flex; align-items: center; justify-content: center; }
+  .aw-hero { padding: 32px 20px; }
+  .aw-hero-text h1 { font-size: 32px; }
+  .aw-hero-badge { width: 140px; height: 140px; font-size: 26px; }
+  .aw-grid { grid-template-columns: repeat(2, 1fr); }
+  .aw-detail-grid { grid-template-columns: 1fr; }
+  .aw-filters { grid-template-columns: 1fr 1fr; }
+}
+
+@media (max-width: 767px) {
+  .aw-page { padding: 24px 16px 48px; }
+  .aw-hero-text h1 { font-size: 26px; }
+  .aw-hero-actions { width: 100%; }
+  .aw-hero-actions .aw-btn { flex: 1; }
+  .aw-hero-badge { display: none; }
+  .aw-grid { grid-template-columns: 1fr; }
+  .aw-grid-plans { grid-template-columns: 1fr; }
+  .aw-filters { grid-template-columns: 1fr; }
+  .aw-form-row { grid-template-columns: 1fr; }
+  .aw-header-inner { padding: 10px 14px; gap: 8px; }
+  .aw-brand span { display: none; }
+  .aw-user-name { display: none; }
+  .aw-balance-mini { display: none; }
+  .aw-footer-grid { grid-template-columns: 1fr; padding: 24px 16px; }
+  .aw-wallet-top { flex-direction: column; align-items: stretch; }
+  .aw-balance-card { min-width: 0; }
+  .aw-detail-info h1 { font-size: 24px; }
+  .aw-tabs { scrollbar-width: none; }
+  .aw-tabs::-webkit-scrollbar { display: none; }
+  .aw-stats { grid-template-columns: 1fr; }
+}
+
+@media (max-width: 575px) {
+  body.aw-body { font-size: 15px; }
+  h1 { font-size: 24px; }
+  h2 { font-size: 19px; }
+  .aw-auth-card { padding: 22px; }
+  .aw-hero-text h1 { font-size: 22px; }
+  .aw-balance-big { font-size: 28px; }
+  .aw-toast { max-width: 260px; }
+}
+
+/* Landscape mobile */
+@media (max-height: 500px) and (orientation: landscape) {
+  .aw-hero { padding: 20px 16px; }
+  .aw-hero-badge { display: none; }
+  .aw-modal { margin: 2vh auto 0; max-height: 96vh; overflow: auto; }
+}

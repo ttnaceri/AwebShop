@@ -1,0 +1,7 @@
+node_modules/
+config.js
+.env
+*.log
+.DS_Store
+data/backend.json.tmp
+data/backups/

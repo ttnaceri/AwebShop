@@ -1,0 +1,153 @@
+{
+  "users": [
+    {
+      "id": "438945648",
+      "nickname": "superAdmin",
+      "passwordHash": "bf61d60b8e092c1184f71512833ac1ab:385f13349f85931013a26a7b3c3f920459049cd64dd567c0139fb1404ced025bfc2507b8b56721917fc501012cb67e2df3f76e43fadaa31205e2c0d30565ef86",
+      "telegramUsername": "",
+      "telegramId": "6465879965",
+      "phone": "+998950540920",
+      "email": null,
+      "role": "super_admin",
+      "balanceAWC": 0,
+      "totalSpent": 0,
+      "totalEarned": 0,
+      "rating": 0,
+      "verified": true,
+      "darkMode": true,
+      "language": "en",
+      "currency": "UZS",
+      "premiumPlan": null,
+      "premiumExpiresAt": null,
+      "badges": [],
+      "createdAt": "2026-09-13T15:28:05.153Z",
+      "updatedAt": "2026-09-13T15:29:09.267Z",
+      "nicknameUpdatedAt": "2026-09-13T15:28:05.154Z",
+      "deleted": false,
+      "blocked": false
+    }
+  ],
+  "admins": [
+    {
+      "id": "ADMIN",
+      "userId": "999999999",
+      "role": "super_admin",
+      "permissions": {},
+      "disabled": false,
+      "code": "55668576",
+      "createdAt": "2026-09-13T00:00:00.000Z"
+    },
+    {
+      "id": "adm_823ZQ249R9UL",
+      "userId": "438945648",
+      "role": "super_admin",
+      "permissions": {},
+      "disabled": false,
+      "code": "964ba006688a",
+      "createdAt": "2026-09-13T15:28:05.155Z"
+    }
+  ],
+  "websites": [
+    {
+      "webId": "XNWRJ2S",
+      "orderId": "H6YDMLNY2K",
+      "sellerId": "438945648",
+      "name": "Vcoin Payment",
+      "domain": "ttnaceri.github.io",
+      "description": "This is crypto value with their backends.",
+      "descriptionLength": 35,
+      "topic": "Other",
+      "imageUrl": "",
+      "priceUZS": 2350000,
+      "priceUSD": 185.7708,
+      "priceAWC": 235,
+      "saleType": "safe",
+      "status": "active",
+      "views": 2,
+      "rating": 0,
+      "createdAt": "2026-09-13T17:02:14.585Z",
+      "updatedAt": "2026-09-13T17:02:14.585Z",
+      "soldAt": null
+    }
+  ],
+  "orders": [],
+  "transactions": [],
+  "escrows": [],
+  "withdrawals": [],
+  "refunds": [],
+  "premiumSubscriptions": [],
+  "premiumPlans": [],
+  "promocodes": [],
+  "discounts": [],
+  "events": [],
+  "announcements": [],
+  "reviews": [],
+  "messages": [],
+  "notifications": [],
+  "paymentCards": [],
+  "paymentMethods": [],
+  "forceSubscribeChannels": [],
+  "environmentUsers": [],
+  "badges": [],
+  "featuredWebsites": [],
+  "popupNotifications": [],
+  "scheduledTasks": [],
+  "adminLogs": [],
+  "securityLogs": [],
+  "verificationCodes": [],
+  "sessions": [],
+  "loginAttempts": [],
+  "settings": {
+    "siteName": "AWebShop",
+    "logo": "frontend/assets/image/logo.png",
+    "favicon": "frontend/assets/image/favicon.png",
+    "contactEmail": "support@awebshop.example",
+    "footerText": "© 2026 UPDATE Inc. All Rights Reserved.",
+    "defaultLanguage": "en",
+    "defaultCurrency": "UZS",
+    "maintenanceMode": false,
+    "maintenanceMessage": "We'll be back soon.",
+    "awcPriceUZS": 10000,
+    "listingFeeUZS": 10000,
+    "saleCommissionPercent": 5,
+    "escrowFeePercent": 0.4,
+    "cashbackPercent": 1,
+    "premiumCashbackPercent": 3,
+    "referralBonusAWC": 1,
+    "rewardedAdsPerFreeListing": 15,
+    "social": {
+      "github": "https://github.com/ttnaceri/",
+      "telegram": "https://t.me/updateDevNews",
+      "instagram": "https://www.instagram.com/update.dev26/",
+      "linkedin": "https://www.linkedin.com/in/ttnaceri-fan-506b57431"
+    },
+    "moderation": {
+      "bannedWords": [
+        "porn",
+        "porno",
+        "bet",
+        "1x",
+        "xx"
+      ],
+      "unsalableDomains": [
+        "google",
+        "github",
+        "chatgpt",
+        "deepseek"
+      ]
+    },
+    "topics": [
+      "AI",
+      "Online Shop",
+      "3D Game",
+      "Other"
+    ]
+  },
+  "apiConfig": {
+    "exchangeRate": {
+      "lastRate": 12650,
+      "lastUpdated": null,
+      "autoUpdate": true
+    }
+  }
+}

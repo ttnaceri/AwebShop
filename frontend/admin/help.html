@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="UTF-8"/><meta name="viewport" content="width=device-width, initial-scale=1"/>
+<title>Help — Admin</title>
+<link rel="stylesheet" href="../css/main.css"/><link rel="stylesheet" href="../css/admin.css"/>
+<link rel="stylesheet" href="../css/console.css"/><link rel="stylesheet" href="../css/responsive.css"/></head>
+<body class="admin-body">
+<aside id="admin-sidebar" class="admin-sidebar"></aside>
+<div class="admin-main">
+  <header id="admin-topbar" class="admin-topbar"></header>
+  <div class="admin-content"><p id="admin-subtitle" class="admin-sub"></p></div>
+</div>
+<script src="../js/api.js"></script><script src="../js/app.js"></script><script src="../js/auth.js"></script>
+<script src="../js/admin.js"></script><script src="../components/admin-console.js"></script>
+<script>
+(async () => {
+  await loadRates();
+  if (!(await Admin.requireAdmin())) return;
+  adminPage('Help', 'Admin guide and shortcuts');
+
+  const content = document.querySelector('.admin-content');
+  content.insertAdjacentHTML('beforeend', `
+    <div class="admin-card">
+      <h3>Keyboard shortcuts</h3>
+      <ul>
+        <li><code>\`</code> — Open/close Admin Console</li>
+        <li><code>Esc</code> — Close modal or suggestions</li>
+        <li><code>Shift + S</code> — Store</li>
+        <li><code>Shift + L</code> — Sell</li>
+        <li><code>Shift + W</code> — Wallet</li>
+        <li><code>Shift + F</code> — Fullscreen</li>
+        <li><code>Ctrl + S</code> — Focus search</li>
+        <li><code>Ctrl + N</code> — Messages</li>
+        <li><code>Ctrl + P</code> — Profile</li>
+        <li><code>Shift + ?</code> — Show shortcuts</li>
+      </ul>
+    </div>
+    <div class="admin-card">
+      <h3>Admin Console commands</h3>
+      <div class="admin-cmd-grid">
+        <code>help</code><code>users</code><code>websites</code><code>escrow</code>
+        <code>payments</code><code>withdraw</code><code>logs</code><code>analytics</code>
+        <code>premium</code><code>backup</code><code>clear</code><code>exit</code>
+      </div>
+    </div>
+    <div class="admin-card">
+      <h3>Roles</h3>
+      <ul>
+        <li><b>Super Admin</b> — all actions including creating admins, backup restore, security policy</li>
+        <li><b>Admin</b> — write actions: block, verify payments, escrow update, CRUD content</li>
+        <li><b>Moderator</b> — read-only lists, mark messages as read, view logs</li>
+      </ul>
+    </div>
+  `);
+})();
+</script>
+</body></html>

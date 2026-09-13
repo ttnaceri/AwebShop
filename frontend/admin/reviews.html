@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="UTF-8"/><meta name="viewport" content="width=device-width, initial-scale=1"/>
+<title>Reviews — Admin</title>
+<link rel="stylesheet" href="../css/main.css"/><link rel="stylesheet" href="../css/admin.css"/>
+<link rel="stylesheet" href="../css/console.css"/><link rel="stylesheet" href="../css/responsive.css"/></head>
+<body class="admin-body">
+<aside id="admin-sidebar" class="admin-sidebar"></aside>
+<div class="admin-main">
+  <header id="admin-topbar" class="admin-topbar"></header>
+  <div class="admin-content"><p id="admin-subtitle" class="admin-sub"></p></div>
+</div>
+<script src="../js/api.js"></script><script src="../js/app.js"></script><script src="../js/auth.js"></script>
+<script src="../js/admin.js"></script><script src="../components/modals.js"></script><script src="../components/admin-console.js"></script>
+<script>
+(async () => {
+  await loadRates();
+  if (!(await Admin.requireAdmin())) return;
+  adminPage('Reviews', 'Moderate user reviews');
+
+  const content = document.querySelector('.admin-content');
+  content.insertAdjacentHTML('beforeend', `
+    <div class="admin-toolbar"><button class="aw-btn aw-btn-ghost" id="rv-refresh">Refresh</button></div>
+    <div id="rv-host"></div>
+  `);
+  let items = [];
+  async function load() {
+    const r = await API.adminGet('reviews');
+    if (!r.success) return;
+    items = r.data.items;
+    render();
+  }
+  function render() {
+    renderTable(document.getElementById('rv-host'),
+      [
+        { label: 'Rating', render: r => '⭐'.repeat(Math.min(5, Math.max(0, r.rating || 0))) },
+        { label: 'From', render: r => esc(r.userId || '—') },
+        { label: 'To', render: r => esc(r.targetUserId || '—') },
+        { label: 'Text', render: r => esc((r.text || '').slice(0, 80)) },
+        { label: 'Status', render: r => statusPill(r.status || 'pending') },
+        { label: 'Created', render: r => fmtDateShort(r.createdAt) },
+        { label: 'Actions', render: r => `
+          <div class="admin-actions">
+            <button class="admin-btn-sm ok" data-act="approve" data-id="${esc(r.id)}">Approve</button>
+            <button class="admin-btn-sm bad" data-act="delete" data-id="${esc(r.id)}">Delete</button>
+          </div>
+        ` }
+      ], items, { emptyText: 'No reviews.' }
+    );
+    document.querySelectorAll('#rv-host button').forEach(b => {
+      b.addEventListener('click', async () => {
+        if (b.dataset.act === 'approve') {
+          const r = await API.adminPut('reviews', { id: b.dataset.id, status: 'approved' });
+          if (r.success) { toast('Approved.', 'success'); load(); }
+        } else {
+          if (!(await confirmModal('Delete?', 'Remove this review?'))) return;
+          await API.adminDelete('reviews', { id: b.dataset.id });
+          load();
+        }
+      });
+    });
+  }
+  document.getElementById('rv-refresh').addEventListener('click', load);
+  load();
+})();
+</script>
+</body></html>

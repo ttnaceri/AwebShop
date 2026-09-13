@@ -1,0 +1,1129 @@
+AWebShop – Complete Development Prompt
+📌 PROJECT OVERVIEW
+AWebShop is the first online marketplace in Uzbekistan where users can buy and sell fully functional websites. The platform features an escrow payment system, a custom token economy (AWC), Telegram bot integration, a comprehensive admin panel, and a premium subscription system.
+
+Domain: https://ttnaceri.github.io/AwebShop/
+API Endpoint: https://ttnaceri.github.io/AwebShop/55668576
+Deployment: GitHub + Vercel
+Custom Domain: To be added after revenue generation
+
+🛠️ TECHNOLOGY STACK
+Component	Technology
+Backend	Node.js (vanilla)
+Frontend	HTML, CSS, JavaScript (vanilla)
+Database	PostgreSQL + Redis
+Bot	Telegram Bot API (Node.js)
+Authentication	Google OAuth 2.0 + Username/Password
+Payment Gateway	Payme / Hamkorbank (to be integrated after launch)
+Hosting	GitHub Pages + Vercel
+SSL	Let's Encrypt
+Analytics	Google Analytics
+PWA	Progressive Web App
+Mobile App	Flutter (future)
+COMPLETE FILE STRUCTURE
+
+
+AwebShop/
+│
+├── backend/
+│   ├── src/
+│   │   ├── api/
+│   │   │   ├── auth.js
+│   │   │   ├── users.js
+│   │   │   ├── websites.js
+│   │   │   ├── payments.js
+│   │   │   ├── escrow.js
+│   │   │   ├── token.js
+│   │   │   ├── admin.js
+│   │   │   ├── premium.js
+│   │   │   └── force-subscribe.js
+│   │   ├── models/
+│   │   │   ├── User.js
+│   │   │   ├── Website.js
+│   │   │   ├── Transaction.js
+│   │   │   ├── Escrow.js
+│   │   │   ├── AdminLog.js
+│   │   │   ├── EnvironmentUser.js
+│   │   │   ├── PaymentCard.js
+│   │   │   ├── PremiumSubscription.js
+│   │   │   └── ForceSubscribeChannel.js
+│   │   ├── services/
+│   │   │   ├── authService.js
+│   │   │   ├── paymentService.js
+│   │   │   ├── escrowService.js
+│   │   │   ├── tokenService.js
+│   │   │   ├── emailService.js
+│   │   │   ├── telegramService.js
+│   │   │   └── premiumService.js
+│   │   ├── middleware/
+│   │   │   ├── auth.js
+│   │   │   ├── admin.js
+│   │   │   ├── rateLimiter.js
+│   │   │   └── security.js
+│   │   ├── utils/
+│   │   │   ├── validators.js
+│   │   │   ├── helpers.js
+│   │   │   └── idGenerator.js
+│   │   └── config/
+│   │       ├── database.js
+│   │       └── constants.js
+│   ├── tests/
+│   │   ├── auth.test.js
+│   │   ├── api.test.js
+│   │   └── services.test.js
+│   ├── logs/
+│   │   └── .gitkeep
+│   ├── package.json
+│   ├── package-lock.json
+│   └── server.js
+│
+├── frontend/
+│   ├── public/
+│   │   ├── index.html
+│   │   ├── manifest.json
+│   │   ├── robots.txt
+│   │   ├── sitemap.xml
+│   │   └── image/
+│   │       ├── logo.png
+│   │       ├── galochka.png
+│   │       └── favicon.png
+│   ├── src/
+│   │   ├── pages/
+│   │   │   ├── login.html
+│   │   │   ├── register.html
+│   │   │   ├── main.html
+│   │   │   ├── store.html
+│   │   │   ├── website-detail.html
+│   │   │   ├── sell.html
+│   │   │   ├── wallet.html
+│   │   │   ├── profile.html
+│   │   │   ├── about.html
+│   │   │   ├── environment.html
+│   │   │   └── admin/
+│   │   │       ├── dashboard.html
+│   │   │       ├── users.html
+│   │   │       ├── admins.html
+│   │   │       ├── escrow.html
+│   │   │       ├── reports.html
+│   │   │       ├── promocodes.html
+│   │   │       ├── discount.html
+│   │   │       ├── prices.html
+│   │   │       ├── events.html
+│   │   │       ├── announce.html
+│   │   │       ├── orders.html
+│   │   │       ├── themes.html
+│   │   │       ├── ads.html
+│   │   │       ├── payments.html
+│   │   │       ├── notifications.html
+│   │   │       ├── words.html
+│   │   │       ├── domains.html
+│   │   │       ├── withdraw.html
+│   │   │       ├── security.html
+│   │   │       ├── hacking.html
+│   │   │       ├── settings.html
+│   │   │       ├── backup.html
+│   │   │       ├── export-import.html
+│   │   │       ├── analytics.html
+│   │   │       ├── email-settings.html
+│   │   │       ├── telegram-settings.html
+│   │   │       ├── seo-settings.html
+│   │   │       ├── pwa-settings.html
+│   │   │       ├── api-keys.html
+│   │   │       ├── logs.html
+│   │   │       ├── maintenance.html
+│   │   │       ├── reviews.html
+│   │   │       ├── featured.html
+│   │   │       ├── todo.html
+│   │   │       ├── messages.html
+│   │   │       ├── attachments.html
+│   │   │       ├── invoice.html
+│   │   │       ├── popup.html
+│   │   │       ├── stock.html
+│   │   │       ├── badge.html
+│   │   │       ├── chat.html
+│   │   │       ├── schedule.html
+│   │   │       ├── cards.html
+│   │   │       ├── environment.html
+│   │   │       ├── console.html
+│   │   │       ├── premium.html
+│   │   │       ├── force-subscribe.html
+│   │   │       └── help.html
+│   │   ├── components/
+│   │   │   ├── header.js
+│   │   │   ├── footer.js
+│   │   │   ├── sidebar.js
+│   │   │   ├── website-card.js
+│   │   │   ├── pagination.js
+│   │   │   ├── modals.js
+│   │   │   ├── charts.js
+│   │   │   └── admin-console.js
+│   │   ├── css/
+│   │   │   ├── main.css
+│   │   │   ├── dark.css
+│   │   │   ├── responsive.css
+│   │   │   ├── admin.css
+│   │   │   ├── console.css
+│   │   │   └── premium.css
+│   │   ├── js/
+│   │   │   ├── app.js
+│   │   │   ├── auth.js
+│   │   │   ├── api.js
+│   │   │   ├── shortcuts.js
+│   │   │   ├── console.js
+│   │   │   ├── validation.js
+│   │   │   ├── notifications.js
+│   │   │   └── admin.js
+│   ├── package.json
+│   └── package-lock.json
+│
+├── bot/
+│   ├── src/
+│   │   ├── handlers/
+│   │   │   ├── auth.js
+│   │   │   ├── notifications.js
+│   │   │   ├── support.js
+│   │   │   ├── commands.js
+│   │   │   └── force-subscribe.js
+│   │   ├── keyboards/
+│   │   │   ├── inline.js
+│   │   │   └── reply.js
+│   │   ├── services/
+│   │   │   ├── botService.js
+│   │   │   └── webhookService.js
+│   │   ├── middleware/
+│   │   │   └── auth.js
+│   │   ├── utils/
+│   │   │   └── helpers.js
+│   │   └── config/
+│   │       └── constants.js
+│   ├── package.json
+│   ├── package-lock.json
+│   └── bot.js
+│
+├── database/
+│   ├── migrations/
+│   │   ├── 001_create_users.sql
+│   │   ├── 002_create_websites.sql
+│   │   ├── 003_create_transactions.sql
+│   │   ├── 004_create_escrow.sql
+│   │   ├── 005_create_admin_logs.sql
+│   │   ├── 006_create_environment_users.sql
+│   │   ├── 007_create_payment_cards.sql
+│   │   ├── 008_create_premium_subscriptions.sql
+│   │   └── 009_create_force_subscribe_channels.sql
+│   └── seeds/
+│       ├── 001_default_admin.sql
+│       ├── 002_default_cards.sql
+│       └── 003_default_plans.sql
+│
+├── docs/
+│   ├── API.md
+│   ├── INSTALLATION.md
+│   ├── DEPLOYMENT.md
+│   └── CONTRIBUTING.md
+│
+├── scripts/
+│   ├── backup.sh
+│   ├── deploy.sh
+│   └── setup.sh
+│
+├── logs/
+│   └── .gitkeep
+│
+├── uploads/
+│   ├── websites/
+│   │   └── .gitkeep
+│   └── avatars/
+│       └── .gitkeep
+│
+├── backend.json
+├── config.js
+├── config.example.js
+├── README.md
+├── index.html
+├── package.json
+├── package-lock.json
+├── .gitignore
+├── .eslintrc.js
+├── .prettierrc
+├── docker-compose.yml
+└── Dockerfile
+
+backend.json	/AwebShop/backend.json	Keyboard shortcuts configuration
+config.js	/AwebShop/config.js	Sensitive configuration (in .gitignore)
+config.example.js	/AwebShop/config.example.js	Example configuration template
+README.md	/AwebShop/README.md	Project documentation
+index.html	/AwebShop/frontend/public/index.html	Main entry point
+.gitignore	/AwebShop/.gitignore	Git ignored files
+package.json	/AwebShop/package.json	Node.js dependencies
+
+🔐 USER AUTHENTICATION SYSTEM
+Login Page Components
+Recover Account – Password reset functionality
+
+Checkboxes (minimum 3 selections):
+
+Number – via Telegram "Share Contact"
+Nickname – Set during registration, editable once every 2 weeks
+Telegram @username – Entered during account creation
+Telegram ID – Entered during account creation
+ID – Auto-generated 9-digit number
+Account Creation Flow
+Enter: Telegram @username, Number, Telegram ID
+
+Bot sends verification code
+
+User creates custom nickname + password
+
+System generates random 9-digit ID
+
+Minimum checkbox selection: 3
+
+Login Options
+Nickname + Password
+
+Google OAuth 2.0
+
+After login: Select theme → Main Page
+
+Google OAuth Setup
+Client ID stored in config.js
+
+Client Secret stored in config.js
+
+Redirect URI configured
+
+Scopes: email, profile, openid
+
+OAuth Consent Screen configured
+
+📤 SELLER FORM (Website Submission)
+Sale Type Selection
+Sale Type	Description
+Safe	Escrow system (Admin holds payment) → Shows 2 payment options
+Fast	Direct transfer → Shows 1 payment option
+Pricing Structure
+Initial fee: 10,000 UZS (to list on WebShop)
+
+Commission: 5% + 0.4% Escrow fee (reduced for Premium users)
+
+Token System: 1 AWC = 10,000 UZS (~$0.87)
+
+Form Fields
+Field	Type	Requirements
+Website Name	Input	Required
+Website Domain	Input	Must include: https, www., .com
+Description	Textarea	Max 200 chars (spaces not counted)
+Topic	Select	AI, Online Shop, 3D-Game + Custom (Admin controlled)
+Image	Upload	1 image (auto-compressed to WebP)
+Action	Button	"Sell" and "Cancel"
+
+🆔 WEBSITE IDENTIFICATION SYSTEM
+ID Type	Format	Purpose
+webId	7-digit (e.g., A7B3C9D)	Public – used to find website
+orderId	10-digit (e.g., OX7Y3K9P2Z)	Private – used for cancellation
+
+💳 PAYMENT & ESCROW SYSTEM
+Option 1: Safe (Escrow)
+text
+1. Buyer pays → Money goes to Admin
+2. Seller sends website to Admin (via GitHub transfer)
+3. Admin verifies website
+4. Buyer confirms it's the correct website
+5. Admin sends website to Buyer
+6. Admin sends money to Seller
+7. Website automatically removed from WebShop
+Option 2: Fast (Direct)
+text
+1. Buyer pays directly to Seller
+2. Seller sends website directly to Buyer
+3. Website automatically removed from WebShop
+Transaction Statuses
+pending → paid → transferred → verified → completed
+cancelled • disputed • refunded
+
+Time Limits
+Action	            Time Limit
+Transfer	        7 days
+Verification	    3 days
+Auto-Release	    7 days (if buyer doesn't verify)
+Dispute Response	3 days
+Refund	            5 days
+
+
+
+💰 TOKEN ECONOMY (AWC)
+token Image - image/value1.png
+Aspect	Details
+Name	AwebShop Coin
+Symbol	AWC
+Value	1 AWC = 10,000 UZS (~$0.87)
+Purpose	Buying websites, paying fees, commissions
+Ways to Earn AWC
+Top-Up – Purchase with fiat currency also make AWC to So`m or Dollar.
+
+Referral – Invite friends (bonus: 1 AWC)
+
+Promotions – Seasonal bonuses
+
+Rewarded Ads – 15 ads = free listing (1 time/website)
+
+Sales – Receive AWC from selling websites
+
+Cashback – 1% cashback on every transaction (3% for Premium)
+
+Dollar API Integration
+Real-time USD/UZS exchange rate via API
+
+Display both currencies in UI
+
+Auto-update rates
+
+👑 PREMIUM SUBSCRIPTION SYSTEM
+Premium Plans (Monthly)
+#	Plan	    Websites/Month  	Badge   	Commission	Price (UZS)	    Price ($)
+1   Plus         10                 No          3.0%         20.000         $1.70
+2   Prime        20                 No          1.0%         40.000         $3.41
+3   Pro          30                 No          0.5%         60.000         $5.11
+4   Enterpise    50                 Yes         0.0$        100.000         $8.52
+
+Premium Plans (Yearly)
+#	Plan	    Websites/Month  	Badge   	Commission	Price (UZS)	    Price ($)
+1   Plus         10                 No          3.0%         15.000         $1.28
+2   Prime        20                 No          1.0%         30.000         $2.56
+3   Pro          30                 No          0.5%         45.000         $3.83
+4   Enterpise    50                 Yes         0.0$         75.000         $6.39
+
+(If user Want Refund? Refund %90 )
+
+
+
+
+( "gal" - galochka checked icon (badge))
+
+Available for: Prime, Prime Plus, Elite plans
+
+Card Required: Yes (for auto-renewal after trial)
+
+Notification: 1 day before trial ends
+
+Premium Badge
+Galochka Location: image/galochka.png
+
+Only for: Infinite plan users
+
+Shows on: Profile, reviews, website cards
+
+🤖 TELEGRAM BOT
+Bot Menu (Reply Keyboard)
+Buttonz	Functions
+💰 Wallet	View balance, top-up
+👤 Profile	View user details
+📞 Support	Contact admin
+Wallet     Shows: Nickname, Phone, Telegram ID, Telegram Username, WebShop ID, AWC Balance
+
+Top-Up button shows card details:
+
+text
+5614 6818 8775 0416
+E. H.
+Profile
+Shows: Phone, Telegram ID, Telegram Username, WebShop ID, Nickname, AWC Balance, Verification Status, Rating, Join Date
+
+Support
+Response message: "Kimdurdandur Shikoyatingiz Bo‘lsa, Taklifingiz Bo‘lsa va Birorta Xato ga ko‘zingiz tushgan bo‘lsa shikoyatingizni yuboring. Adminlarimiz albatta sizning xabaringizni o‘qiydi va tez orada javob berishadi."
+
+Force Subscribe (Mandatory Channels)
+Bot checks user subscription before allowing access
+
+Admin panel manages channels (Add/Edit/Delete)
+
+Bot must be admin in each channel
+
+Users see channel links and must join before proceeding
+
+Bot Message Types
+Message Type	Recipient
+Registration Code	New user
+Recovery Code	User requesting reset
+Login Notification	User
+New Buyer Alert	Seller
+Payment Received	Seller
+Transfer Request	Seller
+Verification	Seller + Admin
+Sale Completed	Seller + Buyer
+Dispute	Admin + Seller + Buyer
+Refund	Buyer
+Promotion	All users
+🖥️ ADMIN PANEL
+Core Sections
+
+
+📊 Dashboard
+Statistics + Charts
+
+System Status (server, uptime, requests)
+
+Activity Log (admin actions)
+
+Admin Console
+
+👥 Users
+All Users (table + search)
+
+Bulk Actions (block, delete, badge)
+
+User Details view
+
+🛡️ Admin Rights
+Admin list
+
+Toggle permissions (On/Off)
+
+Admin Code system (each admin has unique code)
+
+Collaborators management
+
+💰 Control Escrows
+All escrow transactions
+
+Status management
+
+Approve/Reject/Check actions
+
+📋 Reports
+All reports (table view)
+
+Comparison reports (2 periods)
+
+Export (Excel/PDF)
+
+🏷️ Promocodes
+Add/Edit/Delete
+
+Usage tracking
+
+🏷️ Discount System
+User Type: New Users / Old Users / All Users
+
+Website Theme: AI, Online Shop, 3D-Game, etc.
+
+Selected Users: Nav button for custom selection
+
+Discount Type: Percentage (%) or Fixed (AWC)
+
+Strikethrough: Show original price crossed out
+
+💵 Prices
+AWC Price (edit)
+
+Dollar Rate (API auto-update)
+
+Ads = 1 Website (15 ads = free listing)
+
+Premiums Prices
+Premiums Price (edit)
+
+Admin can edit premiums prices.
+
+Also
+
+Create / delete / edit premiums.
+
+and make toogle On/Off for Please convert these dollar amounts to Uzbek So`m based on the current exchange rate.
+You Can convert price with APIS:
+For Dollar: "https://v6.exchangerate-api.com/v6/6a1dd308edeaccd55c853818/latest/USD"
+For So`m: "https://v6.exchangerate-api.com/v6/6a1dd308edeaccd55c853818/latest/UZS"
+
+also make nav button for so`m becuase Admin can convert for
+"So`m" to "$(usd)"
+or "$(usd) to "So`m
+
+(The So`m Is International value of Uzbekistan.)
+
+
+Refund Page
+(The Refund Page is for Refund users Pays.)
+
+Special Order
+
+Only admins can create special order the special order is not same with another orders.
+The special order views on main page with "Recomended" badge
+🎪 Events (eventsDiv)
+6 pages with auto-scroll animation
+
+Every 5 seconds → next page
+
+Loop: Page 6 → Page 1
+
+Admin Add Event → Delete oldest event (FIFO)
+
+Admin controls: Add/Edit/Delete
+
+📢 Announce
+For Admins / For Users / For Collaborators
+
+Schedule (timed sending)
+
+📦 Orders
+View Orders
+
+Delete Order (security)
+
+Create New Order
+
+🎨 Themes
+View all themes
+
+Chart: Themes vs Websites
+
+Admin Add/Edit/Delete
+
+📢 ADS
+Add/Edit/Delete
+
+Ad Block ID
+
+💳 Payment Methods
+Add Method (name, Merchant API, Merchant ID)
+
+Edit/Delete methods
+
+📝 Notification + Remember Div
+Admin notes (After Time, × Delete)
+
+Date/Time
+
+Notifications (new requests, escrow, payments)
+
+🚫 Words (Domain Ban)
+Add/Edit/Delete
+
+Default: porn, 1x, bet, porno, xx, deepseek
+
+🌐 Domains (Unsalable)
+Add/Edit/Delete
+
+Default: google, github, chatgpt, deepseek
+
+💸 Control Payments (Withdraw)
+Pending Requests [Approve] [Reject] [Check]
+
+Approved / Rejected / Checked lists
+
+Statistics
+
+💳 Cards (Payment Cards)
+Add/Edit/Delete
+
+Card Number, Owner, Bank, Type, Expiry, Status, Default
+
+🏛️ Environment
+For government/bank officials
+
+View ratings and statistics
+
+Access via ID + code
+
+Add/Edit/Delete users
+
+📊 Export / Import
+Export (Excel/CSV)
+
+Import (Excel/CSV)
+
+Formats: Users, Websites, Orders, Transactions
+
+📥 Backup / Restore
+Database backup
+
+Files backup
+
+Restore
+
+Schedule (Daily/Weekly/Monthly)
+
+🔒 Security
+IP Blacklisting
+
+Rate Limiting
+
+Captcha Settings
+
+Login Attempts
+
+Suspicious Activity
+
+Password Policy
+
+Fraud Detection
+
+🔒 Hacking
+Detect Suspects
+
+Hackings logs
+
+Suspected Movements
+
+Actions: Block, Report, Notify
+
+⚙️ Settings
+Site Name, Logo, Favicon, Contact Info
+
+Social Media Links, Footer Text
+
+Default Language, Currency
+
+Tax & Invoice Settings
+
+📈 Analytics
+Google Analytics Code
+
+Custom Scripts
+
+Pixel Codes
+
+A/B Testing
+
+📧 Email Settings
+SMTP Config
+
+Email Templates
+
+Test Email
+
+From Name/Email
+
+🤖 Telegram Bot Settings
+Bot Token
+
+Channel ID
+
+Message Templates
+
+Enable/Disable
+
+Test Bot
+
+🌐 SEO Settings
+Meta Title, Description, Keywords
+
+Sitemap (Generate)
+
+Robots.txt (Edit)
+
+Canonical Tags
+
+Short Links
+
+📱 PWA Settings
+Manifest.json (Generate)
+
+Service Worker (Enable/Disable)
+
+Icons (Upload)
+
+Splash Screen
+
+Theme Color
+
+🧑‍💻 API Keys
+Generate/Revoke API Key
+
+API Logs
+
+Rate Limit
+
+Permissions
+
+
+ADMIN BADGE
+📝 System Logs
+Error Logs, Request Logs, Admin Logs
+
+Login Logs
+
+Filter by Date
+
+Export
+
+📌 Maintenance Mode
+Enable/Disable
+
+Message
+
+Start/End Time
+
+Whitelist IPs
+
+⭐ Reviews & Ratings
+All Reviews
+
+Approve/Delete
+
+Average Rating
+
+📌 Featured Websites
+Add/Edit/Delete
+
+Show on homepage
+
+📋 Todo List
+Add Task, Mark as Done, Delete
+
+📩 Contact Messages
+All Messages, Read/Unread, Reply, Delete
+
+📎 Attachments Manager
+Upload, Delete, View
+
+🧾 Invoice Generator
+Generate Invoice, View, Download PDF
+
+📢 Popup Notifications
+Add/Edit/Delete
+
+Show on Pages
+
+Start/End Time
+
+📦 Stock Manager
+All Websites
+
+Status: Active, Sold, Pending
+
+Count
+
+🏷️ Badge Manager
+
+Add/Edit/Delete
+
+Assign to User
+
+💬 Live Chat Support
+All Chats
+
+Online/Offline
+
+Reply/Close
+
+📅 Schedule
+All Scheduled Tasks
+
+Add Task (Type: Announce, Note, Backup, Discount)
+
+Date/Time
+
+Note (optional)
+
+🖥️ Admin Console
+Terminal-style interface
+
+Auto-complete (max 3 suggestions)
+
+Arrow keys (Up/Down) for navigation
+
+Command history (not saved in backend)
+
+CMD-style design
+
+Colors: Red (error), Green (success), Yellow (confirmation)
+
+Resizable (maximize/minimize)
+
+Opens with ` key
+
+Commands: help, users, websites, escrow, payments, withdraw, promocodes, discount, events, announce, orders, themes, ads, settings, backup, export, import, security, analytics, logs, maintenance, reviews, featured, todo, messages, invoice, popup, stock, badge, chat, schedule, cards, environment, clear, exit
+
+ID syntax: id. (single/last), id, (multiple)
+
+Confirmation: Y/N prompt
+
+📢 Force Subscribe Channels
+Add/Edit/Delete channels
+
+Channel ID, Name, Link, Status
+
+Statistics: Total, Active, Inactive, Subscribers
+
+💎 Premium Management
+View all premium subscriptions
+
+Manage plans
+
+Free trial settings
+
+📄 Help Page
+API Documentation
+
+User guide
+
+Admin guide
+
+👤 USER FRONTEND PAGES
+Main Pages
+Page	Content
+Login Page	Google OAuth, Username/Password, Recover Account
+Register Page	Telegram verification, Nickname, Password
+Main Page	Notifications, Events, Dark Mode (burger button), Last message preview
+Store Page	Website cards, Filter, Sort, Search, Pagination (30/site)
+Website Detail Page	Image, Description, Price, Seller, Rating, Reviews, Buy button
+Sell Page	Sale type, Website details form, Upload image
+Wallet (Top-Up)	Balance, Preset amounts, Payment methods, Withdraw
+Profile Page	Avatar, ID, Nickname, Rating, Balance, Dashboard tabs
+Profile Page Tabs
+Dashboard – Seller & Buyer views
+
+Orders History – All purchases
+
+Transactions History – All transactions
+
+Messages – Notifications (last message shown on Main Page)
+
+Promocodes – Apply promo codes
+
+Support / Contact – Contact form
+
+FAQ – Frequently asked questions
+
+Terms & Privacy – Legal documents
+
+Settings – Profile edit, Password, Dark Mode, Language, Currency, Security
+
+About Page
+Mobile: Burger menu
+
+Desktop: Header + Footer
+
+Content: Company info, Mission, Statistics, Team, Contact
+
+⌨️ KEYBOARD SHORTCUTS (backend.json)
+Key	Action
+Enter	Confirm Login / Confirm button / Select button with arrow keys / Confirm Admin Console codes
+` | Open Admin Console |	
+Arrow Up	Select button above
+Arrow Down	Select button below
+Shift + F	Full Screen mode
+Esc	Close pop-ups, modals, dropdowns
+Ctrl + S	Focus search bar
+Ctrl + N	Open Messages
+Ctrl + P	Go to Profile
+Shift + S	Go to Store
+Shift + L	Go to Sell
+Shift + W	Go to Wallet
+Shift + ?	Show all shortcuts help
+
+
+🗄️ DATABASE SCHEMA
+Core Tables
+Table	Description
+users	User accounts (id, nikname, password, telegram_username, telegram_id, phone, email, is_admin, admin_code, balance, total_spent, total_earned, rating, verified, dark_mode, language, currency, created_at)
+websites	Website listings (web_id, order_id, seller_id, name, domain, description, topic, image_url, price, sale_type, status, views, created_at, sold_at)
+transactions	All transactions (user_id, type, amount_awc, amount_usd, amount_uzs, status, payment_method, payment_details, description, reference_id, admin_notes, created_at, updated_at)
+escrow	Escrow transactions (website_id, buyer_id, seller_id, amount, status, admin_notes, created_at, updated_at)
+admin_logs	Admin activity logs (admin_id, action, details, ip_address, created_at)
+environment_users	Government/bank users (user_id, full_name, organization, position, access_code, status, created_at, last_login)
+payment_cards	Payment cards (card_number, card_owner, bank_name, card_type, status, is_default, is_public, notes, created_at, updated_at)
+premium_subscriptions	Premium subscriptions (user_id, plan, status, start_date, end_date, auto_renew, payment_method, payment_details, trial_used, trial_start_date, trial_end_date, created_at, updated_at)
+force_subscribe_channels	Mandatory channels (channel_id, channel_name, channel_link, status, created_at, updated_at)
+user_subscriptions	User subscription status (user_id, channel_id, is_subscribed, checked_at, created_at)
+
+🔗 API ENDPOINTS
+Authentication
+Endpoint	Method	Description
+/api/auth/register	POST	User registration
+/api/auth/login	POST	User login
+/api/auth/logout	POST	User logout
+/api/auth/verify	POST	Verify code
+/api/auth/forgot-password	POST	Password reset
+/api/auth/google	POST	Google OAuth login
+Users
+Endpoint	Method	Description
+/api/users/profile	GET	Get profile
+/api/users/profile	PUT	Update profile
+/api/users/avatar	POST	Upload avatar
+/api/users/status	GET	Online status
+/api/users/websites	GET	User's websites
+/api/users/transactions	GET	Transaction history
+/api/users/reviews	GET	User reviews
+Websites
+Endpoint	Method	Description
+/api/websites	GET	All websites (filter + pagination)
+/api/websites/:id	GET	Single website
+/api/websites	POST	Add website (seller)
+/api/websites/:id	PUT	Update website
+/api/websites/:id	DELETE	Delete website
+/api/websites/:id/buy	POST	Buy website
+/api/websites/search	GET	Search
+Payments & Escrow
+Endpoint	Method	Description
+/api/payments/initiate	POST	Initiate payment
+/api/payments/confirm	POST	Confirm payment
+/api/payments/status/:id	GET	Payment status
+/api/escrow/transfer	POST	Transfer website
+/api/escrow/verify	POST	Verify website
+/api/escrow/status/:id	GET	Escrow status
+/api/escrow/dispute	POST	Open dispute
+Token (AWC)
+Endpoint	Method	Description
+/api/token/balance	GET	Get balance
+/api/token/topup	POST	Buy tokens
+/api/token/transfer	POST	Transfer tokens
+/api/token/withdraw	POST	Withdraw tokens
+/api/token/history	GET	Transaction history
+/api/token/rate	GET	Current rate
+Premium
+Endpoint	Method	Description
+/api/premium/plans	GET	All plans
+/api/premium/subscribe	POST	Subscribe
+/api/premium/cancel	POST	Cancel subscription
+/api/premium/status	GET	Subscription status
+/api/premium/trial	POST	Start trial
+Admin
+Endpoint	Method	Description
+/api/admin/verify	POST	Verify admin code
+/api/admin/users	GET	All users
+/api/admin/websites	GET	All websites
+/api/admin/escrow	GET	All escrows
+/api/admin/withdraw	GET	Withdraw requests
+/api/admin/withdraw/approve	POST	Approve withdraw
+/api/admin/withdraw/reject	POST	Reject withdraw
+/api/admin/force-subscribe/channels	GET	All channels
+/api/admin/force-subscribe/channels	POST	Add channel
+/api/admin/force-subscribe/channels/:id	PUT	Edit channel
+/api/admin/force-subscribe/channels/:id	DELETE	Delete channel
+
+🎨 DESIGN SYSTEM
+Colors
+Role	        Color	            Hex
+Primary     	Black	        #000000
+Secondary	    White	        #fff
+Accent	        Gray            #808080
+Background	    Light Blue	    #121214
+Text        	Dark	        #0000000
+Console:
+(In CMD style.)
+Success     	Green	        #00C851
+Warning	        Yellow	        #FFBB33
+Fonts
+Primary Font: Inter (Google Fonts)
+
+Secondary Font: Poppins (Google Fonts)
+
+Base Size: 16px
+
+Style: Minimalist, modern, Glassmorphism effects
+
+Responsive Breakpoints
+Device	                Breakpoint
+Desktop	                1200px+
+Laptop	                992px - 1199px
+Tablet	                768px - 991px
+Mobile (Verical)	    576px - 767px (portrait)
+Mobile (Horizntal)      568px - 991px (landscape)
+Small Mobile	        320px - 575px
+
+(Make If Phone change to landscape screen mode? make it desktop responsive but small.)
+
+🔧 CONFIGURATION (config.js)
+Section	Contents
+database	host, port, user, password, database
+google	clientId, clientSecret, redirectUri, scopes
+telegram	botToken, channelId
+email	service, apiKey, fromEmail, fromName
+jwt	secret, expiresIn
+payment	cards (number, owner, bank, type, isDefault, isPublic)
+awc	rateUZS, rateUSD
+limits	transferDays, verificationDays, autoReleaseDays, disputeDays, refundDays
+commission	listing, sale, escrow
+pagination	websitesPerPage
+descriptions	maxLength
+ads	freeListings
+premium	plans (10 plans with all features)
+forceSubscribe	enabled, channels
+
+🛡️ SECURITY FEATURES
+Feature	Status
+SSL (Let's Encrypt)	✅
+Rate Limiting	✅
+Captcha/reCAPTCHA	✅
+IP Blacklisting	✅
+Password Strength Meter	✅
+Security Questions	✅
+Device Management	✅
+Login History	✅
+Suspicious Activity Alert	✅
+Fraud Detection	✅
+Soft Delete + Restore	✅
+Permanent Delete (admin only)	✅
+Data Encryption	✅
+JWT Authentication	✅
+Two-Factor Authentication (2FA)	✅
+QR Login (Steam-style)	✅
+Biometric Login (if free)	✅
+
+📊 RESPONSIVE DESIGN
+Device	Features
+Desktop	Full functionality, all features
+Laptop	Full functionality, optimized spacing
+Tablet	Optimized layout, larger touch targets
+Mobile	Bottom navigation, touch-friendly, burger menu
+Small Mobile	Essential features only, optimized fonts
+
+🌐 LANGUAGES & CURRENCIES
+Languages: English (default), Uzbek
+
+Currencies: UZS (so'm), USD
+
+
+Test User: user / 1234
+
+
+✅ PROJECT COMPLETION CHECKLIST
++ All 388 requirements implemented
++ 10 Premium plans configured
++ 45+ Admin panel sections
++ 3+ Bot menu buttons with full functionality
++ Escrow system with auto-release
++ Token economy (AWC)
++ Google OAuth 2.0
++ Telegram bot with force subscribe
++ PWA support
++ SSL (Let's Encrypt)
++ Rate limiting
++ Responsive design (Desktop/Tablet/Mobile)
++ English + Uzbek languages
++ UZS + USD currencies
++ Admin Console with 35+ commands
++ 14+ Keyboard shortcuts
++ All mandatory files (backend.json, config.js, config.example.js, README.md, index.html)
++ Comprehensive documentation
+
+📞 CONTACT
+Telegram Bot: @AWebShopBot
+
+Email: support@awebshop.com
+
+Website: https://ttnaceri.github.io/AwebShop/
+The Footer with there:
+"© 2026 UPDATE Inc. All Rights Reserved." text,
+There apps and opens these urls:
+gitHub      - https://github.com/ttnaceri/
+Telegram    - https://t.me/updateDevNews
+Insagram    - https://www.instagram.com/update.dev26/
+Linkedln    - https://www.linkedin.com/in/ttnaceri-fan-506b57431
+icons.
+And There With Texts:
+Help, About, Contact, Quality Services
+
+In This Web Site:
+- users and Developers can buy or sell their web sites.
+- users can only view websites. (Only registered users can buy sell web sites. )
+
+
+
+
+
+Made with ❤️ in Uzbekistan
+🎯 PROMPT END
+🙏 Thank you for this amazing journey! This comprehensive prompt contains 388+ requirements, 100+ files, 10 premium plans, and everything needed to build AWebShop – the first online website marketplace in Uzbekistan!

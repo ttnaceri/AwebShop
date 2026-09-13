@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1"/>
+<title>Users — Admin</title>
+<link rel="stylesheet" href="../css/main.css"/>
+<link rel="stylesheet" href="../css/admin.css"/>
+<link rel="stylesheet" href="../css/console.css"/>
+<link rel="stylesheet" href="../css/responsive.css"/>
+</head>
+<body class="admin-body">
+<aside id="admin-sidebar" class="admin-sidebar"></aside>
+<div class="admin-main">
+  <header id="admin-topbar" class="admin-topbar"></header>
+  <div class="admin-content">
+    <p id="admin-subtitle" class="admin-sub"></p>
+
+    <div class="admin-toolbar">
+      <input id="u-search" placeholder="Search by nickname, ID, telegram…"/>
+      <select id="u-filter">
+        <option value="">All</option>
+        <option value="blocked">Blocked</option>
+        <option value="verified">Verified</option>
+        <option value="unverified">Unverified</option>
+      </select>
+      <button class="aw-btn aw-btn-ghost" id="u-refresh">Refresh</button>
+    </div>
+
+    <div id="users-host"></div>
+  </div>
+</div>
+
+<script src="../js/api.js"></script>
+<script src="../js/app.js"></script>
+<script src="../js/auth.js"></script>
+<script src="../js/admin.js"></script>
+<script src="../components/admin-console.js"></script>
+
+<script>
+(async () => {
+  await loadRates();
+  if (!(await Admin.requireAdmin())) return;
+  adminPage('Users', 'Manage platform accounts');
+
+  let all = [];
+  const host = document.getElementById('users-host');
+
+  async function load() {
+    host.innerHTML = '<div class="admin-loading">Loading…</div>';
+    const r = await API.adminUsers();
+    if (!r.success) { host.innerHTML = '<div class="admin-empty">Failed to load.</div>'; return; }
+    all = r.data.items;
+    render();
+  }
+
+  function render() {
+    const q = document.getElementById('u-search').value.trim().toLowerCase();
+    const f = document.getElementById('u-filter').value;
+    let list = all.slice();
+    if (q) list = list.filter(u =>
+      (u.nickname || '').toLowerCase().includes(q) ||
+      (u.id || '').includes(q) ||
+      (u.telegramUsername || '').toLowerCase().includes(q) ||
+      (u.telegramId || '').includes(q)
+    );
+    if (f === 'blocked') list = list.filter(u => u.blocked);
+    if (f === 'verified') list = list.filter(u => u.verified);
+    if (f === 'unverified') list = list.filter(u => !u.verified);
+
+    renderTable(host,
+      [
+        { label: 'ID', render: r => `<code>${esc(r.id)}</code>` },
+        { label: 'Nickname', render: r => esc(r.nickname) },
+        { label: 'Telegram', render: r => `${esc(r.telegramUsername || '')}<br><small>${esc(r.telegramId || '')}</small>` },
+        { label: 'Phone', render: r => esc(r.phone || '—') },
+        { label: 'AWC', render: r => fmtAWC(r.balanceAWC) },
+        { label: 'Rating', render: r => (r.rating || 0).toFixed(1) },
+        { label: 'Status', render: r => r.blocked ? statusPill('blocked') : statusPill('active') },
+        { label: 'Joined', render: r => fmtDateShort(r.createdAt) },
+        { label: 'Actions', render: r => `
+          <div class="admin-actions">
+            <button class="admin-btn-sm" data-act="view" data-id="${esc(r.id)}">View</button>
+            ${r.blocked
+              ? `<button class="admin-btn-sm ok" data-act="unblock" data-id="${esc(r.id)}">Unblock</button>`
+              : `<button class="admin-btn-sm bad" data-act="block" data-id="${esc(r.id)}">Block</button>`}
+          </div>
+        ` }
+      ],
+      list,
+      { emptyText: 'No users match the filter.' }
+    );
+
+    host.querySelectorAll('button[data-act]').forEach(b => {
+      b.addEventListener('click', () => {
+        const id = b.dataset.id;
+        const act = b.dataset.act;
+        if (act === 'view') return viewUser(id);
+        if (act === 'block') return blockUser(id, true);
+        if (act === 'unblock') return blockUser(id, false);
+      });
+    });
+  }
+
+  function viewUser(id) {
+    const u = all.find(x => x.id === id);
+    if (!u) return;
+    openModal({
+      title: 'User ' + u.nickname,
+      body: `
+        <div class="admin-kv">
+          <div><span>ID</span><code>${esc(u.id)}</code></div>
+          <div><span>Nickname</span>${esc(u.nickname)}</div>
+          <div><span>Telegram</span>${esc(u.telegramUsername || '—')}</div>
+          <div><span>Telegram ID</span>${esc(u.telegramId || '—')}</div>
+          <div><span>Phone</span>${esc(u.phone || '—')}</div>
+          <div><span>AWC</span>${fmtAWC(u.balanceAWC)}</div>
+          <div><span>Total spent</span>${fmtMoney(u.totalSpent || 0)}</div>
+          <div><span>Total earned</span>${fmtMoney(u.totalEarned || 0)}</div>
+          <div><span>Rating</span>${(u.rating || 0).toFixed(1)}</div>
+          <div><span>Verified</span>${u.verified ? 'Yes' : 'No'}</div>
+          <div><span>Created</span>${fmtDateShort(u.createdAt)}</div>
+          <div><span>Updated</span>${fmtDateShort(u.updatedAt)}</div>
+          <div><span>Premium</span>${esc(u.premiumPlan || '—')}</div>
+        </div>
+      `,
+      actions: [{ label: 'Close', className: 'aw-btn-ghost', onClick: () => closeModal() }]
+    });
+  }
+
+  async function blockUser(id, blocked) {
+    const ok = await confirmModal(blocked ? 'Block user?' : 'Unblock user?', 'Proceed?');
+    if (!ok) return;
+    const r = await API.adminBlockUser(id, blocked);
+    if (r.success) { toast('Updated.', 'success'); load(); }
+    else toast(r.message, 'error');
+  }
+
+  document.getElementById('u-search').addEventListener('input', render);
+  document.getElementById('u-filter').addEventListener('change', render);
+  document.getElementById('u-refresh').addEventListener('click', load);
+
+  load();
+})();
+</script>
+</body>
+</html>

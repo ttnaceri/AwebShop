@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="UTF-8"/><meta name="viewport" content="width=device-width, initial-scale=1"/>
+<title>Security — Admin</title>
+<link rel="stylesheet" href="../css/main.css"/><link rel="stylesheet" href="../css/admin.css"/>
+<link rel="stylesheet" href="../css/console.css"/><link rel="stylesheet" href="../css/responsive.css"/></head>
+<body class="admin-body">
+<aside id="admin-sidebar" class="admin-sidebar"></aside>
+<div class="admin-main">
+  <header id="admin-topbar" class="admin-topbar"></header>
+  <div class="admin-content"><p id="admin-subtitle" class="admin-sub"></p></div>
+</div>
+<script src="../js/api.js"></script><script src="../js/app.js"></script><script src="../js/auth.js"></script>
+<script src="../js/admin.js"></script><script src="../components/admin-console.js"></script>
+<script>
+(async () => {
+  await loadRates();
+  if (!(await Admin.requireAdmin())) return;
+  adminPage('Security', 'Rate limiting, IP blocklist, password policy');
+
+  const r = await API.adminGet('security');
+  const d = r.success ? r.data : {};
+  const s = d;
+
+  const content = document.querySelector('.admin-content');
+  content.insertAdjacentHTML('beforeend', `
+    <div class="admin-grid-2">
+      <div class="admin-card">
+        <h3>Blocked IPs (one per line)</h3>
+        <textarea id="sec-ips" rows="8" style="width:100%;background:var(--card);color:var(--text);border:1px solid var(--border);border-radius:10px;padding:10px;font-family:inherit">${(s.blockedIps||[]).join('\\n')}</textarea>
+      </div>
+      <div class="admin-card">
+        <h3>Password policy</h3>
+        <div class="aw-form">
+          <label><span>Min length</span><input type="number" id="sec-min" value="${(s.passwordPolicy?.minLength)||8}"/></label>
+          <label class="aw-checkbox"><input type="checkbox" id="sec-up" ${s.passwordPolicy?.requireUppercase?'checked':''}/><span>Require uppercase</span></label>
+          <label class="aw-checkbox"><input type="checkbox" id="sec-num" ${s.passwordPolicy?.requireNumber?'checked':''}/><span>Require number</span></label>
+        </div>
+      </div>
+    </div>
+    <div class="admin-card">
+      <h3>Recent security logs</h3>
+      <div id="sec-logs"></div>
+    </div>
+    <button class="aw-btn aw-btn-primary" id="sec-save">Save</button>
+  `);
+
+  renderTable(document.getElementById('sec-logs'),
+    [
+      { label: 'Time', render: x => fmtDateShort(x.timestamp) },
+      { label: 'Type', render: x => esc(x.type) },
+      { label: 'Message', render: x => esc(x.message) },
+      { label: 'IP', render: x => esc(x.ip || '—') }
+    ], (s.securityLogs || []).slice().reverse().slice(0, 50), { emptyText: 'No security events yet.' }
+  );
+
+  document.getElementById('sec-save').addEventListener('click', async () => {
+    const payload = {
+      blockedIps: document.getElementById('sec-ips').value.split(/\\r?\\n/).map(x => x.trim()).filter(Boolean),
+      passwordPolicy: {
+        minLength: Number(document.getElementById('sec-min').value),
+        requireUppercase: document.getElementById('sec-up').checked,
+        requireNumber: document.getElementById('sec-num').checked
+      }
+    };
+    const r2 = await API.adminPut('security', payload);
+    if (r2.success) toast('Saved.', 'success');
+    else toast(r2.message, 'error');
+  });
+})();
+</script>
+</body></html>

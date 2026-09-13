@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="UTF-8"/><meta name="viewport" content="width=device-width, initial-scale=1"/>
+<title>Prices — Admin</title>
+<link rel="stylesheet" href="../css/main.css"/><link rel="stylesheet" href="../css/admin.css"/>
+<link rel="stylesheet" href="../css/console.css"/><link rel="stylesheet" href="../css/responsive.css"/></head>
+<body class="admin-body">
+<aside id="admin-sidebar" class="admin-sidebar"></aside>
+<div class="admin-main">
+  <header id="admin-topbar" class="admin-topbar"></header>
+  <div class="admin-content"><p id="admin-subtitle" class="admin-sub"></p></div>
+</div>
+<script src="../js/api.js"></script><script src="../js/app.js"></script><script src="../js/auth.js"></script>
+<script src="../js/admin.js"></script><script src="../components/admin-console.js"></script>
+<script>
+(async () => {
+  await loadRates();
+  if (!(await Admin.requireAdmin())) return;
+  adminPage('Prices', 'Platform pricing and rates');
+
+  const content = document.querySelector('.admin-content');
+  content.insertAdjacentHTML('beforeend', `<div id="pr-host"></div>`);
+
+  const r = await API.adminGet('prices');
+  if (!r.success) return;
+  const p = r.data;
+
+  document.getElementById('pr-host').innerHTML = `
+    <div class="admin-card">
+      <div class="aw-form" style="display:grid;grid-template-columns:repeat(2,1fr);gap:14px">
+        <label><span>AWC price (UZS per 1 AWC)</span><input type="number" id="p-awc" value="${p.awcPriceUZS}"/></label>
+        <label><span>Listing fee (UZS)</span><input type="number" id="p-list" value="${p.listingFeeUZS}"/></label>
+        <label><span>Sale commission (%)</span><input type="number" step="0.1" id="p-comm" value="${p.saleCommissionPercent}"/></label>
+        <label><span>Escrow fee (%)</span><input type="number" step="0.1" id="p-esc" value="${p.escrowFeePercent}"/></label>
+        <label><span>Cashback (%)</span><input type="number" step="0.1" id="p-cb" value="${p.cashbackPercent}"/></label>
+        <label><span>Premium cashback (%)</span><input type="number" step="0.1" id="p-pcb" value="${p.premiumCashbackPercent}"/></label>
+        <label><span>Referral bonus (AWC)</span><input type="number" step="0.1" id="p-ref" value="${p.referralBonusAWC}"/></label>
+        <label><span>Rewarded ads per free listing</span><input type="number" id="p-ads" value="${p.rewardedAdsPerFreeListing}"/></label>
+      </div>
+      <button class="aw-btn aw-btn-primary" id="p-save" style="margin-top:14px">Save</button>
+    </div>
+  `;
+
+  document.getElementById('p-save').addEventListener('click', async () => {
+    const payload = {
+      awcPriceUZS: Number(document.getElementById('p-awc').value),
+      listingFeeUZS: Number(document.getElementById('p-list').value),
+      saleCommissionPercent: Number(document.getElementById('p-comm').value),
+      escrowFeePercent: Number(document.getElementById('p-esc').value),
+      cashbackPercent: Number(document.getElementById('p-cb').value),
+      premiumCashbackPercent: Number(document.getElementById('p-pcb').value),
+      referralBonusAWC: Number(document.getElementById('p-ref').value),
+      rewardedAdsPerFreeListing: Number(document.getElementById('p-ads').value)
+    };
+    const r2 = await API.adminPut('prices', payload);
+    if (r2.success) toast('Saved.', 'success');
+    else toast(r2.message, 'error');
+  });
+})();
+</script>
+</body></html>

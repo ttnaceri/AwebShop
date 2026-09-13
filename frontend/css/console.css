@@ -1,0 +1,98 @@
+/* Terminal-style Admin Console */
+
+#admin-console {
+  position: fixed;
+  bottom: 20px; right: 20px;
+  width: 640px; height: 380px;
+  background: #0a0a0c;
+  border: 1px solid rgba(0, 200, 81, 0.4);
+  border-radius: 10px;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.6), 0 0 0 1px rgba(0, 200, 81, 0.15) inset;
+  color: #d4d4d4;
+  font-family: ui-monospace, 'JetBrains Mono', 'Fira Code', monospace;
+  font-size: 13px;
+  display: flex; flex-direction: column;
+  transform: translateY(120%);
+  opacity: 0;
+  transition: transform .2s, opacity .2s;
+  z-index: 9999;
+  overflow: hidden;
+}
+#admin-console.ac-open { transform: translateY(0); opacity: 1; }
+#admin-console.ac-max {
+  width: 96vw; height: 90vh; bottom: 5vh; right: 2vw;
+}
+#admin-console.ac-min { height: 44px; }
+#admin-console.ac-min .ac-body { display: none; }
+
+.ac-header {
+  display: flex; justify-content: space-between; align-items: center;
+  padding: 8px 12px;
+  background: #111114;
+  border-bottom: 1px solid rgba(0, 200, 81, 0.25);
+  user-select: none;
+}
+.ac-title { display: flex; align-items: center; gap: 8px; font-size: 12.5px; color: #9ae6b4; }
+.ac-dot { display: inline-block; width: 8px; height: 8px; border-radius: 50%; background: #00c851; box-shadow: 0 0 8px #00c851; }
+.ac-actions { display: flex; gap: 4px; }
+.ac-actions button {
+  background: transparent; border: 1px solid rgba(255,255,255,0.1);
+  color: #b4b4b4; width: 24px; height: 24px; border-radius: 5px; cursor: pointer;
+  font-family: inherit; font-size: 13px; line-height: 1;
+}
+.ac-actions button:hover { background: rgba(255,255,255,0.08); color: #fff; }
+
+.ac-body {
+  flex: 1; display: flex; flex-direction: column; overflow: hidden;
+  position: relative;
+}
+.ac-output {
+  flex: 1; padding: 10px 12px; overflow-y: auto;
+  line-height: 1.55;
+}
+.ac-line { white-space: pre-wrap; word-break: break-word; }
+.ac-info { color: #7dd3fc; }
+.ac-warn { color: #ffbb33; }
+.ac-error { color: #ff4c4c; }
+.ac-ok { color: #00c851; font-weight: 600; }
+.ac-cmd { color: #00c851; font-weight: 600; }
+.ac-cmdline { color: #9ae6b4; }
+.ac-prompt-inline { color: #9ae6b4; margin-right: 6px; }
+
+.ac-suggestions {
+  border-top: 1px solid rgba(0,200,81,0.2);
+  background: #0d0d10;
+  display: flex; gap: 8px; padding: 6px 12px;
+}
+.ac-sug {
+  padding: 3px 10px; border-radius: 5px;
+  background: rgba(0,200,81,0.1);
+  color: #9ae6b4; cursor: pointer;
+  border: 1px solid rgba(0,200,81,0.25);
+}
+.ac-sug:hover { background: rgba(0,200,81,0.2); }
+
+.ac-input-row {
+  display: flex; align-items: center; gap: 8px;
+  border-top: 1px solid rgba(0,200,81,0.25);
+  padding: 8px 12px; background: #0d0d10;
+}
+.ac-prompt { color: #9ae6b4; white-space: nowrap; }
+#ac-input {
+  flex: 1; background: transparent; border: none; outline: none;
+  color: #e6e6e6; font-family: inherit; font-size: 13px;
+}
+
+.ac-resize {
+  position: absolute; top: 0; left: 0;
+  width: 14px; height: 14px;
+  cursor: nwse-resize;
+  background:
+    linear-gradient(135deg, transparent 45%, rgba(0,200,81,0.4) 50%, transparent 55%);
+}
+
+/* Small screens */
+@media (max-width: 767px) {
+  #admin-console { width: calc(100vw - 24px); height: 60vh; bottom: 12px; right: 12px; left: 12px; }
+  #admin-console.ac-max { width: calc(100vw - 12px); height: calc(100vh - 12px); }
+}

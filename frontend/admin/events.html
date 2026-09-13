@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="UTF-8"/><meta name="viewport" content="width=device-width, initial-scale=1"/>
+<title>Events — Admin</title>
+<link rel="stylesheet" href="../css/main.css"/><link rel="stylesheet" href="../css/admin.css"/>
+<link rel="stylesheet" href="../css/console.css"/><link rel="stylesheet" href="../css/responsive.css"/></head>
+<body class="admin-body">
+<aside id="admin-sidebar" class="admin-sidebar"></aside>
+<div class="admin-main">
+  <header id="admin-topbar" class="admin-topbar"></header>
+  <div class="admin-content">
+    <p id="admin-subtitle" class="admin-sub"></p>
+    <div class="admin-legend-note">
+      Rotating events area on the homepage. Latest 6 are shown — adding a new one auto-removes the oldest (FIFO).
+    </div>
+  </div>
+</div>
+<script src="../js/api.js"></script><script src="../js/app.js"></script><script src="../js/auth.js"></script>
+<script src="../js/admin.js"></script><script src="../components/modals.js"></script><script src="../components/admin-console.js"></script>
+<script>
+(async () => {
+  await loadRates();
+  if (!(await Admin.requireAdmin())) return;
+  buildCrudPage({
+    title: 'Events',
+    subtitle: 'Rotating homepage events (max 6, auto-scroll every 5s)',
+    endpoint: 'events',
+    idField: 'id',
+    columns: [
+      { label: 'Title', render: r => esc(r.title) },
+      { label: 'Description', render: r => esc((r.description || '').slice(0, 60)) + '…' },
+      { label: 'Link', render: r => r.link ? `<a href="${esc(r.link)}" target="_blank">open</a>` : '—' },
+      { label: 'Status', render: r => r.enabled ? statusPill('active') : statusPill('cancelled') },
+      { label: 'Created', render: r => fmtDateShort(r.createdAt) }
+    ],
+    formFields: [
+      { key: 'title', label: 'Title', type: 'text' },
+      { key: 'description', label: 'Description', type: 'textarea' },
+      { key: 'imageUrl', label: 'Image URL', type: 'text' },
+      { key: 'link', label: 'Link URL', type: 'text' },
+      { key: 'enabled', label: 'Enabled', type: 'checkbox', default: true }
+    ]
+  });
+})();
+</script>
+</body></html>

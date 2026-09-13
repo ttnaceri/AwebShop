@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="UTF-8"/><meta name="viewport" content="width=device-width, initial-scale=1"/>
+<title>Backup — Admin</title>
+<link rel="stylesheet" href="../css/main.css"/><link rel="stylesheet" href="../css/admin.css"/>
+<link rel="stylesheet" href="../css/console.css"/><link rel="stylesheet" href="../css/responsive.css"/></head>
+<body class="admin-body">
+<aside id="admin-sidebar" class="admin-sidebar"></aside>
+<div class="admin-main">
+  <header id="admin-topbar" class="admin-topbar"></header>
+  <div class="admin-content"><p id="admin-subtitle" class="admin-sub"></p></div>
+</div>
+<script src="../js/api.js"></script><script src="../js/app.js"></script><script src="../js/auth.js"></script>
+<script src="../js/admin.js"></script><script src="../components/modals.js"></script><script src="../components/admin-console.js"></script>
+<script>
+(async () => {
+  await loadRates();
+  if (!(await Admin.requireAdmin())) return;
+  adminPage('Backup & Restore', 'Snapshot of backend.json');
+
+  const content = document.querySelector('.admin-content');
+  content.insertAdjacentHTML('beforeend', `
+    <div class="admin-toolbar">
+      <button class="aw-btn aw-btn-primary" id="bk-create">Create backup</button>
+      <button class="aw-btn aw-btn-ghost" id="bk-refresh">Refresh</button>
+    </div>
+    <div id="bk-host"></div>
+  `);
+
+  async function load() {
+    const r = await API.adminGet('backup');
+    if (!r.success) return;
+    renderTable(document.getElementById('bk-host'),
+      [
+        { label: 'File', render: x => `<code>${esc(x.name)}</code>` },
+        { label: 'Size', render: x => (x.size/1024).toFixed(1) + ' KB' },
+        { label: 'Created', render: x => fmtDateShort(x.createdAt) },
+        { label: 'Actions', render: x => `<button class="admin-btn-sm bad" data-restore="${esc(x.name)}">Restore</button>` }
+      ], r.data.items, { emptyText: 'No backups yet.' }
+    );
+    document.querySelectorAll('button[data-restore]').forEach(b => {
+      b.addEventListener('click', async () => {
+        const ok = await confirmModal('Restore backup?', 'Current data will be overwritten. Proceed?');
+        if (!ok) return;
+        const r2 = await API.adminPost('backup/restore', { name: b.dataset.restore });
+        if (r2.success) { toast('Restored.', 'success'); load(); }
+        else toast(r2.message, 'error');
+      });
+    });
+  }
+
+  document.getElementById('bk-create').addEventListener('click', async () => {
+    const r = await API.adminPost('backup', {});
+    if (r.success) { toast('Backup created.', 'success'); load(); }
+    else toast(r.message, 'error');
+  });
+  document.getElementById('bk-refresh').addEventListener('click', load);
+  load();
+})();
+</script>
+</body></html>

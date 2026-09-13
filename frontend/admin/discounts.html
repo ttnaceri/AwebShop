@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="UTF-8"/><meta name="viewport" content="width=device-width, initial-scale=1"/>
+<title>Discounts — Admin</title>
+<link rel="stylesheet" href="../css/main.css"/>
+<link rel="stylesheet" href="../css/admin.css"/>
+<link rel="stylesheet" href="../css/console.css"/>
+<link rel="stylesheet" href="../css/responsive.css"/></head>
+<body class="admin-body">
+<aside id="admin-sidebar" class="admin-sidebar"></aside>
+<div class="admin-main">
+  <header id="admin-topbar" class="admin-topbar"></header>
+  <div class="admin-content"><p id="admin-subtitle" class="admin-sub"></p></div>
+</div>
+<script src="../js/api.js"></script><script src="../js/app.js"></script><script src="../js/auth.js"></script>
+<script src="../js/admin.js"></script><script src="../components/modals.js"></script><script src="../components/admin-console.js"></script>
+<script>
+(async () => {
+  await loadRates();
+  if (!(await Admin.requireAdmin())) return;
+  buildCrudPage({
+    title: 'Discounts',
+    subtitle: 'Targeted discounts for users and topics',
+    endpoint: 'discounts',
+    idField: 'id',
+    columns: [
+      { label: 'Target', render: r => esc(r.target) },
+      { label: 'Topics', render: r => esc((r.topics || []).join(', ') || 'all') },
+      { label: 'Type', render: r => esc(r.type) },
+      { label: 'Value', render: r => esc(r.value) },
+      { label: 'Enabled', render: r => r.enabled ? statusPill('active') : statusPill('cancelled') },
+      { label: 'Created', render: r => fmtDateShort(r.createdAt) }
+    ],
+    formFields: [
+      { key: 'target', label: 'Target', type: 'select', options: [
+        { value: 'all', label: 'All users' },
+        { value: 'new', label: 'New users' },
+        { value: 'existing', label: 'Existing users' },
+        { value: 'selected', label: 'Selected users' }
+      ], default: 'all' },
+      { key: 'type', label: 'Type', type: 'select', options: [
+        { value: 'percent', label: 'Percent' },
+        { value: 'fixed_awc', label: 'Fixed AWC' }
+      ], default: 'percent' },
+      { key: 'value', label: 'Value', type: 'number', default: 5 },
+      { key: 'topics', label: 'Topics (JSON array, optional)', type: 'text' },
+      { key: 'enabled', label: 'Enabled', type: 'checkbox', default: true }
+    ]
+  });
+})();
+</script>
+</body></html>

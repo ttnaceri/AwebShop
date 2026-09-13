@@ -1,0 +1,18 @@
+{
+  "name": "awebshop",
+  "version": "1.0.0",
+  "description": "AWebShop — marketplace for buying and selling websites",
+  "main": "backend/server.js",
+  "scripts": {
+    "start": "node backend/server.js",
+    "bot": "node bot/bot.js",
+    "start:all": "node backend/server.js & node bot/bot.js",
+    "dev": "node backend/server.js"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "dependencies": {},
+  "author": "UPDATE Inc.",
+  "license": "MIT"
+}

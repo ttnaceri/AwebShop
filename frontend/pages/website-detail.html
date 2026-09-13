@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1"/>
+<title>Website — AWebShop</title>
+<link rel="stylesheet" href="../css/main.css"/>
+<link rel="stylesheet" href="../css/responsive.css"/>
+</head>
+<body class="aw-body">
+<div id="aw-header"></div>
+
+<main class="aw-page">
+  <div id="detail-root" class="aw-detail">
+    <div class="aw-loading">Loading…</div>
+  </div>
+</main>
+
+<div id="aw-footer"></div>
+
+<script src="../js/api.js"></script>
+<script src="../js/app.js"></script>
+<script src="../js/auth.js"></script>
+<script src="../js/validation.js"></script>
+<script src="../components/header.js"></script>
+<script src="../components/footer.js"></script>
+<script src="../components/modals.js"></script>
+<script src="../js/shortcuts.js"></script>
+
+<script>
+(async () => {
+  await loadRates();
+  await Auth.load();
+
+  const webId = new URLSearchParams(location.search).get('id');
+  const root = document.getElementById('detail-root');
+
+  if (!webId) {
+    root.innerHTML = '<div class="aw-empty">Missing website id.</div>';
+    return;
+  }
+
+  const res = await API.websiteDetail(webId);
+  if (!res.success) {
+    root.innerHTML = `<div class="aw-empty">${esc(res.message || 'Not found')}</div>`;
+    return;
+  }
+  const { website: w, seller } = res.data;
+
+  root.innerHTML = `
+    <div class="aw-detail-grid">
+      <div class="aw-detail-img">
+        ${w.imageUrl
+          ? `<img src="${esc(w.imageUrl)}" alt="${esc(w.name)}" onerror="this.style.display='none'"/>`
+          : `<div class="aw-card-noimg">${esc(w.name[0] || '?')}</div>`}
+      </div>
+      <div class="aw-detail-info">
+        <div class="aw-detail-top">
+          <h1>${esc(w.name)}</h1>
+          ${w.saleType === 'safe'
+            ? `<span class="aw-badge aw-badge-safe">${t('safe')}</span>`
+            : `<span class="aw-badge aw-badge-fast">${t('fast')}</span>`}
+        </div>
+        <div class="aw-detail-domain">${esc(w.domain)}</div>
+        <div class="aw-detail-topic">${esc(w.topic)}</div>
+
+        <div class="aw-detail-price">
+          <strong>${fmtUZS(w.priceUZS)}</strong>
+          <small>${fmtUSD(w.priceUSD)} • ${fmtAWC(w.priceAWC)}</small>
+        </div>
+
+        <p class="aw-detail-desc">${esc(w.description)}</p>
+
+        <div class="aw-detail-meta">
+          <div>👁 ${w.views || 0}</div>
+          <div>⭐ ${(w.rating || 0).toFixed(1)}</div>
+          <div>Web ID: <code>${esc(w.webId)}</code></div>
+        </div>
+
+        <div class="aw-sale-note ${w.saleType === 'safe' ? 'safe' : 'fast'}">
+          ${w.saleType === 'safe' ? t('sale_safe_hint') : t('sale_fast_hint')}
+        </div>
+
+        <div class="aw-detail-actions">
+          <button class="aw-btn aw-btn-primary" id="buy-btn">${t('buy')}</button>
+          <a class="aw-btn aw-btn-ghost" href="store.html">Back to store</a>
+        </div>
+
+        ${seller ? `
+          <div class="aw-seller">
+            <h4>Seller</h4>
+            <div class="aw-seller-row">
+              <span class="aw-avatar">${esc((seller.nickname||'?')[0].toUpperCase())}</span>
+              <div>
+                <div><strong>${esc(seller.nickname)}</strong> ${seller.verified ? '✔' : ''}</div>
+                <div class="aw-muted">⭐ ${(seller.rating || 0).toFixed(1)} • Joined ${new Date(seller.createdAt).toLocaleDateString()}</div>
+              </div>
+            </div>
+          </div>
+        ` : ''}
+      </div>
+    </div>
+  `;
+
+  document.getElementById('buy-btn').addEventListener('click', async () => {
+    if (!Auth.isLoggedIn()) {
+      location.href = 'login.html?next=' + encodeURIComponent('website-detail.html?id=' + webId);
+      return;
+    }
+
+    const ok = await confirmModal('Confirm purchase',
+      `Buy "${w.name}" for ${fmtUZS(w.priceUZS)} (${w.saleType === 'safe' ? 'Safe/Escrow' : 'Fast/Direct'})?`);
+    if (!ok) return;
+
+    const buyRes = await API.buyWebsite(webId, {});
+    if (buyRes.success) {
+      toast('Order created: ' + buyRes.data.order.id, 'success', 5000);
+      setTimeout(() => location.href = 'wallet.html', 1200);
+    } else {
+      toast(buyRes.message || 'Purchase failed', 'error', 4000);
+    }
+  });
+})();
+</script>
+</body>
+</html>

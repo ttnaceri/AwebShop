@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1"/>
+<title>AWebShop</title>
+<link rel="stylesheet" href="../css/main.css"/>
+<link rel="stylesheet" href="../css/responsive.css"/>
+</head>
+<body class="aw-body">
+<div id="aw-header"></div>
+
+<main class="aw-page">
+  <!-- HERO -->
+  <section class="aw-hero">
+    <div class="aw-hero-text">
+      <h1>Buy and sell real websites</h1>
+      <p>Escrow-protected transactions. Pay in AWC, UZS, or USD.</p>
+      <div class="aw-hero-actions">
+        <a class="aw-btn aw-btn-primary" href="store.html">Explore Store</a>
+        <a class="aw-btn aw-btn-ghost" href="sell.html">Sell a Website</a>
+      </div>
+    </div>
+    <div class="aw-hero-badge">
+      <div>AWC</div>
+      <small id="awc-rate">1 AWC = 10,000 so'm</small>
+    </div>
+  </section>
+
+  <!-- EVENTS -->
+  <!-- EVENTS: rotating 6 pages, auto-scroll every 5 seconds -->
+<section class="aw-section">
+  <div class="aw-section-head">
+    <h2 id="events-title">Latest Events</h2>
+    <div class="aw-events-dots" id="events-dots"></div>
+  </div>
+  <div class="aw-events-rotator" id="events-area">
+    <div class="aw-event-skel">Events will appear here once admins add them.</div>
+  </div>
+</section>
+
+  <!-- RECOMMENDED -->
+  <section class="aw-section">
+    <div class="aw-section-head">
+      <h2 id="recommended-title">Recommended Websites</h2>
+      <a class="aw-link" href="store.html">See all →</a>
+    </div>
+    <div class="aw-grid" id="recommended-grid">
+      <div class="aw-loading">Loading…</div>
+    </div>
+  </section>
+
+  <!-- PREMIUM PLANS PREVIEW -->
+  <section class="aw-section">
+    <div class="aw-section-head">
+      <h2>Premium Plans</h2>
+    </div>
+    <div class="aw-grid aw-grid-plans" id="plans-grid"></div>
+  </section>
+</main>
+
+<div id="aw-footer"></div>
+
+<script src="../js/api.js"></script>
+<script src="../js/app.js"></script>
+<script src="../js/auth.js"></script>
+<script src="../components/header.js"></script>
+<script src="../components/footer.js"></script>
+<script src="../components/website-card.js"></script>
+<script src="../js/shortcuts.js"></script>
+
+<script>
+(async () => {
+  await loadRates();
+
+  // AWC rate
+  document.getElementById('awc-rate').textContent =
+    '1 AWC = ' + fmtUZS(RATES.awcPriceUZS) + '  •  ' + fmtUSD(RATES.awcPriceUZS / RATES.usdRate);
+
+  document.getElementById('events-title').textContent = t('latestEvents');
+  document.getElementById('recommended-title').textContent = t('recommended');
+
+  // Recommended websites (oddiy holatda eng ko'p ko'rilganlar)
+  const listRes = await API.listWebsites({ page: 1, perPage: 8, sort: 'popular' });
+  const grid = document.getElementById('recommended-grid');
+  if (listRes.success && listRes.data.items.length) {
+    grid.innerHTML = listRes.data.items.map(websiteCard).join('');
+  } else {
+    grid.innerHTML = '<div class="aw-empty">No websites yet. Be the first to sell!</div>';
+  }
+
+  // Premium plans
+  const plansRes = await API.premiumPlans();
+  const plansGrid = document.getElementById('plans-grid');
+  if (plansRes.success) {
+    plansGrid.innerHTML = plansRes.data.items.map(p => `
+      <div class="aw-plan-card">
+        <h3>${esc(p.name)}</h3>
+        <div class="aw-plan-price">
+          <strong>${fmtUZS(p.monthlyPriceUZS)}</strong>
+          <small>${fmtUSD(p.monthlyPriceUSD)} / month</small>
+        </div>
+        <ul class="aw-plan-features">
+          ${p.features.map(f => `<li>${esc(f)}</li>`).join('')}
+        </ul>
+        <div class="aw-plan-commission">${p.commission}% commission</div>
+        <button class="aw-btn aw-btn-primary aw-btn-block" data-plan="${p.id}">Choose ${esc(p.name)}</button>
+      </div>
+    `).join('');
+
+    plansGrid.querySelectorAll('button[data-plan]').forEach(btn => {
+      btn.addEventListener('click', () => {
+        if (!Auth.isLoggedIn()) {
+          location.href = 'login.html?next=wallet.html';
+          return;
+        }
+        location.href = 'wallet.html#premium';
+      });
+    });
+  }
+})();
+// --- Events rotatsiya ---
+let eventsTimer = null;
+async function loadEvents() {
+  try {
+    const res = await fetch((window.API_BASE || '') + '/api/admin/events', {
+      headers: { 'Content-Type': 'application/json' }
+    });
+    // admin/events oddiy foydalanuvchiga ochilmaydi — events list public endpoint orqali emas.
+    // Hozircha events ni backend orqali ochiq qilish uchun quyidagi kod admin token bilan ishlaydi.
+    // Foydalanuvchiga ochiq bo'lishi uchun qo'shimcha /api/events route qo'shish tavsiya etiladi.
+  } catch (_) {}
+}
+
+// Events (agar ochiq endpoint mavjud bo'lsa)
+async function loadPublicEvents() {
+  const res = await API.adminGet('events').catch(() => ({ success: false }));
+  const host = document.getElementById('events-area');
+  const dots = document.getElementById('events-dots');
+  if (!res.success || !res.data.items.length) {
+    return; // keep skeleton
+  }
+  const items = res.data.items.slice(0, 6);
+  host.innerHTML = items.map((e, i) => `
+    <div class="aw-event-slide ${i === 0 ? 'active' : ''}" data-i="${i}">
+      ${e.imageUrl ? `<img src="${esc(e.imageUrl)}" alt="${esc(e.title)}" onerror="this.style.display='none'"/>` : ''}
+      <h3>${esc(e.title)}</h3>
+      <p>${esc(e.description || '')}</p>
+      ${e.link ? `<a class="aw-btn aw-btn-ghost" href="${esc(e.link)}" target="_blank">Open →</a>` : ''}
+    </div>
+  `).join('');
+  dots.innerHTML = items.map((_, i) => `<span class="${i === 0 ? 'active' : ''}" data-dot="${i}"></span>`).join('');
+
+  let current = 0;
+  function show(i) {
+    current = (i + items.length) % items.length;
+    host.querySelectorAll('.aw-event-slide').forEach((el, idx) => el.classList.toggle('active', idx === current));
+    dots.querySelectorAll('span').forEach((el, idx) => el.classList.toggle('active', idx === current));
+  }
+  dots.querySelectorAll('span').forEach(s => {
+    s.addEventListener('click', () => { show(Number(s.dataset.dot)); restart(); });
+  });
+  function restart() {
+    if (eventsTimer) clearInterval(eventsTimer);
+    eventsTimer = setInterval(() => show(current + 1), 5000);
+  }
+  restart();
+}
+
+// Agar admin token bo'lmasa, bo'sh holda qoldiramiz.
+if (API.getToken()) loadPublicEvents();
+</script>
+</body>
+</html>

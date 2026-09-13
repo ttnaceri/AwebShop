@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="UTF-8"/><meta name="viewport" content="width=device-width, initial-scale=1"/>
+<title>Featured — Admin</title>
+<link rel="stylesheet" href="../css/main.css"/><link rel="stylesheet" href="../css/admin.css"/>
+<link rel="stylesheet" href="../css/console.css"/><link rel="stylesheet" href="../css/responsive.css"/></head>
+<body class="admin-body">
+<aside id="admin-sidebar" class="admin-sidebar"></aside>
+<div class="admin-main">
+  <header id="admin-topbar" class="admin-topbar"></header>
+  <div class="admin-content"><p id="admin-subtitle" class="admin-sub"></p></div>
+</div>
+<script src="../js/api.js"></script><script src="../js/app.js"></script><script src="../js/auth.js"></script>
+<script src="../js/admin.js"></script><script src="../components/modals.js"></script><script src="../components/admin-console.js"></script>
+<script>
+(async () => {
+  await loadRates();
+  if (!(await Admin.requireAdmin())) return;
+  adminPage('Featured Websites', 'Pin websites to the homepage');
+
+  const content = document.querySelector('.admin-content');
+  content.insertAdjacentHTML('beforeend', `
+    <div class="admin-toolbar">
+      <input id="ft-webid" placeholder="Enter webId (e.g. ABC1234)"/>
+      <button class="aw-btn aw-btn-primary" id="ft-add">Feature</button>
+      <button class="aw-btn aw-btn-ghost" id="ft-refresh">Refresh</button>
+    </div>
+    <div id="ft-host"></div>
+  `);
+  let items = [];
+  async function load() {
+    const r = await API.adminGet('featured');
+    if (!r.success) return;
+    items = r.data.items;
+    render();
+  }
+  function render() {
+    renderTable(document.getElementById('ft-host'),
+      [
+        { label: 'Web ID', render: r => `<code>${esc(r.webId)}</code>` },
+        { label: 'Visible', render: r => r.visible ? statusPill('active') : statusPill('cancelled') },
+        { label: 'Added', render: r => fmtDateShort(r.createdAt) },
+        { label: 'Actions', render: r => `<button class="admin-btn-sm bad" data-id="${esc(r.webId)}">Remove</button>` }
+      ], items, { emptyText: 'No featured websites.' }
+    );
+    document.querySelectorAll('#ft-host button').forEach(b => {
+      b.addEventListener('click', async () => {
+        await API.adminPost('featured/toggle', { webId: b.dataset.id, visible: false });
+        load();
+      });
+    });
+  }
+  document.getElementById('ft-add').addEventListener('click', async () => {
+    const webId = document.getElementById('ft-webid').value.trim();
+    if (!webId) return;
+    const r = await API.adminPost('featured/toggle', { webId, visible: true });
+    if (r.success) { toast('Featured.', 'success'); document.getElementById('ft-webid').value = ''; load(); }
+    else toast(r.message, 'error');
+  });
+  document.getElementById('ft-refresh').addEventListener('click', load);
+  load();
+})();
+</script>
+</body></html>

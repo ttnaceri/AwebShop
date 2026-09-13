@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="UTF-8"/><meta name="viewport" content="width=device-width, initial-scale=1"/>
+<title>Settings — Admin</title>
+<link rel="stylesheet" href="../css/main.css"/><link rel="stylesheet" href="../css/admin.css"/>
+<link rel="stylesheet" href="../css/console.css"/><link rel="stylesheet" href="../css/responsive.css"/></head>
+<body class="admin-body">
+<aside id="admin-sidebar" class="admin-sidebar"></aside>
+<div class="admin-main">
+  <header id="admin-topbar" class="admin-topbar"></header>
+  <div class="admin-content"><p id="admin-subtitle" class="admin-sub"></p></div>
+</div>
+<script src="../js/api.js"></script><script src="../js/app.js"></script><script src="../js/auth.js"></script>
+<script src="../js/admin.js"></script><script src="../components/admin-console.js"></script>
+<script>
+(async () => {
+  await loadRates();
+  if (!(await Admin.requireAdmin())) return;
+  adminPage('Settings', 'Site-wide settings');
+
+  const r = await API.adminGet('settings');
+  if (!r.success) return;
+  const s = r.data.settings;
+
+  const content = document.querySelector('.admin-content');
+  content.insertAdjacentHTML('beforeend', `
+    <div class="admin-card">
+      <div class="aw-form" style="display:grid;grid-template-columns:1fr 1fr;gap:14px">
+        <label><span>Site name</span><input id="s-name" value="${esc(s.siteName||'')}"/></label>
+        <label><span>Contact email</span><input id="s-email" value="${esc(s.contactEmail||'')}"/></label>
+        <label><span>Default language</span>
+          <select id="s-lang">
+            <option value="en" ${s.defaultLanguage==='en'?'selected':''}>English</option>
+            <option value="uz" ${s.defaultLanguage==='uz'?'selected':''}>O'zbek</option>
+          </select>
+        </label>
+        <label><span>Default currency</span>
+          <select id="s-cur">
+            <option value="UZS" ${s.defaultCurrency==='UZS'?'selected':''}>UZS</option>
+            <option value="USD" ${s.defaultCurrency==='USD'?'selected':''}>USD</option>
+          </select>
+        </label>
+        <label><span>Footer text</span><input id="s-footer" value="${esc(s.footerText||'')}"/></label>
+        <label><span>Logo path</span><input id="s-logo" value="${esc(s.logo||'')}"/></label>
+        <label><span>Favicon path</span><input id="s-fav" value="${esc(s.favicon||'')}"/></label>
+        <label><span>GitHub</span><input id="s-gh" value="${esc(s.social?.github||'')}"/></label>
+        <label><span>Telegram</span><input id="s-tg" value="${esc(s.social?.telegram||'')}"/></label>
+        <label><span>Instagram</span><input id="s-ig" value="${esc(s.social?.instagram||'')}"/></label>
+        <label><span>LinkedIn</span><input id="s-li" value="${esc(s.social?.linkedin||'')}"/></label>
+      </div>
+      <button class="aw-btn aw-btn-primary" id="s-save" style="margin-top:14px">Save settings</button>
+    </div>
+  `);
+
+  document.getElementById('s-save').addEventListener('click', async () => {
+    const payload = {
+      siteName: document.getElementById('s-name').value,
+      contactEmail: document.getElementById('s-email').value,
+      defaultLanguage: document.getElementById('s-lang').value,
+      defaultCurrency: document.getElementById('s-cur').value,
+      footerText: document.getElementById('s-footer').value,
+      logo: document.getElementById('s-logo').value,
+      favicon: document.getElementById('s-fav').value,
+      social: {
+        github: document.getElementById('s-gh').value,
+        telegram: document.getElementById('s-tg').value,
+        instagram: document.getElementById('s-ig').value,
+        linkedin: document.getElementById('s-li').value
+      }
+    };
+    const r2 = await API.adminPut('settings', payload);
+    if (r2.success) toast('Saved.', 'success');
+    else toast(r2.message, 'error');
+  });
+})();
+</script>
+</body></html>
