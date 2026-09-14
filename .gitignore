@@ -3,5 +3,12 @@ config.js
 .env
 *.log
 .DS_Store
+
+# Ma'lumotlar bazasi — hech qachon GitHub'ga chiqmasin
+data/backend.json
 data/backend.json.tmp
+data/backend.json.broken.*
 data/backups/
+
+# Admin panelida saqlangan fayllar
+data/uploads/
