@@ -1,17 +1,19 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8"/>
-<meta name="viewport" content="width=device-width, initial-scale=1"/>
-<title>AWebShop - main</title>
-  <link rel="icon" type="image/png" href="/frontend/assets/image/logo.png">
-<link rel="stylesheet" href="../css/main.css"/>
-<link rel="stylesheet" href="../css/responsive.css"/>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <title>AWebShop — Marketplace for websites</title>
+
+  <link rel="icon" type="image/png" href="../assets/image/logo.png"/>
+  <link rel="stylesheet" href="../css/main.css"/>
+  <link rel="stylesheet" href="../css/responsive.css"/>
 </head>
 <body class="aw-body">
 <div id="aw-header"></div>
 
 <main class="aw-page">
+
   <!-- HERO -->
   <section class="aw-hero">
     <div class="aw-hero-text">
@@ -28,17 +30,16 @@
     </div>
   </section>
 
-  <!-- EVENTS -->
-  <!-- EVENTS: rotating 6 pages, auto-scroll every 5 seconds -->
-<section class="aw-section">
-  <div class="aw-section-head">
-    <h2 id="events-title">Latest Events</h2>
-    <div class="aw-events-dots" id="events-dots"></div>
-  </div>
-  <div class="aw-events-rotator" id="events-area">
-    <div class="aw-event-skel">Events will appear here once admins add them.</div>
-  </div>
-</section>
+  <!-- EVENTS (rotating, auto-scroll every 5s) -->
+  <section class="aw-section" id="events-section">
+    <div class="aw-section-head">
+      <h2 id="events-title">Latest Events</h2>
+      <div class="aw-events-dots" id="events-dots"></div>
+    </div>
+    <div class="aw-events-rotator" id="events-area">
+      <div class="aw-event-skel">Events will appear here once admins add them.</div>
+    </div>
+  </section>
 
   <!-- RECOMMENDED -->
   <section class="aw-section">
@@ -55,13 +56,18 @@
   <section class="aw-section">
     <div class="aw-section-head">
       <h2>Premium Plans</h2>
+      <a class="aw-link" href="wallet.html#premium">See all →</a>
     </div>
-    <div class="aw-grid aw-grid-plans" id="plans-grid"></div>
+    <div class="aw-grid aw-grid-plans" id="plans-grid">
+      <div class="aw-loading">Loading…</div>
+    </div>
   </section>
+
 </main>
 
 <div id="aw-footer"></div>
 
+<!-- ============ SCRIPTS ============ -->
 <script src="../js/api.js"></script>
 <script src="../js/app.js"></script>
 <script src="../js/auth.js"></script>
@@ -71,105 +77,229 @@
 <script src="../js/shortcuts.js"></script>
 
 <script>
-(async () => {
-  await loadRates();
+(function () {
+  'use strict';
 
-  // AWC rate
-  document.getElementById('awc-rate').textContent =
-    '1 AWC = ' + fmtUZS(RATES.awcPriceUZS) + '  •  ' + fmtUSD(RATES.awcPriceUZS / RATES.usdRate);
-
-  document.getElementById('events-title').textContent = t('latestEvents');
-  document.getElementById('recommended-title').textContent = t('recommended');
-
-  // Recommended websites (oddiy holatda eng ko'p ko'rilganlar)
-  const listRes = await API.listWebsites({ page: 1, perPage: 8, sort: 'popular' });
-  const grid = document.getElementById('recommended-grid');
-  if (listRes.success && listRes.data.items.length) {
-    grid.innerHTML = listRes.data.items.map(websiteCard).join('');
-  } else {
-    grid.innerHTML = '<div class="aw-empty">No websites yet. Be the first to sell!</div>';
+  // ============================================================
+  // HELPERS
+  // ============================================================
+  function safeT(key) {
+    return (typeof window.t === 'function') ? window.t(key) : key;
   }
 
-  // Premium plans
-  const plansRes = await API.premiumPlans();
-  const plansGrid = document.getElementById('plans-grid');
-  if (plansRes.success) {
-    plansGrid.innerHTML = plansRes.data.items.map(p => `
-      <div class="aw-plan-card">
-        <h3>${esc(p.name)}</h3>
-        <div class="aw-plan-price">
-          <strong>${fmtUZS(p.monthlyPriceUZS)}</strong>
-          <small>${fmtUSD(p.monthlyPriceUSD)} / month</small>
-        </div>
-        <ul class="aw-plan-features">
-          ${p.features.map(f => `<li>${esc(f)}</li>`).join('')}
-        </ul>
-        <div class="aw-plan-commission">${p.commission}% commission</div>
-        <button class="aw-btn aw-btn-primary aw-btn-block" data-plan="${p.id}">Choose ${esc(p.name)}</button>
-      </div>
-    `).join('');
+  function esc(s) {
+    if (typeof window.esc === 'function') return window.esc(s);
+    return String(s == null ? '' : s)
+      .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+  }
 
-    plansGrid.querySelectorAll('button[data-plan]').forEach(btn => {
-      btn.addEventListener('click', () => {
-        if (!Auth.isLoggedIn()) {
-          location.href = 'login.html?next=wallet.html';
-          return;
-        }
-        location.href = 'wallet.html#premium';
+  function fmtUZS(n) {
+    if (typeof window.fmtUZS === 'function') return window.fmtUZS(n);
+    return new Intl.NumberFormat('uz-UZ').format(Math.round(n || 0)) + " so'm";
+  }
+
+  function fmtUSD(n) {
+    if (typeof window.fmtUSD === 'function') return window.fmtUSD(n);
+    return '$' + Number(n || 0).toFixed(2);
+  }
+
+  // ============================================================
+  // MAIN INIT
+  // ============================================================
+  async function init() {
+    // 1) Kurslarni yuklash (AWC va USD)
+    try {
+      if (typeof window.loadRates === 'function') {
+        await window.loadRates();
+      }
+    } catch (e) {
+      console.warn('[main] loadRates xato:', e.message);
+    }
+
+    // 2) AWC kursini ko'rsatish
+    const rateEl = document.getElementById('awc-rate');
+    if (rateEl && window.RATES) {
+      const awcRate = window.RATES.awcPriceUZS || 10000;
+      const usdRate = window.RATES.usdRate || 12650;
+      rateEl.textContent =
+        '1 AWC = ' + fmtUZS(awcRate) + '  •  ' + fmtUSD(awcRate / usdRate);
+    }
+
+    // 3) i18n sarlavhalar
+    const evTitle = document.getElementById('events-title');
+    const recTitle = document.getElementById('recommended-title');
+    if (evTitle) evTitle.textContent = safeT('latestEvents');
+    if (recTitle) recTitle.textContent = safeT('recommended');
+
+    // 4) Events yuklash (public)
+    loadPublicEvents();
+
+    // 5) Recommended websites
+    loadRecommended();
+
+    // 6) Premium plans
+    loadPremiumPlans();
+  }
+
+  // ============================================================
+  // EVENTS — public endpoint orqali
+  // ============================================================
+  let eventsTimer = null;
+
+  async function loadPublicEvents() {
+    const host = document.getElementById('events-area');
+    const dots = document.getElementById('events-dots');
+    if (!host || !dots) return;
+
+    // Public events endpointga murojaat
+    let res = null;
+    try {
+      if (typeof window.API === 'object' && typeof window.API.request === 'function') {
+        res = await window.API.request('/api/events', { auth: false });
+      }
+    } catch (e) {
+      console.warn('[main] events xato:', e.message);
+    }
+
+    // Agar public endpoint mavjud bo'lmasa yoki bo'sh bo'lsa — skeleton qoldiramiz
+    if (!res || !res.success || !res.data || !Array.isArray(res.data.items) || !res.data.items.length) {
+      host.innerHTML = '<div class="aw-event-skel">Events will appear here once admins add them.</div>';
+      dots.innerHTML = '';
+      return;
+    }
+
+    const items = res.data.items.slice(0, 6);
+
+    host.innerHTML = items.map(function (e, i) {
+      return (
+        '<div class="aw-event-slide ' + (i === 0 ? 'active' : '') + '" data-i="' + i + '">' +
+          (e.imageUrl
+            ? '<img src="' + esc(e.imageUrl) + '" alt="' + esc(e.title || '') + '" onerror="this.style.display=\'none\'"/>'
+            : '') +
+          '<h3>' + esc(e.title || '') + '</h3>' +
+          '<p>' + esc(e.description || '') + '</p>' +
+          (e.link
+            ? '<a class="aw-btn aw-btn-ghost" href="' + esc(e.link) + '" target="_blank" rel="noopener">Open →</a>'
+            : '') +
+        '</div>'
+      );
+    }).join('');
+
+    dots.innerHTML = items.map(function (_, i) {
+      return '<span class="' + (i === 0 ? 'active' : '') + '" data-dot="' + i + '"></span>';
+    }).join('');
+
+    let current = 0;
+
+    function show(i) {
+      current = (i + items.length) % items.length;
+      host.querySelectorAll('.aw-event-slide').forEach(function (el, idx) {
+        el.classList.toggle('active', idx === current);
+      });
+      dots.querySelectorAll('span').forEach(function (el, idx) {
+        el.classList.toggle('active', idx === current);
+      });
+    }
+
+    dots.querySelectorAll('span').forEach(function (s) {
+      s.addEventListener('click', function () {
+        show(Number(s.dataset.dot));
+        restart();
       });
     });
+
+    function restart() {
+      if (eventsTimer) clearInterval(eventsTimer);
+      eventsTimer = setInterval(function () { show(current + 1); }, 5000);
+    }
+
+    restart();
+  }
+
+  // ============================================================
+  // RECOMMENDED WEBSITES
+  // ============================================================
+  async function loadRecommended() {
+    const grid = document.getElementById('recommended-grid');
+    if (!grid) return;
+
+    try {
+      const res = await window.API.listWebsites({ page: 1, perPage: 8, sort: 'popular' });
+
+      if (res && res.success && res.data && Array.isArray(res.data.items) && res.data.items.length) {
+        if (typeof window.websiteCard === 'function') {
+          grid.innerHTML = res.data.items.map(window.websiteCard).join('');
+        } else {
+          grid.innerHTML = '<div class="aw-empty">No websites yet. Be the first to sell!</div>';
+        }
+      } else {
+        grid.innerHTML = '<div class="aw-empty">No websites yet. Be the first to sell!</div>';
+      }
+    } catch (e) {
+      console.warn('[main] recommended xato:', e.message);
+      grid.innerHTML = '<div class="aw-empty">Failed to load websites.</div>';
+    }
+  }
+
+  // ============================================================
+  // PREMIUM PLANS
+  // ============================================================
+  async function loadPremiumPlans() {
+    const grid = document.getElementById('plans-grid');
+    if (!grid) return;
+
+    try {
+      const res = await window.API.premiumPlans();
+
+      if (!res || !res.success || !Array.isArray(res.data.items)) {
+        grid.innerHTML = '<div class="aw-empty">Premium plans unavailable.</div>';
+        return;
+      }
+
+      grid.innerHTML = res.data.items.map(function (p) {
+        return (
+          '<div class="aw-plan-card">' +
+            '<h3>' + esc(p.name) + '</h3>' +
+            '<div class="aw-plan-price">' +
+              '<strong>' + fmtUZS(p.monthlyPriceUZS) + '</strong>' +
+              '<small>' + fmtUSD(p.monthlyPriceUSD) + ' / month</small>' +
+            '</div>' +
+            '<ul class="aw-plan-features">' +
+              (Array.isArray(p.features)
+                ? p.features.map(function (f) { return '<li>' + esc(f) + '</li>'; }).join('')
+                : '') +
+            '</ul>' +
+            '<div class="aw-plan-commission">' + esc(p.commission) + '% commission</div>' +
+            '<button class="aw-btn aw-btn-primary aw-btn-block" data-plan="' + esc(p.id) + '">Choose ' + esc(p.name) + '</button>' +
+          '</div>'
+        );
+      }).join('');
+
+      grid.querySelectorAll('button[data-plan]').forEach(function (btn) {
+        btn.addEventListener('click', function () {
+          if (!window.Auth || !window.Auth.isLoggedIn()) {
+            location.href = 'login.html?next=wallet.html';
+            return;
+          }
+          location.href = 'wallet.html#premium';
+        });
+      });
+    } catch (e) {
+      console.warn('[main] plans xato:', e.message);
+      grid.innerHTML = '<div class="aw-empty">Failed to load plans.</div>';
+    }
+  }
+
+  // ============================================================
+  // START
+  // ============================================================
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', init);
+  } else {
+    init();
   }
 })();
-// --- Events rotatsiya ---
-let eventsTimer = null;
-async function loadEvents() {
-  try {
-    const res = await fetch((window.API_BASE || '') + '/api/admin/events', {
-      headers: { 'Content-Type': 'application/json' }
-    });
-    // admin/events oddiy foydalanuvchiga ochilmaydi — events list public endpoint orqali emas.
-    // Hozircha events ni backend orqali ochiq qilish uchun quyidagi kod admin token bilan ishlaydi.
-    // Foydalanuvchiga ochiq bo'lishi uchun qo'shimcha /api/events route qo'shish tavsiya etiladi.
-  } catch (_) {}
-}
-
-// Events (agar ochiq endpoint mavjud bo'lsa)
-async function loadPublicEvents() {
-  const res = await API.adminGet('events').catch(() => ({ success: false }));
-  const host = document.getElementById('events-area');
-  const dots = document.getElementById('events-dots');
-  if (!res.success || !res.data.items.length) {
-    return; // keep skeleton
-  }
-  const items = res.data.items.slice(0, 6);
-  host.innerHTML = items.map((e, i) => `
-    <div class="aw-event-slide ${i === 0 ? 'active' : ''}" data-i="${i}">
-      ${e.imageUrl ? `<img src="${esc(e.imageUrl)}" alt="${esc(e.title)}" onerror="this.style.display='none'"/>` : ''}
-      <h3>${esc(e.title)}</h3>
-      <p>${esc(e.description || '')}</p>
-      ${e.link ? `<a class="aw-btn aw-btn-ghost" href="${esc(e.link)}" target="_blank">Open →</a>` : ''}
-    </div>
-  `).join('');
-  dots.innerHTML = items.map((_, i) => `<span class="${i === 0 ? 'active' : ''}" data-dot="${i}"></span>`).join('');
-
-  let current = 0;
-  function show(i) {
-    current = (i + items.length) % items.length;
-    host.querySelectorAll('.aw-event-slide').forEach((el, idx) => el.classList.toggle('active', idx === current));
-    dots.querySelectorAll('span').forEach((el, idx) => el.classList.toggle('active', idx === current));
-  }
-  dots.querySelectorAll('span').forEach(s => {
-    s.addEventListener('click', () => { show(Number(s.dataset.dot)); restart(); });
-  });
-  function restart() {
-    if (eventsTimer) clearInterval(eventsTimer);
-    eventsTimer = setInterval(() => show(current + 1), 5000);
-  }
-  restart();
-}
-
-// Agar admin token bo'lmasa, bo'sh holda qoldiramiz.
-if (API.getToken()) loadPublicEvents();
 </script>
 </body>
 </html>
