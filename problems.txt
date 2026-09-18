@@ -1,0 +1,14 @@
+- add pages for edit / add / delete Webhooks
+- you added url for web site`s image also add File Uploader.
+- add create account button to "admin/users.html" also SuperAdmin can edit creating account`s Id.
+- the admin/admins.html, admin/refunds.html, admin/domains.html, admin/stock.html, admin/chat.html, admin/attachements.html, admin/invoice.html.
+- remake admin/premium.html, admin/todo.html.
+- make admin/cards.html `s add card pop-up.
+- the web site can send notifications without admin.
+- remake admin panel`s design.
+- add forbidden telegram ids page for admin typed ids can not register with there ids.
+- add file uploader for badges for upload badge`s image.
+- make one file for all section`s text`s translate.
+
+
+- add frontend / backend <option>s to selling, filter pages,

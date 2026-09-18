@@ -29,15 +29,6 @@
   ],
   "admins": [
     {
-      "id": "ADMIN",
-      "userId": "999999999",
-      "role": "super_admin",
-      "permissions": {},
-      "disabled": false,
-      "code": "55668576",
-      "createdAt": "2026-09-13T00:00:00.000Z"
-    },
-    {
       "id": "adm_823ZQ249R9UL",
       "userId": "438945648",
       "role": "super_admin",
@@ -63,10 +54,31 @@
       "priceAWC": 235,
       "saleType": "safe",
       "status": "active",
-      "views": 3,
+      "views": 5,
       "rating": 0,
       "createdAt": "2026-09-13T17:02:14.585Z",
       "updatedAt": "2026-09-13T17:02:14.585Z",
+      "soldAt": null
+    },
+    {
+      "webId": "XF74ZYB",
+      "orderId": "9YCQ4629D9",
+      "sellerId": "438945648",
+      "name": "Vcoin",
+      "domain": "ttnaceri.github.io",
+      "description": "This Is Crypto Value. It can work with API.",
+      "descriptionLength": 35,
+      "topic": "Online Shop",
+      "imageUrl": "/data/uploads/websites/f1a8520c2692b625.png",
+      "priceUZS": 2000000,
+      "priceUSD": 158.1028,
+      "priceAWC": 200,
+      "saleType": "safe",
+      "status": "active",
+      "views": 0,
+      "rating": 0,
+      "createdAt": "2026-09-17T15:35:23.495Z",
+      "updatedAt": "2026-09-17T15:35:23.495Z",
       "soldAt": null
     }
   ],
@@ -76,7 +88,69 @@
   "withdrawals": [],
   "refunds": [],
   "premiumSubscriptions": [],
-  "premiumPlans": [],
+  "premiumPlans": [
+    {
+      "id": "plan_plus",
+      "name": "Plus",
+      "monthlyPriceUZS": 20000,
+      "yearlyPriceUZS": 180000,
+      "commission": 3,
+      "websitesPerMonth": 10,
+      "badge": false,
+      "enabled": true,
+      "features": [
+        "10 websites / month",
+        "3% commission",
+        "Priority support"
+      ]
+    },
+    {
+      "id": "plan_prime",
+      "name": "Prime",
+      "monthlyPriceUZS": 40000,
+      "yearlyPriceUZS": 360000,
+      "commission": 1,
+      "websitesPerMonth": 20,
+      "badge": false,
+      "enabled": true,
+      "features": [
+        "20 websites / month",
+        "1% commission",
+        "Priority support"
+      ]
+    },
+    {
+      "id": "plan_pro",
+      "name": "Pro",
+      "monthlyPriceUZS": 60000,
+      "yearlyPriceUZS": 540000,
+      "commission": 0.5,
+      "websitesPerMonth": 30,
+      "badge": false,
+      "enabled": true,
+      "features": [
+        "30 websites / month",
+        "0.5% commission",
+        "Priority support"
+      ]
+    },
+    {
+      "id": "plan_enterprise",
+      "name": "Enterprise",
+      "monthlyPriceUZS": 100000,
+      "yearlyPriceUZS": 900000,
+      "commission": 0,
+      "websitesPerMonth": 50,
+      "badge": true,
+      "enabled": true,
+      "features": [
+        "50 websites / month",
+        "0% commission",
+        "Premium badge",
+        "Dedicated support"
+      ]
+    }
+  ],
   "promocodes": [],
   "discounts": [],
   "events": [],
@@ -84,19 +158,123 @@
   "reviews": [],
   "messages": [],
   "notifications": [],
-  "paymentCards": [],
-  "paymentMethods": [],
-  "forceSubscribeChannels": [],
+  "paymentCards": [
+    {
+      "id": "card_2FNZ2P2JPYYL",
+      "cardNumber": "5614 6818 8775 0416",
+      "owner": "H. E.",
+      "bank": "Hamkor Bank",
+      "type": "uzcard",
+      "expiry": "08/31",
+      "status": "active",
+      "isDefault": true,
+      "createdAt": "2026-09-14T13:54:42.440Z"
+    }
+  ],
+  "paymentMethods": [
+    {
+      "id": "pm_manual_card",
+      "name": "Manual Card Payment",
+      "type": "manual",
+      "enabled": true,
+      "provider": null,
+      "config": {}
+    },
+    {
+      "id": "pm_payme",
+      "name": "Payme",
+      "type": "api",
+      "enabled": false,
+      "provider": "payme",
+      "config": {
+        "merchantId": "YOUR_PAYME_MERCHANT_ID",
+        "apiKey": "YOUR_PAYME_API_KEY"
+      }
+    },
+    {
+      "id": "pm_hamkorbank",
+      "name": "Hamkorbank",
+      "type": "api",
+      "enabled": false,
+      "provider": "hamkorbank",
+      "config": {
+        "merchantId": "YOUR_HAMKORBANK_MERCHANT_ID",
+        "apiKey": "YOUR_HAMKORBANK_API_KEY"
+      }
+    }
+  ],
+  "forceSubscribeChannels": [
+    {
+      "id": "fs_LDLL2X6PRU5Y",
+      "channelId": "01",
+      "channelName": "Update Inc.",
+      "channelLink": "https://t.me/updateDevNews",
+      "status": "active",
+      "createdAt": "2026-09-14T13:50:36.324Z"
+    }
+  ],
   "environmentUsers": [],
-  "badges": [],
+  "badges": [
+    {
+      "id": "badge_verified",
+      "name": "Verified",
+      "image": "frontend/assets/image/galochka.png",
+      "color": "#22c55e",
+      "enabled": true,
+      "createdAt": "2026-01-01T00:00:00.000Z"
+    },
+    {
+      "id": "badge_premium",
+      "name": "Premium",
+      "image": "frontend/assets/image/galochka.png",
+      "color": "#7b5cff",
+      "enabled": true,
+      "createdAt": "2026-01-01T00:00:00.000Z"
+    },
+    {
+      "id": "badge_UP648URABBAJ",
+      "name": "Custom Badge",
+      "image": "frontend/assets/image/galochka.png",
+      "color": "#0095F6",
+      "enabled": true,
+      "createdAt": "2026-09-14T14:01:43.146Z"
+    }
+  ],
   "featuredWebsites": [],
   "popupNotifications": [],
   "scheduledTasks": [],
-  "adminLogs": [],
+  "adminLogs": [
+    {
+      "id": "log_1789393836340_0v0bc2",
+      "adminId": "438945648",
+      "action": "force_sub_create",
+      "target": null,
+      "meta": {},
+      "timestamp": "2026-09-14T13:50:36.341Z"
+    },
+    {
+      "id": "log_1789394082452_4z8o4d",
+      "adminId": "438945648",
+      "action": "card_create",
+      "target": null,
+      "meta": {},
+      "timestamp": "2026-09-14T13:54:42.452Z"
+    },
+    {
+      "id": "log_1789394503170_fugex2",
+      "adminId": "438945648",
+      "action": "badge_create",
+      "target": null,
+      "meta": {},
+      "timestamp": "2026-09-14T14:01:43.170Z"
+    }
+  ],
   "securityLogs": [],
   "verificationCodes": [],
   "sessions": [],
   "loginAttempts": [],
+  "webhooks": [],
+  "forbiddenTelegramIds": [],
   "settings": {
     "siteName": "AWebShop",
     "logo": "frontend/assets/image/logo.png",
@@ -115,6 +293,12 @@
     "premiumCashbackPercent": 3,
     "referralBonusAWC": 1,
     "rewardedAdsPerFreeListing": 15,
+    "topics": [
+      "AI",
+      "Online Shop",
+      "3D Game",
+      "Other"
+    ],
     "social": {
       "github": "https://github.com/ttnaceri/",
       "telegram": "https://t.me/updateDevNews",
@@ -136,12 +320,28 @@
         "deepseek"
       ]
     },
-    "topics": [
-      "AI",
-      "Online Shop",
-      "3D Game",
-      "Other"
-    ]
+    "seo": {
+      "metaTitle": "AWebShop — Buy and sell websites",
+      "metaDescription": "AWebShop is a marketplace for buying and selling fully functional websites.",
+      "metaKeywords": "websites, marketplace, escrow, AWC, AwebShop",
+      "canonicalBase": "http://localhost:3000",
+      "robotsTxt": "User-agent: *\nAllow: /",
+      "sitemapEnabled": true
+    },
+    "analytics": {
+      "googleAnalyticsId": "",
+      "customHeadScript": "",
+      "pixelId": "",
+      "abTestingEnabled": false
+    },
+    "telegramSettings": {
+      "enabled": false,
+      "messageTemplates": {
+        "login": "🔔 New login to your AWebShop account.",
+        "order": "🛒 New order: {name}. Order ID: {orderId}",
+        "payment": "💳 Payment status: {status}"
+      }
+    }
   },
   "apiConfig": {
     "exchangeRate": {

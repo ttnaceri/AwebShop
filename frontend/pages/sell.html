@@ -3,133 +3,698 @@
 <head>
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1"/>
-<title>Sell — AWebShop</title>
-  <link rel="icon" type="image/png" href="/frontend/assets/image/logo.png">
+<title>Sell a Website — AWebShop</title>
+
+<link rel="icon" type="image/png" href="../assets/image/logo.png"/>
 <link rel="stylesheet" href="../css/main.css"/>
+<link rel="stylesheet" href="../css/uploader.css"/>
 <link rel="stylesheet" href="../css/responsive.css"/>
+
+<style>
+/* Sell sahifasiga xos qo'shimcha stillar */
+.aw-sell-wrap { max-width: 720px; margin: 0 auto; }
+.aw-sell-head {
+  display: flex; align-items: baseline; justify-content: space-between;
+  gap: 16px; flex-wrap: wrap; margin-bottom: 8px;
+}
+.aw-sell-head h1 { margin: 0; }
+.aw-fee-badge {
+  display: inline-flex; align-items: center; gap: 6px;
+  background: rgba(123,92,255,0.12); border: 1px solid rgba(123,92,255,0.35);
+  color: var(--text); padding: 6px 12px; border-radius: 999px; font-size: 13px;
+}
+.aw-field { display: flex; flex-direction: column; gap: 6px; margin-bottom: 16px; }
+.aw-field > label {
+  font-size: 13px; font-weight: 600; color: var(--muted);
+  display: flex; justify-content: space-between; align-items: center;
+}
+.aw-field input,
+.aw-field select,
+.aw-field textarea {
+  background: var(--card); color: var(--text);
+  border: 1px solid var(--border); border-radius: 10px;
+  padding: 11px 12px; font-family: inherit; font-size: 14px;
+  outline: none; transition: border-color .15s;
+}
+.aw-field input:focus,
+.aw-field select:focus,
+.aw-field textarea:focus { border-color: var(--primary); }
+.aw-field input.invalid,
+.aw-field textarea.invalid,
+.aw-field select.invalid { border-color: var(--danger); }
+.aw-field-hint {
+  font-size: 12px; color: var(--muted); display: flex; justify-content: space-between;
+}
+.aw-field-hint .count { font-variant-numeric: tabular-nums; }
+.aw-field-hint .count.over { color: var(--danger); font-weight: 600; }
+.aw-field-error {
+  font-size: 12px; color: var(--danger); margin-top: 2px;
+}
+.aw-price-preview {
+  display: flex; gap: 16px; flex-wrap: wrap;
+  background: var(--card); border: 1px dashed var(--border);
+  border-radius: 10px; padding: 10px 14px; font-size: 13px; color: var(--muted);
+  margin-top: 6px;
+}
+.aw-price-preview strong { color: var(--text); }
+.aw-sale-note {
+  font-size: 12px; padding: 10px 12px; border-radius: 8px; margin-top: 6px;
+  display: none;
+}
+.aw-sale-note.show { display: block; }
+.aw-sale-note.safe { background: rgba(34,197,94,0.12); border: 1px solid rgba(34,197,94,0.3); color: var(--safe); }
+.aw-sale-note.fast { background: rgba(245,158,11,0.12); border: 1px solid rgba(245,158,11,0.3); color: var(--fast); }
+.aw-sell-actions {
+  display: flex; gap: 12px; justify-content: flex-end;
+  margin-top: 24px; padding-top: 20px; border-top: 1px solid var(--border);
+}
+.aw-preview-card {
+  background: var(--card); border: 1px solid var(--border);
+  border-radius: 12px; padding: 16px; margin-top: 8px;
+}
+.aw-preview-card h3 { margin: 0 0 8px; }
+.aw-preview-img {
+  width: 100%; max-height: 240px; object-fit: cover;
+  border-radius: 10px; margin-bottom: 12px;
+}
+.aw-success {
+  text-align: center; padding: 40px 20px;
+  background: var(--card); border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+}
+.aw-success h2 { color: var(--success); }
+.aw-success .webid {
+  font-family: ui-monospace, monospace; font-size: 20px;
+  background: var(--bg); padding: 8px 16px; border-radius: 8px;
+  display: inline-block; margin: 12px 0; letter-spacing: 2px;
+}
+.aw-success .aw-btn { margin-top: 16px; }
+.aw-loading-form { opacity: 0.6; pointer-events: none; }
+</style>
 </head>
 <body class="aw-body">
 <div id="aw-header"></div>
 
 <main class="aw-page">
-  <h1>List your website</h1>
-  <p class="aw-muted">Listing fee: <strong id="fee-label">10,000 so'm</strong></p>
-
-  <form id="sell-form" class="aw-form aw-form-narrow">
-    <label>
-      <span>Website Name</span>
-      <input type="text" id="name" maxlength="100" required/>
-    </label>
-
-    <label>
-      <span>Domain (www. optional)</span>
-      <input type="text" id="domain" placeholder="example.com" required/>
-    </label>
-
-    <label>
-      <span>Topic</span>
-      <select id="topic" required>
-        <option value="AI">AI</option>
-        <option value="Online Shop">Online Shop</option>
-        <option value="3D Game">3D Game</option>
-        <option value="Other">Other</option>
-      </select>
-    </label>
-
-    <label>
-      <span>Description <small class="aw-muted">(max 200 chars, spaces not counted)</small></span>
-      <textarea id="description" rows="4" required></textarea>
-      <small id="desc-count" class="aw-muted">0 / 200</small>
-    </label>
-
-    <label>
-      <span>Image URL (optional)</span>
-      <input type="url" id="imageUrl" placeholder="https://..."/>
-    </label>
-
-    <label>
-      <span>Price (UZS)</span>
-      <input type="number" id="price" min="1000" step="1000" required/>
-    </label>
-
-    <label>
-      <span>Sale Type</span>
-      <select id="saleType" required>
-        <option value="safe">Safe (escrow, admin holds funds)</option>
-        <option value="fast">Fast (direct to seller)</option>
-      </select>
-    </label>
-
-    <div class="aw-form-error" id="form-error" hidden></div>
-
-    <div class="aw-form-actions">
-      <button type="submit" class="aw-btn aw-btn-primary">Sell</button>
-      <button type="reset" class="aw-btn aw-btn-ghost">Cancel</button>
+  <div class="aw-sell-wrap" id="sell-wrap">
+    <div class="aw-sell-head">
+      <h1 id="sell-title">Sell a Website</h1>
+      <div class="aw-fee-badge" id="fee-badge">💳 Loading fee…</div>
     </div>
-  </form>
+    <p class="aw-muted" id="sell-subtitle">List your website on AWebShop.</p>
+
+    <!-- ============ FORM ============ -->
+    <form id="sell-form" class="aw-form" novalidate autocomplete="off">
+
+      <!-- Website name -->
+      <div class="aw-field">
+        <label for="f-name">
+          <span>Website Name <span style="color:var(--danger)">*</span></span>
+          <span class="aw-field-hint count" id="name-count">0 / 100</span>
+        </label>
+        <input type="text" id="f-name" maxlength="100" placeholder="e.g. My Online Shop" required/>
+        <div class="aw-field-error" id="err-name" hidden></div>
+      </div>
+
+      <!-- Domain -->
+      <div class="aw-field">
+        <label for="f-domain">
+          <span>Domain <span style="color:var(--danger)">*</span></span>
+          <small class="aw-muted">www. ixtiyoriy</small>
+        </label>
+        <input type="text" id="f-domain" placeholder="example.com" required/>
+        <div class="aw-field-hint">
+          <span>Example: <code>mysite.com</code>, <code>www.mysite.com</code>, <code>https://mysite.com</code></span>
+        </div>
+        <div class="aw-field-error" id="err-domain" hidden></div>
+      </div>
+
+      <!-- Topic -->
+      <div class="aw-field">
+        <label for="f-topic">
+          <span>Topic <span style="color:var(--danger)">*</span></span>
+        </label>
+        <select id="f-topic" required>
+          <option value="">— Select a topic —</option>
+        </select>
+        <div class="aw-field-error" id="err-topic" hidden></div>
+      </div>
+
+      <!-- Description -->
+      <div class="aw-field">
+        <label for="f-description">
+          <span>Description <span style="color:var(--danger)">*</span></span>
+          <span class="aw-field-hint count" id="desc-count">0 / 200</span>
+        </label>
+        <textarea id="f-description" rows="4" placeholder="What does your website do? What's included? (spaces not counted)" required></textarea>
+        <div class="aw-field-hint">
+          <span>Max 200 characters, spaces not counted.</span>
+        </div>
+        <div class="aw-field-error" id="err-description" hidden></div>
+      </div>
+
+      <!-- Image Uploader -->
+      <div class="aw-field">
+        <label>
+          <span>Website Image</span>
+          <small class="aw-muted">PNG, JPG, WEBP — max 5MB</small>
+        </label>
+        <div id="image-uploader-container"></div>
+        <div class="aw-field-error" id="err-image" hidden></div>
+      </div>
+
+      <!-- Price -->
+      <div class="aw-field">
+        <label for="f-price">
+          <span>Price (UZS) <span style="color:var(--danger)">*</span></span>
+        </label>
+        <input type="number" id="f-price" min="1000" step="1000" placeholder="50000" required/>
+        <div class="aw-price-preview" id="price-preview">
+          <span>💰 <strong id="price-uzs">0 so'm</strong></span>
+          <span>💵 <strong id="price-usd">$0</strong></span>
+          <span>🪙 <strong id="price-awc">0 AWC</strong></span>
+        </div>
+        <div class="aw-field-error" id="err-price" hidden></div>
+      </div>
+
+      <!-- Sale Type -->
+      <div class="aw-field">
+        <label for="f-saletype">
+          <span>Sale Type <span style="color:var(--danger)">*</span></span>
+        </label>
+        <select id="f-saletype" required>
+          <option value="safe">Safe (escrow-protected)</option>
+          <option value="fast">Fast (direct to buyer)</option>
+        </select>
+        <div class="aw-sale-note safe show" id="sale-note-safe">
+          🔐 <strong>Safe:</strong> Admin holds the funds until the buyer confirms the website is delivered. More protection, slightly higher fee.
+        </div>
+        <div class="aw-sale-note fast" id="sale-note-fast">
+          ⚡ <strong>Fast:</strong> Buyer pays you directly. No escrow — you deliver immediately. Fewer protections.
+        </div>
+      </div>
+
+      <!-- General error -->
+      <div class="aw-form-error" id="form-error" hidden></div>
+
+      <!-- Actions -->
+      <div class="aw-sell-actions">
+        <button type="button" class="aw-btn aw-btn-ghost" id="btn-preview">👁 Preview</button>
+        <button type="button" class="aw-btn aw-btn-ghost" id="btn-cancel">Cancel</button>
+        <button type="submit" class="aw-btn aw-btn-primary" id="btn-submit">
+          <span id="submit-text">Sell</span>
+        </button>
+      </div>
+
+      <p class="aw-muted" style="text-align:center;font-size:12px;margin-top:12px">
+        By listing you agree to the AWebShop rules. Listings are moderated automatically.
+      </p>
+    </form>
+
+    <!-- ============ SUCCESS ============ -->
+    <div id="success-screen" class="aw-success" hidden>
+      <h2>✅ Website listed!</h2>
+      <p class="aw-muted">Your website is now live on the marketplace.</p>
+      <div>
+        <div class="aw-muted" style="font-size:12px">WEB ID</div>
+        <div class="webid" id="success-webid">—</div>
+      </div>
+      <div>
+        <div class="aw-muted" style="font-size:12px">ORDER ID (private)</div>
+        <div class="aw-muted" id="success-orderid" style="font-family:ui-monospace,monospace">—</div>
+      </div>
+      <div style="display:flex;gap:10px;justify-content:center;flex-wrap:wrap;margin-top:16px">
+        <a class="aw-btn aw-btn-primary" id="success-view" href="#">View listing</a>
+        <a class="aw-btn aw-btn-ghost" id="success-store" href="store.html">Back to Store</a>
+        <a class="aw-btn aw-btn-ghost" id="success-again" href="#">Sell another</a>
+      </div>
+    </div>
+  </div>
 </main>
 
 <div id="aw-footer"></div>
 
+<!-- ============ SCRIPTS ============ -->
 <script src="../js/api.js"></script>
+<script src="../js/i18n.js"></script>
 <script src="../js/app.js"></script>
-<script src="../js/auth.js"></script>
 <script src="../js/validation.js"></script>
+<script src="../js/auth.js"></script>
 <script src="../components/header.js"></script>
 <script src="../components/footer.js"></script>
 <script src="../components/modals.js"></script>
+<script src="../components/file-uploader.js"></script>
 <script src="../js/shortcuts.js"></script>
 
 <script>
-(async () => {
-  await loadRates();
-  await Auth.load();
-  if (!Auth.requireLogin('sell.html')) return;
+(function () {
+  'use strict';
 
-  document.getElementById('fee-label').textContent = fmtUZS(10000);
+  // ============================================================
+  // HELPERS
+  // ============================================================
+  function $(id) { return document.getElementById(id); }
+  function esc(s) {
+    if (typeof window.esc === 'function') return window.esc(s);
+    return String(s == null ? '' : s)
+      .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+  }
+  function fmtUZS(n) {
+    if (typeof window.fmtUZS === 'function') return window.fmtUZS(n);
+    return new Intl.NumberFormat('uz-UZ').format(Math.round(n || 0)) + " so'm";
+  }
+  function fmtUSD(n) {
+    if (typeof window.fmtUSD === 'function') return window.fmtUSD(n);
+    return '$' + Number(n || 0).toFixed(2);
+  }
+  function fmtAWC(n) {
+    if (typeof window.fmtAWC === 'function') return window.fmtAWC(n);
+    return Number(n || 0).toFixed(4).replace(/\.?0+$/, '') + ' AWC';
+  }
 
-  const desc = document.getElementById('description');
-  const count = document.getElementById('desc-count');
-  desc.addEventListener('input', () => {
-    const n = Validators.descLength(desc.value);
-    count.textContent = n + ' / 200';
-    count.style.color = n > 200 ? '#ff6b6b' : '';
-  });
+  function showError(fieldId, msg) {
+    const input = $(fieldId);
+    const err = $('err-' + fieldId.replace('f-', ''));
+    if (input) input.classList.add('invalid');
+    if (err) { err.textContent = msg; err.hidden = false; }
+  }
+  function clearError(fieldId) {
+    const input = $(fieldId);
+    const err = $('err-' + fieldId.replace('f-', ''));
+    if (input) input.classList.remove('invalid');
+    if (err) { err.textContent = ''; err.hidden = true; }
+  }
+  function clearAllErrors() {
+    ['f-name','f-domain','f-topic','f-description','f-price','f-saletype'].forEach(clearError);
+    const formErr = $('form-error');
+    if (formErr) formErr.hidden = true;
+  }
+  function showFormError(msg) {
+    const el = $('form-error');
+    if (el) { el.textContent = msg; el.hidden = false; }
+  }
 
-  const form = document.getElementById('sell-form');
-  const errBox = document.getElementById('form-error');
+  function descriptionLength(text) {
+    return String(text || '').replace(/\s/g, '').length;
+  }
 
-  form.addEventListener('submit', async e => {
-    e.preventDefault();
-    errBox.hidden = true;
+  function isValidDomain(domain) {
+    if (!domain) return false;
+    const d = String(domain).trim().toLowerCase()
+      .replace(/^https?:\/\//, '')
+      .replace(/^www\./, '')
+      .replace(/\/.*$/, '');
+    return /^([a-z0-9-]+\.)+[a-z]{2,}$/.test(d);
+  }
 
-    const payload = {
-      name: form.name.value.trim(),
-      domain: form.domain.value.trim(),
-      topic: form.topic.value,
-      description: desc.value.trim(),
-      imageUrl: form.imageUrl.value.trim(),
-      price: Number(form.price.value),
-      saleType: form.saleType.value
+  // ============================================================
+  // STATE
+  // ============================================================
+  let uploader = null;
+  let submitting = false;
+  let priceDebounce = null;
+
+  // ============================================================
+  // INIT
+  // ============================================================
+  async function init() {
+    // Auth guard
+    if (typeof window.Auth === 'object' && typeof window.Auth.load === 'function') {
+      await window.Auth.load();
+    }
+    if (window.Auth && !window.Auth.isLoggedIn()) {
+      const next = encodeURIComponent('sell.html');
+      location.href = 'login.html?next=' + next;
+      return;
+    }
+
+    // Kurslarni yuklash
+    try {
+      if (typeof window.loadRates === 'function') {
+        await window.loadRates();
+      }
+    } catch (_) {}
+
+    // Listing fee ni backenddan olish
+    await loadFeeAndTopics();
+
+    // Uploader yaratish
+    uploader = createUploader({
+      containerId: 'image-uploader-container',
+      accept: 'image/*',
+      folder: 'websites',
+      maxSizeMB: 5,
+      onChange: (url) => {
+        clearError('f-image');
+      }
+    });
+
+    // Input handlers
+    bindInputs();
+    bindActions();
+  }
+
+  // ============================================================
+  // LISTING FEE + TOPICS
+  // ============================================================
+  async function loadFeeAndTopics() {
+    let feeUZS = 10000;
+    let topics = ['AI', 'Online Shop', '3D Game', 'Other'];
+
+    try {
+      const r = await API.request('/api/settings/public', { auth: false });
+      if (r && r.success && r.data) {
+        if (typeof r.data.listingFeeUZS === 'number') feeUZS = r.data.listingFeeUZS;
+        if (Array.isArray(r.data.topics) && r.data.topics.length) topics = r.data.topics;
+      }
+    } catch (_) {}
+
+    // Fee badge
+    const feeBadge = $('fee-badge');
+    if (feeBadge) {
+      feeBadge.textContent = '💳 Listing fee: ' + fmtUZS(feeUZS);
+    }
+
+    // Topics dropdown
+    const topicSel = $('f-topic');
+    if (topicSel) {
+      topicSel.innerHTML = '<option value="">— Select a topic —</option>' +
+        topics.map(t => `<option value="${esc(t)}">${esc(t)}</option>`).join('');
+    }
+
+    // Store fee for later
+    window.__LISTING_FEE_UZS = feeUZS;
+  }
+
+  // ============================================================
+  // INPUT HANDLERS
+  // ============================================================
+  function bindInputs() {
+    // Name
+    const nameEl = $('f-name');
+    if (nameEl) {
+      nameEl.addEventListener('input', () => {
+        const v = nameEl.value;
+        const count = $('name-count');
+        if (count) count.textContent = v.length + ' / 100';
+        clearError('f-name');
+      });
+    }
+
+    // Domain
+    const domainEl = $('f-domain');
+    if (domainEl) {
+      domainEl.addEventListener('input', () => clearError('f-domain'));
+      domainEl.addEventListener('blur', () => {
+        const v = domainEl.value.trim();
+        if (v && !isValidDomain(v)) {
+          showError('f-domain', 'Invalid domain. Example: mysite.com');
+        }
+      });
+    }
+
+    // Description
+    const descEl = $('f-description');
+    if (descEl) {
+      descEl.addEventListener('input', () => {
+        const len = descriptionLength(descEl.value);
+        const count = $('desc-count');
+        if (count) {
+          count.textContent = len + ' / 200';
+          count.classList.toggle('over', len > 200);
+        }
+        clearError('f-description');
+      });
+    }
+
+    // Topic
+    const topicEl = $('f-topic');
+    if (topicEl) topicEl.addEventListener('change', () => clearError('f-topic'));
+
+    // Price — live preview
+    const priceEl = $('f-price');
+    if (priceEl) {
+      priceEl.addEventListener('input', () => {
+        clearError('f-price');
+        clearTimeout(priceDebounce);
+        priceDebounce = setTimeout(updatePricePreview, 120);
+      });
+    }
+
+    // Sale type — note toggle
+    const saleEl = $('f-saletype');
+    if (saleEl) {
+      saleEl.addEventListener('change', () => {
+        const v = saleEl.value;
+        $('sale-note-safe').classList.toggle('show', v === 'safe');
+        $('sale-note-fast').classList.toggle('show', v === 'fast');
+      });
+    }
+  }
+
+  function updatePricePreview() {
+    const price = Number($('f-price').value) || 0;
+    const usdRate = (window.RATES && window.RATES.usdRate) || 12650;
+    const awcRate = (window.RATES && window.RATES.awcPriceUZS) || 10000;
+
+    $('price-uzs').textContent = fmtUZS(price);
+    $('price-usd').textContent = fmtUSD(price / usdRate);
+    $('price-awc').textContent = fmtAWC(price / awcRate);
+  }
+
+  // ============================================================
+  // ACTION BUTTONS
+  // ============================================================
+  function bindActions() {
+    // Preview
+    const btnPreview = $('btn-preview');
+    if (btnPreview) {
+      btnPreview.addEventListener('click', () => {
+        const data = collectForm();
+        const errs = validate(data, false);
+        if (errs.length) {
+          toast('Fix form errors before preview.', 'warn');
+          return;
+        }
+        openPreviewModal(data);
+      });
+    }
+
+    // Cancel
+    const btnCancel = $('btn-cancel');
+    if (btnCancel) {
+      btnCancel.addEventListener('click', async () => {
+        const ok = await confirmModal('Cancel?', 'All form data will be lost.');
+        if (ok) location.href = 'store.html';
+      });
+    }
+
+    // Submit
+    const form = $('sell-form');
+    if (form) form.addEventListener('submit', onSubmit);
+
+    // Success screen buttons
+    const btnAgain = $('success-again');
+    if (btnAgain) {
+      btnAgain.addEventListener('click', (e) => {
+        e.preventDefault();
+        location.reload();
+      });
+    }
+  }
+
+  // ============================================================
+  // FORM COLLECT
+  // ============================================================
+  function collectForm() {
+    return {
+      name: ($('f-name').value || '').trim(),
+      domain: ($('f-domain').value || '').trim(),
+      topic: ($('f-topic').value || '').trim(),
+      description: ($('f-description').value || '').trim(),
+      imageUrl: uploader ? uploader.getUrl() : '',
+      price: Number($('f-price').value) || 0,
+      saleType: $('f-saletype').value || 'safe'
     };
+  }
 
-    if (Validators.descLength(payload.description) > 200) return fail('Description exceeds 200 characters (spaces not counted).');
-    if (!Validators.domain(payload.domain)) return fail('Invalid domain.');
-    if (!payload.price || payload.price < 1000) return fail('Price must be at least 1000 UZS.');
+  // ============================================================
+  // VALIDATE
+  // ============================================================
+  function validate(data, showErrors) {
+    const errors = [];
 
-    const btn = form.querySelector('button[type=submit]');
-    btn.disabled = true; btn.textContent = 'Submitting…';
+    // Name
+    if (!data.name || data.name.length < 3) {
+      errors.push('name');
+      if (showErrors) showError('f-name', 'Website name must be at least 3 characters.');
+    } else if (data.name.length > 100) {
+      errors.push('name');
+      if (showErrors) showError('f-name', 'Website name is too long (max 100).');
+    }
 
-    const res = await API.createWebsite(payload);
-    btn.disabled = false; btn.textContent = 'Sell';
+    // Domain
+    if (!data.domain) {
+      errors.push('domain');
+      if (showErrors) showError('f-domain', 'Domain is required.');
+    } else if (!isValidDomain(data.domain)) {
+      errors.push('domain');
+      if (showErrors) showError('f-domain', 'Invalid domain. Example: mysite.com');
+    }
 
-    if (res.success) {
-      toast('Listed! Web ID: ' + res.data.website.webId, 'success', 5000);
-      setTimeout(() => location.href = 'website-detail.html?id=' + res.data.website.webId, 800);
-    } else fail(res.message || 'Failed');
+    // Topic
+    if (!data.topic) {
+      errors.push('topic');
+      if (showErrors) showError('f-topic', 'Please select a topic.');
+    }
 
-    function fail(m) { errBox.textContent = m; errBox.hidden = false; }
-  });
+    // Description
+    if (!data.description) {
+      errors.push('description');
+      if (showErrors) showError('f-description', 'Description is required.');
+    } else if (descriptionLength(data.description) > 200) {
+      errors.push('description');
+      if (showErrors) showError('f-description', 'Description exceeds 200 characters (spaces not counted).');
+    }
+
+    // Price
+    if (!data.price || data.price < 1000) {
+      errors.push('price');
+      if (showErrors) showError('f-price', 'Price must be at least 1,000 UZS.');
+    }
+
+    return errors;
+  }
+
+  // ============================================================
+  // PREVIEW MODAL
+  // ============================================================
+  function openPreviewModal(data) {
+    const usdRate = (window.RATES && window.RATES.usdRate) || 12650;
+    const awcRate = (window.RATES && window.RATES.awcPriceUZS) || 10000;
+    const priceUSD = data.price / usdRate;
+    const priceAWC = data.price / awcRate;
+
+    const saleBadge = data.saleType === 'safe'
+      ? '<span class="aw-badge aw-badge-safe">Safe (escrow)</span>'
+      : '<span class="aw-badge aw-badge-fast">Fast (direct)</span>';
+
+    const img = data.imageUrl
+      ? `<img src="${esc(data.imageUrl)}" class="aw-preview-img" alt="preview" onerror="this.style.display='none'"/>`
+      : '';
+
+    openModal({
+      title: 'Preview listing',
+      body: `
+        <div class="aw-preview-card">
+          ${img}
+          <h3>${esc(data.name)} ${saleBadge}</h3>
+          <div class="aw-muted" style="font-size:13px">${esc(data.domain)}</div>
+          <div style="color:var(--primary);font-size:13px;margin:4px 0 8px">${esc(data.topic)}</div>
+          <p style="font-size:14px">${esc(data.description)}</p>
+          <div style="margin-top:10px">
+            <strong>${fmtUZS(data.price)}</strong>
+            <small class="aw-muted"> • ${fmtUSD(priceUSD)} • ${fmtAWC(priceAWC)}</small>
+          </div>
+        </div>
+      `,
+      actions: [
+        { label: 'Close', className: 'aw-btn-ghost', onClick: () => closeModal() }
+      ]
+    });
+  }
+
+  // ============================================================
+  // SUBMIT
+  // ============================================================
+  async function onSubmit(e) {
+    e.preventDefault();
+    if (submitting) return;
+    clearAllErrors();
+
+    const data = collectForm();
+    const errors = validate(data, true);
+    if (errors.length) {
+      showFormError('Please fix the highlighted fields.');
+      // scroll to first error
+      const first = $('f-' + errors[0]);
+      if (first && first.scrollIntoView) first.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      return;
+    }
+
+    // Listing fee tekshiruvi (agar foydalanuvchi balansi mavjud bo'lsa)
+    const fee = window.__LISTING_FEE_UZS || 10000;
+
+    submitting = true;
+    const btn = $('btn-submit');
+    const txt = $('submit-text');
+    if (btn) btn.disabled = true;
+    if (txt) txt.textContent = 'Listing…';
+    $('sell-form').classList.add('aw-loading-form');
+
+    try {
+      const payload = {
+        name: data.name,
+        domain: data.domain,
+        topic: data.topic,
+        description: data.description,
+        imageUrl: data.imageUrl,
+        price: data.price,
+        saleType: data.saleType
+      };
+
+      const res = await API.createWebsite(payload);
+
+      if (res && res.success && res.data && res.data.website) {
+        showSuccess(res.data.website);
+      } else {
+        showFormError((res && res.message) || 'Failed to create listing.');
+        if (btn) btn.disabled = false;
+        if (txt) txt.textContent = 'Sell';
+        $('sell-form').classList.remove('aw-loading-form');
+      }
+    } catch (err) {
+      console.error('[sell]', err);
+      showFormError('Network error. Please try again.');
+      if (btn) btn.disabled = false;
+      if (txt) txt.textContent = 'Sell';
+      $('sell-form').classList.remove('aw-loading-form');
+    } finally {
+      submitting = false;
+    }
+  }
+
+  // ============================================================
+  // SUCCESS SCREEN
+  // ============================================================
+  function showSuccess(website) {
+    $('sell-form').hidden = true;
+    const successEl = $('success-screen');
+    successEl.hidden = false;
+
+    $('success-webid').textContent = website.webId || '—';
+    $('success-orderid').textContent = website.orderId || '—';
+
+    const viewBtn = $('success-view');
+    if (viewBtn) {
+      viewBtn.href = 'website-detail.html?id=' + encodeURIComponent(website.webId || '');
+    }
+
+    // Scroll to top
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+
+    toast('Website listed successfully!', 'success', 5000);
+  }
+
+  // ============================================================
+  // START
+  // ============================================================
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', init);
+  } else {
+    init();
+  }
 })();
 </script>
 </body>

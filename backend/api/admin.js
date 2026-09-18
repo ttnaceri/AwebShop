@@ -1314,3 +1314,64 @@ module.exports = {
   // maintenance
   maintenanceGet, maintenanceUpdate
 };
+async function usersCreate(req, res) {
+  const body = await readBody(req);
+  const { hashPassword } = require('../utils/helpers');
+  const { generateUserId } = require('../utils/idGenerator');
+
+  const nickname = sanitizeString(body.nickname, 20);
+  const password = String(body.password || '');
+  const customId = body.customId ? sanitizeString(body.customId, 20) : null;
+
+  if (!nickname || password.length < 8) {
+    return err(res, 400, 'Invalid nickname or password.', 'INVALID');
+  }
+
+  const d = readData();
+  if (d.users.some(u => u.nickname.toLowerCase() === nickname.toLowerCase())) {
+    return err(res, 409, 'Nickname already taken.', 'NICKNAME_TAKEN');
+  }
+
+  let id = customId || generateUserId();
+  if (customId) {
+    if (!/^\d{5,20}$/.test(customId)) {
+      return err(res, 400, 'Custom ID must be 5-20 digits.', 'INVALID_ID');
+    }
+    if (d.users.some(u => u.id === customId)) {
+      return err(res, 409, 'ID already taken.', 'ID_TAKEN');
+    }
+  }
+
+  await update(dd => {
+    dd.users.push({
+      id,
+      nickname,
+      passwordHash: hashPassword(password),
+      telegramUsername: sanitizeString(body.telegramUsername || '', 64),
+      telegramId: sanitizeString(body.telegramId || '', 20),
+      phone: sanitizeString(body.phone || '', 20),
+      email: null,
+      role: ['user','moderator','admin'].includes(body.role) ? body.role : 'user',
+      balanceAWC: 0,
+      totalSpent: 0,
+      totalEarned: 0,
+      rating: 0,
+      verified: true,
+      darkMode: true,
+      language: 'en',
+      currency: 'UZS',
+      premiumPlan: null,
+      premiumExpiresAt: null,
+      badges: [],
+      createdAt: now(),
+      updatedAt: now(),
+      nicknameUpdatedAt: now(),
+      deleted: false,
+      blocked: false
+    });
+    return dd;
+  });
+
+  await logAdmin(req, 'user_create', id, { nickname });
+  ok(res, { message: 'User created.', userId: id });
+}

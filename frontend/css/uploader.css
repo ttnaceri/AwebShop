@@ -1,0 +1,35 @@
+/* File Uploader */
+.aw-uploader {
+  display: flex;
+  gap: 16px;
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 14px;
+  align-items: flex-start;
+}
+.aw-uploader-preview {
+  width: 120px;
+  height: 120px;
+  border-radius: 10px;
+  background: var(--bg-elev);
+  border: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  flex-shrink: 0;
+}
+.aw-uploader-preview img { width: 100%; height: 100%; object-fit: cover; }
+.aw-uploader-placeholder { font-size: 40px; opacity: 0.4; }
+.aw-uploader-file { font-size: 12px; padding: 8px; text-align: center; word-break: break-all; }
+.aw-uploader-controls { flex: 1; display: flex; flex-direction: column; gap: 8px; }
+.aw-uploader-controls input[type="text"] {
+  background: var(--bg); border: 1px solid var(--border); color: var(--text);
+  border-radius: 8px; padding: 8px 10px; font-family: inherit; font-size: 13px;
+}
+.aw-uploader-or { font-size: 11px; color: var(--muted); text-align: center; }
+.aw-uploader-status { font-size: 12px; min-height: 16px; }
+.aw-uploader-status.success { color: var(--success); }
+.aw-uploader-status.error { color: var(--danger); }
+.aw-uploader-status.info { color: var(--warn); }

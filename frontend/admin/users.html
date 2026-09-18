@@ -4,7 +4,7 @@
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1"/>
 <title>Users — Admin</title>
-<link rel="icon" type="image/png" href="/frontend/assets/image/logo.png">
+<link rel="icon" type="image/png" href="../assets/image/logo.png"/>
 <link rel="stylesheet" href="../css/main.css"/>
 <link rel="stylesheet" href="../css/admin.css"/>
 <link rel="stylesheet" href="../css/console.css"/>
@@ -18,6 +18,7 @@
     <p id="admin-subtitle" class="admin-sub"></p>
 
     <div class="admin-toolbar">
+      <button class="aw-btn aw-btn-primary" id="u-create">+ <span data-i18n="createUser">Create user</span></button>
       <input id="u-search" placeholder="Search by nickname, ID, telegram…"/>
       <select id="u-filter">
         <option value="">All</option>
@@ -33,24 +34,29 @@
 </div>
 
 <script src="../js/api.js"></script>
+<script src="../js/i18n.js"></script>
 <script src="../js/app.js"></script>
 <script src="../js/auth.js"></script>
 <script src="../js/admin.js"></script>
+<script src="../components/modals.js"></script>
 <script src="../components/admin-console.js"></script>
 
 <script>
 (async () => {
   await loadRates();
   if (!(await Admin.requireAdmin())) return;
-  adminPage('Users', 'Manage platform accounts');
+  adminPage(I18N.t('users'), 'Manage platform accounts');
 
   let all = [];
   const host = document.getElementById('users-host');
 
+  // SuperAdmin tekshiruvi
+  const isSuperAdmin = Admin.role === 'super_admin';
+
   async function load() {
-    host.innerHTML = '<div class="admin-loading">Loading…</div>';
-    const r = await API.adminUsers();
-    if (!r.success) { host.innerHTML = '<div class="admin-empty">Failed to load.</div>'; return; }
+    host.innerHTML = `<div class="admin-loading">${I18N.t('loading')}</div>`;
+    const r = await API.adminGet('users');
+    if (!r.success) { host.innerHTML = `<div class="admin-empty">${I18N.t('failedToLoad')}</div>`; return; }
     all = r.data.items;
     render();
   }
@@ -71,25 +77,24 @@
 
     renderTable(host,
       [
-        { label: 'ID', render: r => `<code>${esc(r.id)}</code>` },
-        { label: 'Nickname', render: r => esc(r.nickname) },
+        { label: I18N.t('userId'), render: r => `<code>${esc(r.id)}</code>` },
+        { label: I18N.t('nickname'), render: r => esc(r.nickname) },
         { label: 'Telegram', render: r => `${esc(r.telegramUsername || '')}<br><small>${esc(r.telegramId || '')}</small>` },
-        { label: 'Phone', render: r => esc(r.phone || '—') },
+        { label: I18N.t('phone'), render: r => esc(r.phone || '—') },
         { label: 'AWC', render: r => fmtAWC(r.balanceAWC) },
-        { label: 'Rating', render: r => (r.rating || 0).toFixed(1) },
-        { label: 'Status', render: r => r.blocked ? statusPill('blocked') : statusPill('active') },
-        { label: 'Joined', render: r => fmtDateShort(r.createdAt) },
-        { label: 'Actions', render: r => `
+        { label: I18N.t('status'), render: r => r.blocked ? statusPill('blocked') : statusPill('active') },
+        { label: I18N.t('created'), render: r => fmtDateShort(r.createdAt) },
+        { label: I18N.t('actions'), render: r => `
           <div class="admin-actions">
-            <button class="admin-btn-sm" data-act="view" data-id="${esc(r.id)}">View</button>
+            <button class="admin-btn-sm" data-act="view" data-id="${esc(r.id)}">${I18N.t('view')}</button>
             ${r.blocked
-              ? `<button class="admin-btn-sm ok" data-act="unblock" data-id="${esc(r.id)}">Unblock</button>`
-              : `<button class="admin-btn-sm bad" data-act="block" data-id="${esc(r.id)}">Block</button>`}
+              ? `<button class="admin-btn-sm ok" data-act="unblock" data-id="${esc(r.id)}">${I18N.t('unblock')}</button>`
+              : `<button class="admin-btn-sm bad" data-act="block" data-id="${esc(r.id)}">${I18N.t('block')}</button>`}
           </div>
         ` }
       ],
       list,
-      { emptyText: 'No users match the filter.' }
+      { emptyText: I18N.t('noResults') }
     );
 
     host.querySelectorAll('button[data-act]').forEach(b => {
@@ -103,37 +108,94 @@
     });
   }
 
+  // ---------- Create User ----------
+  document.getElementById('u-create').addEventListener('click', () => {
+    if (!isSuperAdmin) {
+      toast('Only Super Admin can create users.', 'error');
+      return;
+    }
+    openModal({
+      title: I18N.t('createUser'),
+      body: `
+        <div class="aw-form">
+          <label><span>${I18N.t('nickname')}</span><input id="cu-nick" autocomplete="off"/></label>
+          <label><span>${I18N.t('password')}</span><input id="cu-pass" type="password" autocomplete="new-password"/></label>
+          <label><span>${I18N.t('phone')}</span><input id="cu-phone"/></label>
+          <label><span>${I18N.t('telegramUsername')}</span><input id="cu-tgu" placeholder="@username"/></label>
+          <label><span>${I18N.t('telegramId')}</span><input id="cu-tgi"/></label>
+          <label><span>Role</span>
+            <select id="cu-role">
+              <option value="user">User</option>
+              <option value="moderator">Moderator</option>
+              <option value="admin">Admin</option>
+            </select>
+          </label>
+          <label>
+            <span>${I18N.t('userIdCustom')}</span>
+            <input id="cu-id" placeholder="9-digit or leave empty" maxlength="20"/>
+            <small class="aw-muted">If empty, a 9-digit ID is auto-generated.</small>
+          </label>
+          <div class="aw-form-error" id="cu-err" hidden></div>
+        </div>
+      `,
+      actions: [
+        { label: I18N.t('cancel'), className: 'aw-btn-ghost', onClick: () => closeModal() },
+        { label: I18N.t('create'), className: 'aw-btn-primary', onClick: async () => {
+          const payload = {
+            nickname: document.getElementById('cu-nick').value.trim(),
+            password: document.getElementById('cu-pass').value,
+            phone: document.getElementById('cu-phone').value.trim(),
+            telegramUsername: document.getElementById('cu-tgu').value.trim(),
+            telegramId: document.getElementById('cu-tgi').value.trim(),
+            role: document.getElementById('cu-role').value,
+            customId: document.getElementById('cu-id').value.trim() || null
+          };
+          if (!payload.nickname || !payload.password) {
+            const e = document.getElementById('cu-err');
+            e.textContent = 'Nickname and password required.'; e.hidden = false; return;
+          }
+          if (payload.password.length < 8) {
+            const e = document.getElementById('cu-err');
+            e.textContent = 'Password must be at least 8 characters.'; e.hidden = false; return;
+          }
+          const r = await API.adminPost('users/create', payload);
+          if (r.success) { toast(I18N.t('savedSuccess'), 'success'); closeModal(); load(); }
+          else {
+            const e = document.getElementById('cu-err');
+            e.textContent = r.message || 'Failed'; e.hidden = false;
+          }
+        }}
+      ]
+    });
+  });
+
   function viewUser(id) {
     const u = all.find(x => x.id === id);
     if (!u) return;
     openModal({
-      title: 'User ' + u.nickname,
+      title: u.nickname,
       body: `
         <div class="admin-kv">
-          <div><span>ID</span><code>${esc(u.id)}</code></div>
-          <div><span>Nickname</span>${esc(u.nickname)}</div>
+          <div><span>${I18N.t('userId')}</span><code>${esc(u.id)}</code></div>
+          <div><span>${I18N.t('nickname')}</span>${esc(u.nickname)}</div>
           <div><span>Telegram</span>${esc(u.telegramUsername || '—')}</div>
           <div><span>Telegram ID</span>${esc(u.telegramId || '—')}</div>
-          <div><span>Phone</span>${esc(u.phone || '—')}</div>
+          <div><span>${I18N.t('phone')}</span>${esc(u.phone || '—')}</div>
           <div><span>AWC</span>${fmtAWC(u.balanceAWC)}</div>
-          <div><span>Total spent</span>${fmtMoney(u.totalSpent || 0)}</div>
-          <div><span>Total earned</span>${fmtMoney(u.totalEarned || 0)}</div>
-          <div><span>Rating</span>${(u.rating || 0).toFixed(1)}</div>
+          <div><span>Role</span>${esc(u.role || 'user')}</div>
           <div><span>Verified</span>${u.verified ? 'Yes' : 'No'}</div>
-          <div><span>Created</span>${fmtDateShort(u.createdAt)}</div>
-          <div><span>Updated</span>${fmtDateShort(u.updatedAt)}</div>
-          <div><span>Premium</span>${esc(u.premiumPlan || '—')}</div>
+          <div><span>${I18N.t('created')}</span>${fmtDateShort(u.createdAt)}</div>
         </div>
       `,
-      actions: [{ label: 'Close', className: 'aw-btn-ghost', onClick: () => closeModal() }]
+      actions: [{ label: I18N.t('close'), className: 'aw-btn-ghost', onClick: () => closeModal() }]
     });
   }
 
   async function blockUser(id, blocked) {
-    const ok = await confirmModal(blocked ? 'Block user?' : 'Unblock user?', 'Proceed?');
+    const ok = await confirmModal(blocked ? I18N.t('block') : I18N.t('unblock'), 'Proceed?');
     if (!ok) return;
     const r = await API.adminBlockUser(id, blocked);
-    if (r.success) { toast('Updated.', 'success'); load(); }
+    if (r.success) { toast(I18N.t('savedSuccess'), 'success'); load(); }
     else toast(r.message, 'error');
   }
 
