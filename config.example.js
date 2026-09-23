@@ -1,37 +1,56 @@
 // config.example.js
 // Bu faylni "config.js" deb nusxalab, haqiqiy qiymatlarni kiriting.
 // config.js .gitignore ga qo'shilgan — hech qachon GitHub ga chiqmaydi.
+//
+// Namuna:  cp config.example.js config.js
+
+'use strict';
 
 module.exports = {
+
+  // ============================================================
+  // SERVER
+  // ============================================================
   server: {
     port: process.env.PORT || 3000,
     host: process.env.HOST || '0.0.0.0',
     baseUrl: process.env.BASE_URL || 'http://localhost:3000'
   },
 
+  // ============================================================
+  // JWT
+  // ============================================================
   jwt: {
     // Ishlab chiqarishda: openssl rand -hex 32
     secret: process.env.JWT_SECRET || 'CHANGE_ME_TO_A_LONG_RANDOM_STRING',
     tokenTtlMs: 1000 * 60 * 60 * 24 * 7 // 7 kun
   },
 
+  // ============================================================
+  // EXCHANGE RATE (USD ↔ UZS)
+  // ============================================================
   exchangeRate: {
     enabled: true,
     provider: 'exchangerate-api', // 'exchangerate-api' | 'manual'
     apiKey: process.env.EXCHANGE_RATE_API_KEY || 'YOUR_EXCHANGE_RATE_API_KEY',
     baseCurrency: 'USD',
     endpoint: 'https://v6.exchangerate-api.com/v6',
-    fallbackRate: 12650, // 1 USD = 12650 UZS (manual fallback)
-    cacheTtlMs: 1000 * 60 * 60 // 1 soat
+    fallbackRate: 12650,           // 1 USD = 12650 UZS (manual fallback)
+    cacheTtlMs: 1000 * 60 * 60     // 1 soat
   },
 
+  // ============================================================
+  // AWC (AwebShop Coin)
+  // ============================================================
   awc: {
-    // 1 AWC = 10 000 UZS (boshlang'ich)
-    priceUZS: 10000,
+    priceUZS: 10000,               // 1 AWC = 10 000 UZS
     symbol: 'AWC',
     name: 'AwebShop Coin'
   },
 
+  // ============================================================
+  // PAYMENT APIS (future integrations)
+  // ============================================================
   paymentApis: {
     payme: {
       enabled: false,
@@ -51,14 +70,23 @@ module.exports = {
     }
   },
 
+  // ============================================================
+  // TELEGRAM BOT
+  // ============================================================
   telegram: {
-    enabled: false,
+    enabled: false,                // true qilganingizda bot ishlaydi
     botToken: process.env.TELEGRAM_BOT_TOKEN || 'YOUR_TELEGRAM_BOT_TOKEN',
     botUsername: process.env.TELEGRAM_BOT_USERNAME || 'YourBotUsername',
-    adminChatId: process.env.TELEGRAM_ADMIN_CHAT_ID || '',
-    codeTtlMs: 1000 * 60 * 10 // 10 daqiqa
+    adminChatId: process.env.TELEGRAM_ADMIN_CHAT_ID || '',  // @userinfobot orqali oling
+    codeTtlMs: 1000 * 60 * 10,     // 10 daqiqa
+    forceSubscribe: {
+      enabled: true
+    }
   },
 
+  // ============================================================
+  // FEES / KOMISSIYALAR
+  // ============================================================
   fees: {
     listingFeeUZS: 10000,
     saleCommissionPercent: 5,
@@ -69,6 +97,9 @@ module.exports = {
     rewardedAdsPerFreeListing: 15
   },
 
+  // ============================================================
+  // ESCROW VAQTLARI (kunlarda)
+  // ============================================================
   escrow: {
     sellerTransferDays: 7,
     verificationDays: 3,
@@ -77,6 +108,9 @@ module.exports = {
     refundProcessingDays: 5
   },
 
+  // ============================================================
+  // XAVFSIZLIK
+  // ============================================================
   security: {
     maxLoginAttempts: 5,
     lockoutMinutes: 15,
@@ -84,15 +118,5 @@ module.exports = {
     rateLimitMaxRequests: 60,
     passwordMinLength: 8
   }
-};
 
-telegram: {
-  enabled: false,                                 // true qilganingizda bot ishlaydi
-  botToken: process.env.TELEGRAM_BOT_TOKEN || 'YOUR_TELEGRAM_BOT_TOKEN',
-  botUsername: process.env.TELEGRAM_BOT_USERNAME || 'YourBotUsername',
-  adminChatId: process.env.TELEGRAM_ADMIN_CHAT_ID || '',  // @userinfobot orqali oling
-  codeTtlMs: 1000 * 60 * 10,                       // 10 daqiqa
-  forceSubscribe: {
-    enabled: true
-  }
-}
+};

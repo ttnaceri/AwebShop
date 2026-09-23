@@ -431,3 +431,23 @@ h3 { font-size: 18px; }
   color: var(--muted);
 }
 .aw-mobile-nav a:hover i { color: var(--primary); }
+/* Ban overlay */
+.aw-ban-overlay {
+  position: fixed; inset: 0; z-index: 99999;
+  background: rgba(0,0,0,0.9);
+  backdrop-filter: blur(8px);
+  display: flex; align-items: center; justify-content: center; padding: 20px;
+}
+.aw-ban-card {
+  max-width: 480px; width: 100%; text-align: center;
+  background: var(--bg-elev); border: 1px solid var(--border);
+  border-radius: var(--radius-lg); padding: 32px 24px;
+}
+.aw-ban-card h2 { color: var(--danger); margin-bottom: 12px; }
+.aw-ban-timer {
+  font-family: ui-monospace, monospace;
+  font-size: 36px; font-weight: 800;
+  color: var(--warn); margin: 20px 0;
+  letter-spacing: 3px;
+}
+.aw-ban-reason { color: var(--muted); font-size: 13px; margin-top: 12px; }

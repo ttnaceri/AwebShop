@@ -34,3 +34,11 @@ function websiteCard(w) {
 }
 
 window.websiteCard = websiteCard;
+function websiteCard(w) {
+  // ...
+  const typeBadge = w.type === 'frontend' ? '🎨 Frontend'
+    : w.type === 'backend' ? '⚙️ Backend'
+    : w.type === 'fullstack' ? '🚀 Fullstack'
+    : '';
+  // ...
+}

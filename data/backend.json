@@ -1,13 +1,13 @@
 {
   "users": [
     {
-      "id": "438945648",
+      "id": "100000001",
       "nickname": "superAdmin",
       "passwordHash": "bf61d60b8e092c1184f71512833ac1ab:385f13349f85931013a26a7b3c3f920459049cd64dd567c0139fb1404ced025bfc2507b8b56721917fc501012cb67e2df3f76e43fadaa31205e2c0d30565ef86",
       "telegramUsername": "@JaneCBI",
       "telegramId": "6465879965",
       "phone": "+998950540920",
-      "email": null,
+      "email": "ttnacerifan@gmail.com",
       "role": "super_admin",
       "balanceAWC": 10000,
       "totalSpent": 0,
@@ -30,7 +30,7 @@
   "admins": [
     {
       "id": "adm_823ZQ249R9UL",
-      "userId": "438945648",
+      "userId": "100000001",
       "role": "super_admin",
       "permissions": {},
       "disabled": false,
@@ -39,71 +39,15 @@
     }
   ],
   "websites": [
-    {
-      "webId": "XNWRJ2S",
-      "orderId": "H6YDMLNY2K",
-      "sellerId": "438945648",
-      "name": "Vcoin Payment",
-      "domain": "ttnaceri.github.io",
-      "description": "This is crypto value with their backends.",
-      "descriptionLength": 35,
-      "topic": "Other",
-      "imageUrl": "",
-      "priceUZS": 2350000,
-      "priceUSD": 185.7708,
-      "priceAWC": 235,
-      "saleType": "safe",
-      "status": "active",
-      "views": 5,
-      "rating": 0,
-      "createdAt": "2026-09-13T17:02:14.585Z",
-      "updatedAt": "2026-09-13T17:02:14.585Z",
-      "soldAt": null
-    },
-    {
-      "webId": "XF74ZYB",
-      "orderId": "9YCQ4629D9",
-      "sellerId": "438945648",
-      "name": "Vcoin",
-      "domain": "ttnaceri.github.io",
-      "description": "This Is Crypto Value. It can work with API.",
-      "descriptionLength": 35,
-      "topic": "Online Shop",
-      "imageUrl": "/data/uploads/websites/f1a8520c2692b625.png",
-      "priceUZS": 2000000,
-      "priceUSD": 158.1028,
-      "priceAWC": 200,
-      "saleType": "safe",
-      "status": "active",
-      "views": 0,
-      "rating": 0,
-      "createdAt": "2026-09-17T15:35:23.495Z",
-      "updatedAt": "2026-09-17T15:35:23.495Z",
-      "soldAt": null
-    }
+    
   ],
   "orders": [],
   "transactions": [],
   "escrows": [],
   "withdrawals": [],
   "refunds": [],
-  "premiumSubscriptions": [],
-  "premiumPlans": [
-    {
-      "id": "plan_plus",
-      "name": "Plus",
-      "monthlyPriceUZS": 20000,
-      "yearlyPriceUZS": 180000,
-      "commission": 3,
-      "websitesPerMonth": 10,
-      "badge": false,
-      "enabled": true,
-      "features": [
-        "10 websites / month",
-        "3% commission",
-        "Priority support"
-      ]
-    },
+  "premiumSubscriptions": [
+
     {
       "id": "plan_prime",
       "name": "Prime",
@@ -246,7 +190,7 @@
   "adminLogs": [
     {
       "id": "log_1789393836340_0v0bc2",
-      "adminId": "438945648",
+      "adminId": "100000001",
       "action": "force_sub_create",
       "target": null,
       "meta": {},
@@ -254,7 +198,7 @@
     },
     {
       "id": "log_1789394082452_4z8o4d",
-      "adminId": "438945648",
+      "adminId": "100000001",
       "action": "card_create",
       "target": null,
       "meta": {},
@@ -262,7 +206,7 @@
     },
     {
       "id": "log_1789394503170_fugex2",
-      "adminId": "438945648",
+      "adminId": "100000001",
       "action": "badge_create",
       "target": null,
       "meta": {},
@@ -270,7 +214,28 @@
     }
   ],
   "securityLogs": [],
-  "verificationCodes": [],
+  "verificationCodes": [
+    {
+      "id": "code_ZT9S8M454CTE",
+      "telegramId": "7743839315",
+      "telegramUsername": "@Shorahim002",
+      "purpose": "register",
+      "codeHash": "499e658ebfff9cdf487ffe4fce8e4a0a:cb6684f6626fde6ac80529ae5190d0740aa3e8e4aa76e86d1e2a55f47e85eb560bb4cd49c20ee8d1bda440851fe0530dbbf9746679d48736b6cf3e378e3bd444",
+      "createdAt": "2026-09-18T11:46:34.239Z",
+      "expiresAt": "2026-09-18T11:56:34.239Z",
+      "used": false
+    },
+    {
+      "id": "code_4JQS3WWRL34Z",
+      "telegramId": "6465879965",
+      "telegramUsername": "@JaneCBI",
+      "purpose": "recover",
+      "codeHash": "05781d34d5237db779620cd779b37e6e:3bc9265626c128f89525feedede223ca439f9a8b414bd4263a03f5f8c46f42ac7ebc07b4357f3e87a6cfb389b3ad6a564d42204c975ded4fde042ca4b85dc7e9",
+      "createdAt": "2026-09-23T10:57:53.374Z",
+      "expiresAt": "2026-09-23T11:07:53.374Z",
+      "used": false
+    }
+  ],
   "sessions": [],
   "loginAttempts": [],
   "webhooks": [],

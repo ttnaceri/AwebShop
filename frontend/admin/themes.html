@@ -1,33 +1,119 @@
 <!DOCTYPE html>
-<html lang="en"><head><meta charset="UTF-8"/><meta name="viewport" content="width=device-width, initial-scale=1"/>
-<title>Themes — Admin</title>
-<link rel="icon" type="image/png" href="/frontend/assets/image/logo.png">
-<link rel="stylesheet" href="../css/main.css"/><link rel="stylesheet" href="../css/admin.css"/>
-<link rel="stylesheet" href="../css/console.css"/><link rel="stylesheet" href="../css/responsive.css"/></head>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1"/>
+<title>Themes / Topics — Admin</title>
+<link rel="icon" type="image/png" href="../assets/image/logo.png"/>
+<link rel="stylesheet" href="../css/main.css"/>
+<link rel="stylesheet" href="../css/admin.css"/>
+<link rel="stylesheet" href="../css/console.css"/>
+<link rel="stylesheet" href="../css/responsive.css"/>
+</head>
 <body class="admin-body">
 <aside id="admin-sidebar" class="admin-sidebar"></aside>
 <div class="admin-main">
   <header id="admin-topbar" class="admin-topbar"></header>
-  <div class="admin-content"><p id="admin-subtitle" class="admin-sub"></p></div>
+  <div class="admin-content">
+    <p id="admin-subtitle" class="admin-sub"></p>
+
+    <div class="admin-card">
+      <h3>Add new theme</h3>
+      <div class="admin-inline-add">
+        <input id="new-theme" placeholder="e.g. SaaS, Blog, Crypto…"/>
+        <button class="aw-btn aw-btn-primary" id="add-theme">
+          <i class="fa-solid fa-plus"></i> Add
+        </button>
+      </div>
+      <p class="aw-muted" style="margin-top:8px">
+        These themes appear in Sell page, Store filter, and website listings.
+      </p>
+    </div>
+
+    <div class="admin-card">
+      <h3>Current themes (<span id="themes-count">0</span>)</h3>
+      <div id="themes-list" class="admin-topics-list"></div>
+    </div>
+  </div>
 </div>
-<script src="../js/api.js"></script><script src="../js/app.js"></script><script src="../js/auth.js"></script>
-<script src="../js/admin.js"></script><script src="../components/admin-console.js"></script>
+
+<script src="../js/api.js"></script>
+<script src="../js/i18n.js"></script>
+<script src="../js/app.js"></script>
+<script src="../js/auth.js"></script>
+<script src="../js/admin.js"></script>
+<script src="../components/modals.js"></script>
+<script src="../components/admin-console.js"></script>
+
 <script>
 (async () => {
   await loadRates();
   if (!(await Admin.requireAdmin())) return;
-  adminPage('Themes', 'THEME_DESC');
-  const content = document.querySelector('.admin-content');
-  content.insertAdjacentHTML('beforeend', `
-    <div class="admin-card">
-      <h3>Themes</h3>
-      <p class="aw-muted">THEME_DESC</p>
-      <p class="aw-muted">
-        Bu sahifa admin console buyruqlari orqali boshqarilishi mumkin.
-        To'liq UI kelajak bosqichda ulanadi. Backend route hozircha yo'q.
-      </p>
-    </div>
-  `);
+  adminPage('Themes / Topics', 'Website themes shown in Sell and Store');
+
+  let themes = [];
+
+  async function load() {
+    const r = await API.adminGet('settings');
+    if (!r.success) return;
+    themes = r.data.settings.topics || [];
+    render();
+  }
+
+  function render() {
+    document.getElementById('themes-count').textContent = themes.length;
+    const host = document.getElementById('themes-list');
+    if (!themes.length) {
+      host.innerHTML = '<div class="admin-empty">No themes yet. Add one above.</div>';
+      return;
+    }
+    host.innerHTML = themes.map((t, i) => `
+      <span class="admin-topic-chip">
+        ${esc(t)}
+        <button class="admin-chip-remove" data-topic="${esc(t)}" title="Remove">×</button>
+      </span>
+    `).join('');
+
+    host.querySelectorAll('.admin-chip-remove').forEach(b => {
+      b.addEventListener('click', async () => {
+        const topic = b.dataset.topic;
+        const ok = await confirmModal('Remove theme?', `Remove "${topic}" from the list?`);
+        if (!ok) return;
+        themes = themes.filter(t => t !== topic);
+        await saveThemes();
+      });
+    });
+  }
+
+  async function saveThemes() {
+    const r = await API.adminPut('settings', { topics: themes });
+    if (r.success) {
+      toast('Themes updated.', 'success');
+      load();
+    } else {
+      toast(r.message || 'Failed', 'error');
+    }
+  }
+
+  document.getElementById('add-theme').addEventListener('click', async () => {
+    const input = document.getElementById('new-theme');
+    const name = input.value.trim();
+    if (!name) return;
+    if (themes.includes(name)) {
+      toast('Theme already exists.', 'warn');
+      return;
+    }
+    themes.push(name);
+    input.value = '';
+    await saveThemes();
+  });
+
+  document.getElementById('new-theme').addEventListener('keydown', e => {
+    if (e.key === 'Enter') document.getElementById('add-theme').click();
+  });
+
+  load();
 })();
 </script>
-</body></html>
+</body>
+</html>

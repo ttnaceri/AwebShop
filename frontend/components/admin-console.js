@@ -1,6 +1,6 @@
 // frontend/components/admin-console.js
-// Terminal-style Admin Console. Backtick (`) orqali ochiladi.
-// Command history session-only, auto-complete (max 3), up/down nav, resize, min/max.
+// Terminal-style Admin Console with ban/unban/AWC commands.
+// Backtick (`) opens/closes.
 
 const AdminConsole = (() => {
   let root, input, output, sugBox;
@@ -11,16 +11,25 @@ const AdminConsole = (() => {
   let isOpen = false;
 
   const COMMANDS = [
-    'help','users','websites','escrow','payments','withdraw','promocodes',
-    'discount','events','announce','orders','themes','ads','settings',
-    'backup','export','import','security','analytics','logs','maintenance',
-    'reviews','featured','todo','messages','invoice','popup','stock',
-    'badge','chat','schedule','cards','environment','premium',
-    'force-subscribe','clear','exit'
+    'help',
+    'users', 'websites', 'escrow', 'payments', 'withdraw', 'logs',
+    'settings', 'maintenance', 'security', 'analytics', 'premium',
+    'cards', 'environment', 'backup', 'export', 'import',
+    // Ban / Unban / AWC
+    'ban', 'unban', 'addawc', 'remawc',
+    // Placeholders
+    'promocodes', 'discount', 'events', 'announce', 'orders', 'themes',
+    'ads', 'reviews', 'featured', 'todo', 'messages', 'invoice', 'popup',
+    'stock', 'badge', 'chat', 'schedule', 'force-subscribe',
+    'clear', 'exit'
   ];
 
+  // ============================================================
+  // DOM SETUP
+  // ============================================================
   function ensureDom() {
     if (root) return;
+
     root = document.createElement('div');
     root.id = 'admin-console';
     root.innerHTML = `
@@ -62,7 +71,7 @@ const AdminConsole = (() => {
     input.addEventListener('keydown', onKey);
     input.addEventListener('input', onInput);
 
-    // Resize (bottom-right)
+    // Resize
     const handle = root.querySelector('#ac-resize');
     let resizing = false, startY, startX, startH, startW;
     handle.addEventListener('mousedown', e => {
@@ -76,7 +85,7 @@ const AdminConsole = (() => {
     function onMove(e) {
       if (!resizing) return;
       const h = Math.max(220, startH + (startY - e.clientY));
-      const w = Math.max(380, startW + (startX - e.clientX));
+      const w = Math.max(420, startW + (startX - e.clientX));
       root.style.height = h + 'px';
       root.style.width = w + 'px';
     }
@@ -87,6 +96,9 @@ const AdminConsole = (() => {
     }
   }
 
+  // ============================================================
+  // OUTPUT
+  // ============================================================
   function print(text, cls = '') {
     const line = document.createElement('div');
     line.className = 'ac-line ' + cls;
@@ -95,6 +107,14 @@ const AdminConsole = (() => {
     output.scrollTop = output.scrollHeight;
   }
 
+  function escHtml(s) {
+    return String(s == null ? '' : s)
+      .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+  }
+
+  // ============================================================
+  // AUTOCOMPLETE
+  // ============================================================
   function onInput() {
     const v = input.value.trimStart();
     if (!v) { hideSug(); return; }
@@ -159,62 +179,86 @@ const AdminConsole = (() => {
     }
   }
 
-  function escHtml(s) {
-    return String(s == null ? '' : s)
-      .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
-  }
-
-  // ---- Command runner ----
+  // ============================================================
+  // RUNNER
+  // ============================================================
   async function run(line) {
     const parts = line.split(/\s+/);
     const cmd = parts[0].toLowerCase();
     const args = parts.slice(1);
 
     switch (cmd) {
-      case 'help': return cmdHelp();
-      case 'clear': output.innerHTML = ''; return;
-      case 'exit': return close();
-      case 'users': return cmdUsers();
-      case 'websites': return cmdWebsites();
-      case 'escrow': return cmdEscrow();
-      case 'withdraw': return cmdWithdraw();
-      case 'payments': return cmdPayments();
-      case 'logs': return cmdLogs();
-      case 'security': return cmdSecurity();
-      case 'settings': return cmdSettings();
-      case 'maintenance': return cmdMaintenance();
-      case 'analytics': return cmdAnalytics();
-      case 'premium': return cmdPremium();
-      case 'environment': return cmdEnvironment();
-      case 'backup': return cmdBackup();
-      case 'export': return cmdExport();
-      case 'import': return cmdImport();
-      case 'todo': return cmdTodo();
-      case 'badge': return cmdBadge();
-      case 'force-subscribe': return cmdForceSub();
-      case 'promocodes': case 'discount': case 'events': case 'announce':
-      case 'orders': case 'themes': case 'ads': case 'reviews': case 'featured':
-      case 'messages': case 'invoice': case 'popup': case 'stock': case 'chat':
-      case 'schedule': case 'cards': return cmdComingSoon(cmd);
+      case 'help':            return cmdHelp();
+      case 'clear':           output.innerHTML = ''; return;
+      case 'exit':            return close();
+      case 'users':           return cmdUsers();
+      case 'websites':        return cmdWebsites();
+      case 'escrow':          return cmdEscrow();
+      case 'withdraw':        return cmdWithdraw();
+      case 'payments':        return cmdPayments();
+      case 'logs':            return cmdLogs();
+      case 'security':        return cmdSecurity();
+      case 'settings':        return cmdSettings();
+      case 'maintenance':     return cmdMaintenance();
+      case 'analytics':       return cmdAnalytics();
+      case 'premium':         return cmdPremium();
+      case 'cards':           return cmdCards();
+      case 'environment':     return cmdEnvironment();
+      case 'backup':          return cmdBackup();
+      case 'export':          return cmdExport();
+      case 'import':          return cmdImport();
+      // Ban / Unban / AWC
+      case 'ban':             return cmdBan(args);
+      case 'unban':           return cmdUnban(args);
+      case 'addawc':          return cmdAddAwc(args);
+      case 'remawc':          return cmdRemAwc(args);
+      // Placeholders
       default:
+        if (COMMANDS.includes(cmd)) return cmdComingSoon(cmd);
         print(`Unknown command: <span class="ac-cmd">${escHtml(cmd)}</span>. Type <span class="ac-cmd">help</span>.`, 'ac-error');
     }
   }
 
+  // ============================================================
+  // HELP
+  // ============================================================
   function cmdHelp() {
-    print(`Available commands:`, 'ac-info');
-    print(COMMANDS.map(c => `<span class="ac-cmd">${c}</span>`).join('  '), '');
-    print(`ID syntax: <span class="ac-cmd">id.</span> = single/last, <span class="ac-cmd">id,</span> = multiple.`, 'ac-warn');
-    print(`Dangerous commands ask Y/N confirmation.`, 'ac-warn');
+    print(`<b>Available commands</b>`, 'ac-info');
+    print('');
+    print(`<b>Info:</b>`, '');
+    print(`  <span class="ac-cmd">help</span>  <span class="ac-cmd">users</span>  <span class="ac-cmd">websites</span>  <span class="ac-cmd">escrow</span>  <span class="ac-cmd">withdraw</span>`, '');
+    print(`  <span class="ac-cmd">payments</span>  <span class="ac-cmd">logs</span>  <span class="ac-cmd">analytics</span>  <span class="ac-cmd">premium</span>  <span class="ac-cmd">cards</span>`, '');
+    print('');
+    print(`<b>Ban / Unban:</b>`, 'ac-warn');
+    print(`  <span class="ac-cmd">ban &lt;userId&gt;</span>                          — permanent ban`, '');
+    print(`  <span class="ac-cmd">ban &lt;userId&gt; 1h &lt;reason&gt;</span>              — 1 soat ban`, '');
+    print(`  Durations: <span class="ac-cmd">1s | 1m | 1h | 1d | 1w | 1y</span>`, '');
+    print(`  <span class="ac-cmd">unban &lt;userId&gt;</span>                        — unban`, '');
+    print('');
+    print(`<b>AWC:</b>`, 'ac-ok');
+    print(`  <span class="ac-cmd">addawc &lt;userId&gt; &lt;amount&gt; [reason]</span>   — qo'shish`, '');
+    print(`  <span class="ac-cmd">remawc &lt;userId&gt; &lt;amount&gt; [reason]</span>   — ayirish`, '');
+    print('');
+    print(`<b>System:</b>`, '');
+    print(`  <span class="ac-cmd">settings</span>  <span class="ac-cmd">maintenance</span>  <span class="ac-cmd">security</span>  <span class="ac-cmd">backup</span>  <span class="ac-cmd">export</span>  <span class="ac-cmd">import</span>`, '');
+    print(`  <span class="ac-cmd">clear</span>  <span class="ac-cmd">exit</span>`, '');
+    print('');
+    print(`Dangerous commands ask <span class="ac-cmd">Y/N</span> confirmation.`, 'ac-warn');
   }
 
+  // ============================================================
+  // INFO COMMANDS
+  // ============================================================
   async function cmdUsers() {
     const r = await API.adminUsers();
     if (!r.success) return print('Failed to load users.', 'ac-error');
     const list = r.data.items;
     print(`Total users: <span class="ac-ok">${list.length}</span>`, 'ac-info');
     list.slice(0, 30).forEach(u => {
-      print(`  [${escHtml(u.id)}] ${escHtml(u.nickname)} — AWC ${u.balanceAWC} — ${u.blocked ? 'BLOCKED' : 'ok'}`);
+      const status = u.banned ? '🚫 BANNED'
+        : (u.blocked && u.blockedUntil && new Date(u.blockedUntil) > new Date()) ? '⏸ BLOCKED'
+        : '✅';
+      print(`  [${escHtml(u.id)}] ${escHtml(u.nickname)} — AWC ${u.balanceAWC} — ${status}`);
     });
     if (list.length > 30) print(`  … ${list.length - 30} more`, 'ac-warn');
   }
@@ -225,8 +269,9 @@ const AdminConsole = (() => {
     const list = r.data.items;
     print(`Total websites: <span class="ac-ok">${list.length}</span>`, 'ac-info');
     list.slice(0, 30).forEach(w => {
-      print(`  [${escHtml(w.webId)}] ${escHtml(w.name)} — ${w.status} — ${w.saleType}`);
+      print(`  [${escHtml(w.webId)}] ${escHtml(w.name)} — ${w.status} — ${w.saleType} — ${w.type || 'frontend'}`);
     });
+    if (list.length > 30) print(`  … ${list.length - 30} more`, 'ac-warn');
   }
 
   async function cmdEscrow() {
@@ -237,8 +282,6 @@ const AdminConsole = (() => {
     list.slice(0, 30).forEach(e => {
       print(`  [${escHtml(e.id)}] web ${escHtml(e.websiteId)} — ${e.status} — ${e.amountUZS} UZS`);
     });
-    print(`Usage: escrow <id>. <status> [notes]`, 'ac-warn');
-    print(`Statuses: pending | paid | transferred | verified | completed | cancelled | disputed | refunded`, '');
   }
 
   async function cmdWithdraw() {
@@ -253,7 +296,6 @@ const AdminConsole = (() => {
 
   async function cmdPayments() {
     print('Use Admin Panel → Payments to verify manual card payments.', 'ac-warn');
-    print('Command form: payments approve <txId> OR payments reject <txId>', '');
   }
 
   async function cmdLogs() {
@@ -270,14 +312,10 @@ const AdminConsole = (() => {
     if (r.success) {
       print(`  Users: ${r.data.users}  Websites: ${r.data.websites}  Orders: ${r.data.orders}`);
     }
-    print('Use Admin → Security for blocklist, attempts, and IP rules.', 'ac-warn');
   }
 
   async function cmdSettings() {
-    print('Global settings are edited on the Settings page.', 'ac-warn');
-    print('Quick actions:', '');
-    print('  settings awc <uzs>        — set 1 AWC price in UZS', '');
-    print('  settings maintenance on|off', '');
+    print('Global settings are on the Settings page.', 'ac-warn');
   }
 
   async function cmdMaintenance() {
@@ -307,60 +345,166 @@ const AdminConsole = (() => {
     });
   }
 
+  async function cmdCards() {
+    const r = await API.adminGet('cards');
+    if (!r.success) return print('Failed.', 'ac-error');
+    const list = r.data.items;
+    print(`Payment cards: <span class="ac-ok">${list.length}</span>`, 'ac-info');
+    list.forEach(c => {
+      print(`  [${escHtml(c.id)}] **** ${String(c.cardNumber || '').slice(-4)} — ${escHtml(c.bank || '')} — ${c.status}${c.isDefault ? ' ⭐' : ''}`);
+    });
+  }
+
   async function cmdEnvironment() {
-    print('Environment users:', 'ac-warn');
-    print('Access codes are stored hashed. Use Admin → Environment page.', '');
+    print('Environment users: Admin → Environment page.', 'ac-warn');
   }
 
   async function cmdBackup() {
     const ok = await confirmConsole('Create a backup of backend.json now?');
     if (!ok) return print('Cancelled.', 'ac-warn');
-    print('Triggering backup on server…', 'ac-info');
-    print('Backup command is handled by admin server route (see admin panel → Backup).', 'ac-warn');
+    const r = await API.adminPost('backup', {});
+    if (r.success) print(`✅ Backup created: ${r.data.file}`, 'ac-ok');
+    else print(`❌ ${r.message}`, 'ac-error');
   }
 
   async function cmdExport() {
-    print('Export is available in Admin → Export/Import (CSV / JSON).', 'ac-warn');
-  }
-  async function cmdImport() {
-    print('Import is available in Admin → Export/Import. Validate before writing.', 'ac-warn');
-  }
-  async function cmdTodo() {
-    print('Todo list is managed on Admin → Todo page.', 'ac-warn');
-  }
-  async function cmdBadge() {
-    print('Badges are managed on Admin → Badges page.', 'ac-warn');
-  }
-  async function cmdForceSub() {
-    print('Force-subscribe channels: Admin → Force Subscribe page.', 'ac-warn');
-  }
-  async function cmdComingSoon(cmd) {
-    print(`${cmd}: full command UI is on its admin page. Backend routes are stable.`, 'ac-warn');
+    print('Export is available in Admin → Export/Import.', 'ac-warn');
   }
 
+  async function cmdImport() {
+    print('Import is available in Admin → Export/Import.', 'ac-warn');
+  }
+
+  // ============================================================
+  // BAN / UNBAN
+  // ============================================================
+  async function cmdBan(args) {
+    const userId = args[0];
+    if (!userId) {
+      print('Usage: <span class="ac-cmd">ban &lt;userId&gt; [duration] [reason]</span>', 'ac-warn');
+      print('Durations: <span class="ac-cmd">1s | 1m | 1h | 1d | 1w | 1y</span>', '');
+      print('Without duration → permanent ban.', '');
+      return;
+    }
+
+    const duration = args[1] || '';
+    const reason = args.slice(2).join(' ') || '';
+    const validDurations = ['1s', '1m', '1h', '1d', '1w', '1y'];
+    const isPermanent = !duration || !validDurations.includes(duration);
+
+    const confirmMsg = isPermanent
+      ? `PERMANENTLY ban user ${userId}?`
+      : `Ban user ${userId} for ${duration}?`;
+    const ok = await confirmConsole(confirmMsg);
+    if (!ok) return print('Cancelled.', 'ac-warn');
+
+    const r = await API.adminPost('users/ban-duration', { userId, duration, reason });
+    if (r.success) {
+      print(`✅ ${r.data.message}`, 'ac-ok');
+      if (r.data.until) print(`   Until: ${new Date(r.data.until).toLocaleString()}`);
+    } else {
+      print(`❌ ${r.message}`, 'ac-error');
+    }
+  }
+
+  async function cmdUnban(args) {
+    const userId = args[0];
+    if (!userId) return print('Usage: <span class="ac-cmd">unban &lt;userId&gt;</span>', 'ac-warn');
+
+    const r = await API.adminPost('users/unban', { userId });
+    if (r.success) print(`✅ ${r.data.message}`, 'ac-ok');
+    else print(`❌ ${r.message}`, 'ac-error');
+  }
+
+  // ============================================================
+  // AWC ADJUST
+  // ============================================================
+  async function cmdAddAwc(args) {
+    const userId = args[0];
+    const amount = Number(args[1]);
+    const reason = args.slice(2).join(' ') || '';
+
+    if (!userId || !amount || isNaN(amount)) {
+      print('Usage: <span class="ac-cmd">addawc &lt;userId&gt; &lt;amount&gt; [reason]</span>', 'ac-warn');
+      return;
+    }
+    if (amount <= 0) return print('Amount must be positive.', 'ac-error');
+
+    const ok = await confirmConsole(`Add ${amount} AWC to user ${userId}?`);
+    if (!ok) return print('Cancelled.', 'ac-warn');
+
+    const r = await API.adminPost('users/awc-adjust', { userId, amount, reason });
+    if (r.success) {
+      print(`✅ ${r.data.message}`, 'ac-ok');
+      print(`   New balance: ${r.data.newBalance} AWC`);
+    } else {
+      print(`❌ ${r.message}`, 'ac-error');
+    }
+  }
+
+  async function cmdRemAwc(args) {
+    const userId = args[0];
+    const amount = Number(args[1]);
+    const reason = args.slice(2).join(' ') || '';
+
+    if (!userId || !amount || isNaN(amount)) {
+      print('Usage: <span class="ac-cmd">remawc &lt;userId&gt; &lt;amount&gt; [reason]</span>', 'ac-warn');
+      return;
+    }
+    if (amount <= 0) return print('Amount must be positive.', 'ac-error');
+
+    const ok = await confirmConsole(`Remove ${amount} AWC from user ${userId}?`);
+    if (!ok) return print('Cancelled.', 'ac-warn');
+
+    const r = await API.adminPost('users/awc-adjust', { userId, amount: -Math.abs(amount), reason });
+    if (r.success) {
+      print(`✅ ${r.data.message}`, 'ac-ok');
+      print(`   New balance: ${r.data.newBalance} AWC`);
+    } else {
+      print(`❌ ${r.message}`, 'ac-error');
+    }
+  }
+
+  // ============================================================
+  // CONFIRM (Y/N)
+  // ============================================================
   function confirmConsole(msg) {
     return new Promise(resolve => {
       print(msg + ' <span class="ac-cmd">(Y/N)</span>', 'ac-warn');
       const handler = e => {
-        if (e.key === 'y' || e.key === 'Y') { input.removeEventListener('keydown', handler); resolve(true); }
-        else if (e.key === 'n' || e.key === 'N' || e.key === 'Escape') { input.removeEventListener('keydown', handler); resolve(false); }
+        if (e.key === 'y' || e.key === 'Y') {
+          input.removeEventListener('keydown', handler);
+          print('Confirmed.', 'ac-ok');
+          resolve(true);
+        } else if (e.key === 'n' || e.key === 'N' || e.key === 'Escape') {
+          input.removeEventListener('keydown', handler);
+          resolve(false);
+        }
       };
       input.addEventListener('keydown', handler);
     });
   }
 
+  // ============================================================
+  // OPEN / CLOSE
+  // ============================================================
   function open() {
     ensureDom();
     root.classList.add('ac-open');
     isOpen = true;
     setTimeout(() => input.focus(), 40);
   }
+
   function close() {
     if (!root) return;
     root.classList.remove('ac-open');
     isOpen = false;
   }
-  function toggle() { ensureDom(); isOpen ? close() : open(); }
+
+  function toggle() {
+    ensureDom();
+    isOpen ? close() : open();
+  }
 
   // Global backtick
   document.addEventListener('keydown', e => {

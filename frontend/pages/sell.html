@@ -7,89 +7,45 @@
 
 <link rel="icon" type="image/png" href="../assets/image/logo.png"/>
 <link rel="stylesheet" href="../css/main.css"/>
+<link rel="stylesheet" href="../css/navbar.css"/>
 <link rel="stylesheet" href="../css/uploader.css"/>
 <link rel="stylesheet" href="../css/responsive.css"/>
 
 <style>
-/* Sell sahifasiga xos qo'shimcha stillar */
 .aw-sell-wrap { max-width: 720px; margin: 0 auto; }
-.aw-sell-head {
-  display: flex; align-items: baseline; justify-content: space-between;
-  gap: 16px; flex-wrap: wrap; margin-bottom: 8px;
-}
+.aw-sell-head { display: flex; align-items: baseline; justify-content: space-between; gap: 16px; flex-wrap: wrap; margin-bottom: 8px; }
 .aw-sell-head h1 { margin: 0; }
-.aw-fee-badge {
-  display: inline-flex; align-items: center; gap: 6px;
-  background: rgba(123,92,255,0.12); border: 1px solid rgba(123,92,255,0.35);
-  color: var(--text); padding: 6px 12px; border-radius: 999px; font-size: 13px;
-}
+.aw-fee-badge { display: inline-flex; align-items: center; gap: 6px; background: rgba(123,92,255,0.12); border: 1px solid rgba(123,92,255,0.35); color: var(--text); padding: 6px 12px; border-radius: 999px; font-size: 13px; }
 .aw-field { display: flex; flex-direction: column; gap: 6px; margin-bottom: 16px; }
-.aw-field > label {
-  font-size: 13px; font-weight: 600; color: var(--muted);
-  display: flex; justify-content: space-between; align-items: center;
+.aw-field > label { font-size: 13px; font-weight: 600; color: var(--muted); display: flex; justify-content: space-between; align-items: center; }
+.aw-field input, .aw-field select, .aw-field textarea {
+  background: var(--card); color: var(--text); border: 1px solid var(--border); border-radius: 10px;
+  padding: 11px 12px; font-family: inherit; font-size: 14px; outline: none; transition: border-color .15s;
 }
-.aw-field input,
-.aw-field select,
-.aw-field textarea {
-  background: var(--card); color: var(--text);
-  border: 1px solid var(--border); border-radius: 10px;
-  padding: 11px 12px; font-family: inherit; font-size: 14px;
-  outline: none; transition: border-color .15s;
-}
-.aw-field input:focus,
-.aw-field select:focus,
-.aw-field textarea:focus { border-color: var(--primary); }
-.aw-field input.invalid,
-.aw-field textarea.invalid,
-.aw-field select.invalid { border-color: var(--danger); }
-.aw-field-hint {
-  font-size: 12px; color: var(--muted); display: flex; justify-content: space-between;
-}
+.aw-field input:focus, .aw-field select:focus, .aw-field textarea:focus { border-color: var(--primary); }
+.aw-field input.invalid, .aw-field textarea.invalid, .aw-field select.invalid { border-color: var(--danger); }
+.aw-field-hint { font-size: 12px; color: var(--muted); display: flex; justify-content: space-between; }
 .aw-field-hint .count { font-variant-numeric: tabular-nums; }
 .aw-field-hint .count.over { color: var(--danger); font-weight: 600; }
-.aw-field-error {
-  font-size: 12px; color: var(--danger); margin-top: 2px;
-}
-.aw-price-preview {
-  display: flex; gap: 16px; flex-wrap: wrap;
-  background: var(--card); border: 1px dashed var(--border);
-  border-radius: 10px; padding: 10px 14px; font-size: 13px; color: var(--muted);
-  margin-top: 6px;
-}
+.aw-field-error { font-size: 12px; color: var(--danger); margin-top: 2px; }
+.aw-price-preview { display: flex; gap: 16px; flex-wrap: wrap; background: var(--card); border: 1px dashed var(--border); border-radius: 10px; padding: 10px 14px; font-size: 13px; color: var(--muted); margin-top: 6px; }
 .aw-price-preview strong { color: var(--text); }
-.aw-sale-note {
-  font-size: 12px; padding: 10px 12px; border-radius: 8px; margin-top: 6px;
-  display: none;
-}
+.aw-sale-note { font-size: 12px; padding: 10px 12px; border-radius: 8px; margin-top: 6px; display: none; }
 .aw-sale-note.show { display: block; }
 .aw-sale-note.safe { background: rgba(34,197,94,0.12); border: 1px solid rgba(34,197,94,0.3); color: var(--safe); }
 .aw-sale-note.fast { background: rgba(245,158,11,0.12); border: 1px solid rgba(245,158,11,0.3); color: var(--fast); }
-.aw-sell-actions {
-  display: flex; gap: 12px; justify-content: flex-end;
-  margin-top: 24px; padding-top: 20px; border-top: 1px solid var(--border);
-}
-.aw-preview-card {
-  background: var(--card); border: 1px solid var(--border);
-  border-radius: 12px; padding: 16px; margin-top: 8px;
-}
-.aw-preview-card h3 { margin: 0 0 8px; }
-.aw-preview-img {
-  width: 100%; max-height: 240px; object-fit: cover;
-  border-radius: 10px; margin-bottom: 12px;
-}
-.aw-success {
-  text-align: center; padding: 40px 20px;
-  background: var(--card); border: 1px solid var(--border);
-  border-radius: var(--radius-lg);
-}
+.aw-sell-actions { display: flex; gap: 12px; justify-content: flex-end; margin-top: 24px; padding-top: 20px; border-top: 1px solid var(--border); }
+.aw-preview-card { background: var(--card); border: 1px solid var(--border); border-radius: 12px; padding: 16px; margin-top: 8px; }
+.aw-preview-img { width: 100%; max-height: 240px; object-fit: cover; border-radius: 10px; margin-bottom: 12px; }
+.aw-success { text-align: center; padding: 40px 20px; background: var(--card); border: 1px solid var(--border); border-radius: var(--radius-lg); }
 .aw-success h2 { color: var(--success); }
-.aw-success .webid {
-  font-family: ui-monospace, monospace; font-size: 20px;
-  background: var(--bg); padding: 8px 16px; border-radius: 8px;
-  display: inline-block; margin: 12px 0; letter-spacing: 2px;
-}
-.aw-success .aw-btn { margin-top: 16px; }
+.aw-success .webid { font-family: ui-monospace, monospace; font-size: 20px; background: var(--bg); padding: 8px 16px; border-radius: 8px; display: inline-block; margin: 12px 0; letter-spacing: 2px; }
 .aw-loading-form { opacity: 0.6; pointer-events: none; }
+.aw-strike-warning {
+  background: rgba(245,158,11,0.15); border: 1px solid rgba(245,158,11,0.4);
+  color: var(--warn); padding: 12px 14px; border-radius: 10px; margin-bottom: 16px; font-size: 13px; display: none;
+}
+.aw-strike-warning.show { display: block; }
 </style>
 </head>
 <body class="aw-body">
@@ -97,16 +53,17 @@
 
 <main class="aw-page">
   <div class="aw-sell-wrap" id="sell-wrap">
-    <div class="aw-sell-head">
-      <h1 id="sell-title">Sell a Website</h1>
-      <div class="aw-fee-badge" id="fee-badge">💳 Loading fee…</div>
-    </div>
-    <p class="aw-muted" id="sell-subtitle">List your website on AWebShop.</p>
 
-    <!-- ============ FORM ============ -->
+    <div class="aw-strike-warning" id="strike-warning"></div>
+
+    <div class="aw-sell-head">
+      <h1>Sell a Website</h1>
+      <div class="aw-fee-badge" id="fee-badge">💳 Loading…</div>
+    </div>
+    <p class="aw-muted">List your website on AWebShop.</p>
+
     <form id="sell-form" class="aw-form" novalidate autocomplete="off">
 
-      <!-- Website name -->
       <div class="aw-field">
         <label for="f-name">
           <span>Website Name <span style="color:var(--danger)">*</span></span>
@@ -116,54 +73,56 @@
         <div class="aw-field-error" id="err-name" hidden></div>
       </div>
 
-      <!-- Domain -->
       <div class="aw-field">
         <label for="f-domain">
           <span>Domain <span style="color:var(--danger)">*</span></span>
-          <small class="aw-muted">www. ixtiyoriy</small>
+          <small class="aw-muted">www. optional</small>
         </label>
         <input type="text" id="f-domain" placeholder="example.com" required/>
-        <div class="aw-field-hint">
-          <span>Example: <code>mysite.com</code>, <code>www.mysite.com</code>, <code>https://mysite.com</code></span>
-        </div>
+        <div class="aw-field-hint"><span>Example: <code>mysite.com</code></span></div>
         <div class="aw-field-error" id="err-domain" hidden></div>
       </div>
 
-      <!-- Topic -->
+      <div class="aw-field">
+        <label for="f-type">
+          <span>Website Type <span style="color:var(--danger)">*</span></span>
+        </label>
+        <select id="f-type" required>
+          <option value="frontend">Frontend (HTML, CSS, JS)</option>
+          <option value="backend">Backend (API, Server)</option>
+          <option value="fullstack">Fullstack (Frontend + Backend)</option>
+        </select>
+        <div class="aw-field-error" id="err-type" hidden></div>
+      </div>
+
       <div class="aw-field">
         <label for="f-topic">
-          <span>Topic <span style="color:var(--danger)">*</span></span>
+          <span>Theme <span style="color:var(--danger)">*</span></span>
         </label>
         <select id="f-topic" required>
-          <option value="">— Select a topic —</option>
+          <option value="">— Select a theme —</option>
         </select>
         <div class="aw-field-error" id="err-topic" hidden></div>
       </div>
 
-      <!-- Description -->
       <div class="aw-field">
         <label for="f-description">
           <span>Description <span style="color:var(--danger)">*</span></span>
           <span class="aw-field-hint count" id="desc-count">0 / 200</span>
         </label>
-        <textarea id="f-description" rows="4" placeholder="What does your website do? What's included? (spaces not counted)" required></textarea>
-        <div class="aw-field-hint">
-          <span>Max 200 characters, spaces not counted.</span>
-        </div>
+        <textarea id="f-description" rows="4" placeholder="What does your website do?" required></textarea>
+        <div class="aw-field-hint"><span>Max 200 chars, spaces not counted.</span></div>
         <div class="aw-field-error" id="err-description" hidden></div>
       </div>
 
-      <!-- Image Uploader -->
       <div class="aw-field">
         <label>
           <span>Website Image</span>
           <small class="aw-muted">PNG, JPG, WEBP — max 5MB</small>
         </label>
         <div id="image-uploader-container"></div>
-        <div class="aw-field-error" id="err-image" hidden></div>
       </div>
 
-      <!-- Price -->
       <div class="aw-field">
         <label for="f-price">
           <span>Price (UZS) <span style="color:var(--danger)">*</span></span>
@@ -177,7 +136,6 @@
         <div class="aw-field-error" id="err-price" hidden></div>
       </div>
 
-      <!-- Sale Type -->
       <div class="aw-field">
         <label for="f-saletype">
           <span>Sale Type <span style="color:var(--danger)">*</span></span>
@@ -187,17 +145,15 @@
           <option value="fast">Fast (direct to buyer)</option>
         </select>
         <div class="aw-sale-note safe show" id="sale-note-safe">
-          🔐 <strong>Safe:</strong> Admin holds the funds until the buyer confirms the website is delivered. More protection, slightly higher fee.
+          🔐 <strong>Safe:</strong> Admin holds the funds until the buyer confirms.
         </div>
         <div class="aw-sale-note fast" id="sale-note-fast">
-          ⚡ <strong>Fast:</strong> Buyer pays you directly. No escrow — you deliver immediately. Fewer protections.
+          ⚡ <strong>Fast:</strong> Buyer pays you directly. Fewer protections.
         </div>
       </div>
 
-      <!-- General error -->
       <div class="aw-form-error" id="form-error" hidden></div>
 
-      <!-- Actions -->
       <div class="aw-sell-actions">
         <button type="button" class="aw-btn aw-btn-ghost" id="btn-preview">👁 Preview</button>
         <button type="button" class="aw-btn aw-btn-ghost" id="btn-cancel">Cancel</button>
@@ -205,13 +161,8 @@
           <span id="submit-text">Sell</span>
         </button>
       </div>
-
-      <p class="aw-muted" style="text-align:center;font-size:12px;margin-top:12px">
-        By listing you agree to the AWebShop rules. Listings are moderated automatically.
-      </p>
     </form>
 
-    <!-- ============ SUCCESS ============ -->
     <div id="success-screen" class="aw-success" hidden>
       <h2>✅ Website listed!</h2>
       <p class="aw-muted">Your website is now live on the marketplace.</p>
@@ -225,7 +176,7 @@
       </div>
       <div style="display:flex;gap:10px;justify-content:center;flex-wrap:wrap;margin-top:16px">
         <a class="aw-btn aw-btn-primary" id="success-view" href="#">View listing</a>
-        <a class="aw-btn aw-btn-ghost" id="success-store" href="store.html">Back to Store</a>
+        <a class="aw-btn aw-btn-ghost" href="store.html">Back to Store</a>
         <a class="aw-btn aw-btn-ghost" id="success-again" href="#">Sell another</a>
       </div>
     </div>
@@ -234,11 +185,11 @@
 
 <div id="aw-footer"></div>
 
-<!-- ============ SCRIPTS ============ -->
 <script src="../js/api.js"></script>
 <script src="../js/i18n.js"></script>
 <script src="../js/app.js"></script>
 <script src="../js/validation.js"></script>
+<script src="../js/password-toggle.js"></script>
 <script src="../js/auth.js"></script>
 <script src="../components/header.js"></script>
 <script src="../components/footer.js"></script>
@@ -250,28 +201,14 @@
 (function () {
   'use strict';
 
-  // ============================================================
-  // HELPERS
-  // ============================================================
   function $(id) { return document.getElementById(id); }
   function esc(s) {
     if (typeof window.esc === 'function') return window.esc(s);
-    return String(s == null ? '' : s)
-      .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
-      .replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+    return String(s == null ? '' : s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;');
   }
-  function fmtUZS(n) {
-    if (typeof window.fmtUZS === 'function') return window.fmtUZS(n);
-    return new Intl.NumberFormat('uz-UZ').format(Math.round(n || 0)) + " so'm";
-  }
-  function fmtUSD(n) {
-    if (typeof window.fmtUSD === 'function') return window.fmtUSD(n);
-    return '$' + Number(n || 0).toFixed(2);
-  }
-  function fmtAWC(n) {
-    if (typeof window.fmtAWC === 'function') return window.fmtAWC(n);
-    return Number(n || 0).toFixed(4).replace(/\.?0+$/, '') + ' AWC';
-  }
+  function fmtUZS(n) { return (window.fmtUZS || (x => new Intl.NumberFormat('uz-UZ').format(Math.round(x || 0)) + " so'm"))(n); }
+  function fmtUSD(n) { return (window.fmtUSD || (x => '$' + Number(x || 0).toFixed(2)))(n); }
+  function fmtAWC(n) { return (window.fmtAWC || (x => Number(x || 0).toFixed(4).replace(/\.?0+$/, '') + ' AWC'))(n); }
 
   function showError(fieldId, msg) {
     const input = $(fieldId);
@@ -286,7 +223,7 @@
     if (err) { err.textContent = ''; err.hidden = true; }
   }
   function clearAllErrors() {
-    ['f-name','f-domain','f-topic','f-description','f-price','f-saletype'].forEach(clearError);
+    ['f-name','f-domain','f-type','f-topic','f-description','f-price','f-saletype'].forEach(clearError);
     const formErr = $('form-error');
     if (formErr) formErr.hidden = true;
   }
@@ -294,74 +231,50 @@
     const el = $('form-error');
     if (el) { el.textContent = msg; el.hidden = false; }
   }
-
-  function descriptionLength(text) {
-    return String(text || '').replace(/\s/g, '').length;
-  }
-
+  function descriptionLength(t) { return String(t || '').replace(/\s/g, '').length; }
   function isValidDomain(domain) {
     if (!domain) return false;
-    const d = String(domain).trim().toLowerCase()
-      .replace(/^https?:\/\//, '')
-      .replace(/^www\./, '')
-      .replace(/\/.*$/, '');
+    const d = String(domain).trim().toLowerCase().replace(/^https?:\/\//, '').replace(/^www\./, '').replace(/\/.*$/, '');
     return /^([a-z0-9-]+\.)+[a-z]{2,}$/.test(d);
   }
 
-  // ============================================================
-  // STATE
-  // ============================================================
   let uploader = null;
   let submitting = false;
   let priceDebounce = null;
 
-  // ============================================================
-  // INIT
-  // ============================================================
+  function showStrikeWarning(strikes, remaining) {
+    const el = $('strike-warning');
+    if (!el) return;
+    el.className = 'aw-strike-warning show';
+    el.innerHTML = `⚠️ <b>Warning ${strikes}/3</b>. ${remaining} warning(s) remaining before 24-hour block.`;
+  }
+
   async function init() {
-    // Auth guard
-    if (typeof window.Auth === 'object' && typeof window.Auth.load === 'function') {
-      await window.Auth.load();
-    }
-    if (window.Auth && !window.Auth.isLoggedIn()) {
-      const next = encodeURIComponent('sell.html');
-      location.href = 'login.html?next=' + next;
+    if (window.Auth && typeof window.Auth.load === 'function') await window.Auth.load();
+    if (!window.Auth || !window.Auth.isLoggedIn()) {
+      location.href = 'login.html?next=' + encodeURIComponent('sell.html');
       return;
     }
+    if (window.Auth.isBanned && window.Auth.isBanned()) return;
 
-    // Kurslarni yuklash
-    try {
-      if (typeof window.loadRates === 'function') {
-        await window.loadRates();
-      }
-    } catch (_) {}
+    try { if (typeof window.loadRates === 'function') await window.loadRates(); } catch (_) {}
 
-    // Listing fee ni backenddan olish
     await loadFeeAndTopics();
 
-    // Uploader yaratish
     uploader = createUploader({
       containerId: 'image-uploader-container',
       accept: 'image/*',
       folder: 'websites',
-      maxSizeMB: 5,
-      onChange: (url) => {
-        clearError('f-image');
-      }
+      maxSizeMB: 5
     });
 
-    // Input handlers
     bindInputs();
     bindActions();
   }
 
-  // ============================================================
-  // LISTING FEE + TOPICS
-  // ============================================================
   async function loadFeeAndTopics() {
     let feeUZS = 10000;
     let topics = ['AI', 'Online Shop', '3D Game', 'Other'];
-
     try {
       const r = await API.request('/api/settings/public', { auth: false });
       if (r && r.success && r.data) {
@@ -370,147 +283,92 @@
       }
     } catch (_) {}
 
-    // Fee badge
     const feeBadge = $('fee-badge');
-    if (feeBadge) {
-      feeBadge.textContent = '💳 Listing fee: ' + fmtUZS(feeUZS);
-    }
+    if (feeBadge) feeBadge.textContent = '💳 Listing fee: ' + fmtUZS(feeUZS);
 
-    // Topics dropdown
     const topicSel = $('f-topic');
     if (topicSel) {
-      topicSel.innerHTML = '<option value="">— Select a topic —</option>' +
+      topicSel.innerHTML = '<option value="">— Select a theme —</option>' +
         topics.map(t => `<option value="${esc(t)}">${esc(t)}</option>`).join('');
     }
-
-    // Store fee for later
     window.__LISTING_FEE_UZS = feeUZS;
   }
 
-  // ============================================================
-  // INPUT HANDLERS
-  // ============================================================
   function bindInputs() {
-    // Name
     const nameEl = $('f-name');
-    if (nameEl) {
-      nameEl.addEventListener('input', () => {
-        const v = nameEl.value;
-        const count = $('name-count');
-        if (count) count.textContent = v.length + ' / 100';
-        clearError('f-name');
-      });
-    }
+    if (nameEl) nameEl.addEventListener('input', () => {
+      const count = $('name-count');
+      if (count) count.textContent = nameEl.value.length + ' / 100';
+      clearError('f-name');
+    });
 
-    // Domain
     const domainEl = $('f-domain');
     if (domainEl) {
       domainEl.addEventListener('input', () => clearError('f-domain'));
       domainEl.addEventListener('blur', () => {
         const v = domainEl.value.trim();
-        if (v && !isValidDomain(v)) {
-          showError('f-domain', 'Invalid domain. Example: mysite.com');
-        }
+        if (v && !isValidDomain(v)) showError('f-domain', 'Invalid domain.');
       });
     }
 
-    // Description
     const descEl = $('f-description');
-    if (descEl) {
-      descEl.addEventListener('input', () => {
-        const len = descriptionLength(descEl.value);
-        const count = $('desc-count');
-        if (count) {
-          count.textContent = len + ' / 200';
-          count.classList.toggle('over', len > 200);
-        }
-        clearError('f-description');
-      });
-    }
+    if (descEl) descEl.addEventListener('input', () => {
+      const len = descriptionLength(descEl.value);
+      const count = $('desc-count');
+      if (count) { count.textContent = len + ' / 200'; count.classList.toggle('over', len > 200); }
+      clearError('f-description');
+    });
 
-    // Topic
     const topicEl = $('f-topic');
     if (topicEl) topicEl.addEventListener('change', () => clearError('f-topic'));
 
-    // Price — live preview
-    const priceEl = $('f-price');
-    if (priceEl) {
-      priceEl.addEventListener('input', () => {
-        clearError('f-price');
-        clearTimeout(priceDebounce);
-        priceDebounce = setTimeout(updatePricePreview, 120);
-      });
-    }
+    const typeEl = $('f-type');
+    if (typeEl) typeEl.addEventListener('change', () => clearError('f-type'));
 
-    // Sale type — note toggle
+    const priceEl = $('f-price');
+    if (priceEl) priceEl.addEventListener('input', () => {
+      clearError('f-price');
+      clearTimeout(priceDebounce);
+      priceDebounce = setTimeout(updatePricePreview, 120);
+    });
+
     const saleEl = $('f-saletype');
-    if (saleEl) {
-      saleEl.addEventListener('change', () => {
-        const v = saleEl.value;
-        $('sale-note-safe').classList.toggle('show', v === 'safe');
-        $('sale-note-fast').classList.toggle('show', v === 'fast');
-      });
-    }
+    if (saleEl) saleEl.addEventListener('change', () => {
+      const v = saleEl.value;
+      $('sale-note-safe').classList.toggle('show', v === 'safe');
+      $('sale-note-fast').classList.toggle('show', v === 'fast');
+    });
   }
 
   function updatePricePreview() {
     const price = Number($('f-price').value) || 0;
     const usdRate = (window.RATES && window.RATES.usdRate) || 12650;
     const awcRate = (window.RATES && window.RATES.awcPriceUZS) || 10000;
-
     $('price-uzs').textContent = fmtUZS(price);
     $('price-usd').textContent = fmtUSD(price / usdRate);
     $('price-awc').textContent = fmtAWC(price / awcRate);
   }
 
-  // ============================================================
-  // ACTION BUTTONS
-  // ============================================================
   function bindActions() {
-    // Preview
-    const btnPreview = $('btn-preview');
-    if (btnPreview) {
-      btnPreview.addEventListener('click', () => {
-        const data = collectForm();
-        const errs = validate(data, false);
-        if (errs.length) {
-          toast('Fix form errors before preview.', 'warn');
-          return;
-        }
-        openPreviewModal(data);
-      });
-    }
-
-    // Cancel
-    const btnCancel = $('btn-cancel');
-    if (btnCancel) {
-      btnCancel.addEventListener('click', async () => {
-        const ok = await confirmModal('Cancel?', 'All form data will be lost.');
-        if (ok) location.href = 'store.html';
-      });
-    }
-
-    // Submit
-    const form = $('sell-form');
-    if (form) form.addEventListener('submit', onSubmit);
-
-    // Success screen buttons
-    const btnAgain = $('success-again');
-    if (btnAgain) {
-      btnAgain.addEventListener('click', (e) => {
-        e.preventDefault();
-        location.reload();
-      });
-    }
+    $('btn-preview').addEventListener('click', () => {
+      const data = collectForm();
+      const errs = validate(data, false);
+      if (errs.length) { toast('Fix form errors first.', 'warn'); return; }
+      openPreviewModal(data);
+    });
+    $('btn-cancel').addEventListener('click', async () => {
+      const ok = await confirmModal('Cancel?', 'All form data will be lost.');
+      if (ok) location.href = 'store.html';
+    });
+    $('sell-form').addEventListener('submit', onSubmit);
+    $('success-again').addEventListener('click', e => { e.preventDefault(); location.reload(); });
   }
 
-  // ============================================================
-  // FORM COLLECT
-  // ============================================================
   function collectForm() {
     return {
       name: ($('f-name').value || '').trim(),
       domain: ($('f-domain').value || '').trim(),
+      type: $('f-type').value || 'frontend',
       topic: ($('f-topic').value || '').trim(),
       description: ($('f-description').value || '').trim(),
       imageUrl: uploader ? uploader.getUrl() : '',
@@ -519,70 +377,51 @@
     };
   }
 
-  // ============================================================
-  // VALIDATE
-  // ============================================================
   function validate(data, showErrors) {
     const errors = [];
-
-    // Name
     if (!data.name || data.name.length < 3) {
       errors.push('name');
       if (showErrors) showError('f-name', 'Website name must be at least 3 characters.');
-    } else if (data.name.length > 100) {
-      errors.push('name');
-      if (showErrors) showError('f-name', 'Website name is too long (max 100).');
     }
-
-    // Domain
     if (!data.domain) {
       errors.push('domain');
       if (showErrors) showError('f-domain', 'Domain is required.');
     } else if (!isValidDomain(data.domain)) {
       errors.push('domain');
-      if (showErrors) showError('f-domain', 'Invalid domain. Example: mysite.com');
+      if (showErrors) showError('f-domain', 'Invalid domain.');
     }
-
-    // Topic
+    if (!['frontend','backend','fullstack'].includes(data.type)) {
+      errors.push('type');
+      if (showErrors) showError('f-type', 'Select a type.');
+    }
     if (!data.topic) {
       errors.push('topic');
-      if (showErrors) showError('f-topic', 'Please select a topic.');
+      if (showErrors) showError('f-topic', 'Select a theme.');
     }
-
-    // Description
     if (!data.description) {
       errors.push('description');
       if (showErrors) showError('f-description', 'Description is required.');
     } else if (descriptionLength(data.description) > 200) {
       errors.push('description');
-      if (showErrors) showError('f-description', 'Description exceeds 200 characters (spaces not counted).');
+      if (showErrors) showError('f-description', 'Description exceeds 200 chars.');
     }
-
-    // Price
     if (!data.price || data.price < 1000) {
       errors.push('price');
       if (showErrors) showError('f-price', 'Price must be at least 1,000 UZS.');
     }
-
     return errors;
   }
 
-  // ============================================================
-  // PREVIEW MODAL
-  // ============================================================
   function openPreviewModal(data) {
     const usdRate = (window.RATES && window.RATES.usdRate) || 12650;
     const awcRate = (window.RATES && window.RATES.awcPriceUZS) || 10000;
-    const priceUSD = data.price / usdRate;
-    const priceAWC = data.price / awcRate;
-
     const saleBadge = data.saleType === 'safe'
-      ? '<span class="aw-badge aw-badge-safe">Safe (escrow)</span>'
-      : '<span class="aw-badge aw-badge-fast">Fast (direct)</span>';
-
+      ? '<span class="aw-badge aw-badge-safe">Safe</span>'
+      : '<span class="aw-badge aw-badge-fast">Fast</span>';
+    const typeLabel = data.type === 'frontend' ? '🎨 Frontend'
+      : data.type === 'backend' ? '⚙️ Backend' : '🚀 Fullstack';
     const img = data.imageUrl
-      ? `<img src="${esc(data.imageUrl)}" class="aw-preview-img" alt="preview" onerror="this.style.display='none'"/>`
-      : '';
+      ? `<img src="${esc(data.imageUrl)}" class="aw-preview-img" onerror="this.style.display='none'"/>` : '';
 
     openModal({
       title: 'Preview listing',
@@ -591,23 +430,18 @@
           ${img}
           <h3>${esc(data.name)} ${saleBadge}</h3>
           <div class="aw-muted" style="font-size:13px">${esc(data.domain)}</div>
-          <div style="color:var(--primary);font-size:13px;margin:4px 0 8px">${esc(data.topic)}</div>
+          <div style="color:var(--primary);font-size:13px;margin:4px 0 8px">${esc(data.topic)} • ${typeLabel}</div>
           <p style="font-size:14px">${esc(data.description)}</p>
           <div style="margin-top:10px">
             <strong>${fmtUZS(data.price)}</strong>
-            <small class="aw-muted"> • ${fmtUSD(priceUSD)} • ${fmtAWC(priceAWC)}</small>
+            <small class="aw-muted"> • ${fmtUSD(data.price / usdRate)} • ${fmtAWC(data.price / awcRate)}</small>
           </div>
         </div>
       `,
-      actions: [
-        { label: 'Close', className: 'aw-btn-ghost', onClick: () => closeModal() }
-      ]
+      actions: [{ label: 'Close', className: 'aw-btn-ghost', onClick: () => closeModal() }]
     });
   }
 
-  // ============================================================
-  // SUBMIT
-  // ============================================================
   async function onSubmit(e) {
     e.preventDefault();
     if (submitting) return;
@@ -617,14 +451,10 @@
     const errors = validate(data, true);
     if (errors.length) {
       showFormError('Please fix the highlighted fields.');
-      // scroll to first error
       const first = $('f-' + errors[0]);
       if (first && first.scrollIntoView) first.scrollIntoView({ behavior: 'smooth', block: 'center' });
       return;
     }
-
-    // Listing fee tekshiruvi (agar foydalanuvchi balansi mavjud bo'lsa)
-    const fee = window.__LISTING_FEE_UZS || 10000;
 
     submitting = true;
     const btn = $('btn-submit');
@@ -634,29 +464,37 @@
     $('sell-form').classList.add('aw-loading-form');
 
     try {
-      const payload = {
-        name: data.name,
-        domain: data.domain,
-        topic: data.topic,
-        description: data.description,
-        imageUrl: data.imageUrl,
-        price: data.price,
-        saleType: data.saleType
-      };
-
-      const res = await API.createWebsite(payload);
+      const res = await API.createWebsite(data);
 
       if (res && res.success && res.data && res.data.website) {
         showSuccess(res.data.website);
+        return;
+      }
+
+      if (res && res.code === 'MODERATION_REJECTED') {
+        const strikes = (res.data && res.data.strikes) || 1;
+        const remaining = (res.data && res.data.remaining) || (3 - strikes);
+        showFormError(res.message);
+        showStrikeWarning(strikes, remaining);
+      } else if (res && (res.code === 'BLOCKED_TEMP' || res.code === 'ACCOUNT_BANNED')) {
+        // Auth overlay handles this
+        if (window.Auth) {
+          window.Auth.showBanScreen(
+            (res.data && res.data.reason) || null,
+            (res.data && res.data.blockedUntil) || null,
+            res.code === 'ACCOUNT_BANNED' ? 'permanent' : 'temporary'
+          );
+        }
       } else {
         showFormError((res && res.message) || 'Failed to create listing.');
-        if (btn) btn.disabled = false;
-        if (txt) txt.textContent = 'Sell';
-        $('sell-form').classList.remove('aw-loading-form');
       }
+
+      if (btn) btn.disabled = false;
+      if (txt) txt.textContent = 'Sell';
+      $('sell-form').classList.remove('aw-loading-form');
     } catch (err) {
       console.error('[sell]', err);
-      showFormError('Network error. Please try again.');
+      showFormError('Network error.');
       if (btn) btn.disabled = false;
       if (txt) txt.textContent = 'Sell';
       $('sell-form').classList.remove('aw-loading-form');
@@ -665,31 +503,18 @@
     }
   }
 
-  // ============================================================
-  // SUCCESS SCREEN
-  // ============================================================
   function showSuccess(website) {
     $('sell-form').hidden = true;
+    $('strike-warning').hidden = true;
     const successEl = $('success-screen');
     successEl.hidden = false;
-
     $('success-webid').textContent = website.webId || '—';
     $('success-orderid').textContent = website.orderId || '—';
-
-    const viewBtn = $('success-view');
-    if (viewBtn) {
-      viewBtn.href = 'website-detail.html?id=' + encodeURIComponent(website.webId || '');
-    }
-
-    // Scroll to top
+    $('success-view').href = 'website-detail.html?id=' + encodeURIComponent(website.webId || '');
     window.scrollTo({ top: 0, behavior: 'smooth' });
-
     toast('Website listed successfully!', 'success', 5000);
   }
 
-  // ============================================================
-  // START
-  // ============================================================
   if (document.readyState === 'loading') {
     document.addEventListener('DOMContentLoaded', init);
   } else {

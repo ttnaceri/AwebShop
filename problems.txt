@@ -1,14 +1,65 @@
-- add pages for edit / add / delete Webhooks
-- you added url for web site`s image also add File Uploader.
-- add create account button to "admin/users.html" also SuperAdmin can edit creating account`s Id.
-- the admin/admins.html, admin/refunds.html, admin/domains.html, admin/stock.html, admin/chat.html, admin/attachements.html, admin/invoice.html.
-- remake admin/premium.html, admin/todo.html.
-- make admin/cards.html `s add card pop-up.
-- the web site can send notifications without admin.
-- remake admin panel`s design.
-- add forbidden telegram ids page for admin typed ids can not register with there ids.
-- add file uploader for badges for upload badge`s image.
-- make one file for all section`s text`s translate.
+add selector for select web site`s type options: frontend and backend.
+connect all objects to backend.json (but without personal datas!) website`s themes,
+remake frontend/css/admin.css.
+add page for fill admin type card for purchasing AWC or Subscribe.
+add visible and unvisible mode to login page`s password input.
+add Id type input to create new account page in admin panel
+add Purchase panel to admin panel for users pruchasing Subscribe / AWC / Another Payment.
+add requirer for selling web sites ( I think this System already added, i was admin )
+add subdomained system for seach input. (I think you dont understanded 100%)
+If user turn to use forbidden web sites give 3 chance and warn him. If user reached a 3 chance? Block Him to 1 day.
+Add telegram message page to admin panel for write to users or changed users send message.
+edit new badge page for add badge, admins can add new badge with upload image.
+add user logs page to admin panel
+add refund page to admin panel
+add help page for anonymus and entered with telegram user.
+I have question for you: Where can i put nav bar / tab bar buttons?
+A. Nav Buttons only for desktops also Tab Bar for Mobiles.
+B. Nav Buttons for Mobile and desktops.
+C. tab bar buttons for Mobiled and desktops.
 
+add there messages for telegram:
 
-- add frontend / backend <option>s to selling, filter pages,
+(If user Purchase web site.) {
+    Hello Dear (username).
+    You are Purchased New Web Site.
+    If you need [help]. we are ready to help you.
+    by: UPDATE Inc.
+}
+(If user put web site to web shop. ) {
+    Hello Dear (username)
+    You Are Selling Web site.
+    Thank You For Support us!
+    if you need [help]. We are ready to help you.
+    by: UPDATE Inc.
+}
+(If user filled balance) {
+    You Are Filled Your Balance!
+    Thank You For Puchasing!
+    Your balance: [balance]
+    if you need [help]. We Are Ready To Help You.
+    by: UPDATE Inc.
+}
+(If user sended AWC to Other user.) {
+    You Are Sending Your [amount] AWC to [id]
+    Are You Sure? tap to VERIFY button.
+    If you want cancel? tap to CANCEL button.
+} (VERIFY and CANCEL buttons)
+(If user refund) {
+    You Are Turning To Refund Your Moneys.
+    We Will Return Your Moneys: 80%
+    Are You Sure? type Your Card`s info in this form:
+    1234 5678 8765 4321
+    MR. CARDHOLDER
+    or
+    If You Want Cancel? tap to CANCEL button.
+} (Wait For Cancel Button or Card Button if user send card info, send the card info to admin panel. )
+(If user selled AWC) {
+    You Are Selling Your AWC`s.
+    Send to bot Your selling AWC`s amount.
+    Your Balance: [balance]
+    If You Want Cancel? tap to CANCEL button.
+} (Wait For Send Amount Or Cancel Command also if user send a amount? withdraw amount of AWC`s.)
+
+[help] - this is linked text and open special anonymus help page.
+[balance] - user`s new or real time balance.

@@ -18,11 +18,12 @@
     <p id="admin-subtitle" class="admin-sub"></p>
 
     <div class="admin-toolbar">
-      <button class="aw-btn aw-btn-primary" id="u-create">+ <span data-i18n="createUser">Create user</span></button>
+      <button class="aw-btn aw-btn-primary" id="u-create">+ Create user</button>
       <input id="u-search" placeholder="Search by nickname, ID, telegram…"/>
       <select id="u-filter">
         <option value="">All</option>
         <option value="blocked">Blocked</option>
+        <option value="banned">Banned</option>
         <option value="verified">Verified</option>
         <option value="unverified">Unverified</option>
       </select>
@@ -45,20 +46,29 @@
 (async () => {
   await loadRates();
   if (!(await Admin.requireAdmin())) return;
-  adminPage(I18N.t('users'), 'Manage platform accounts');
+  adminPage('Users', 'Manage platform accounts');
 
   let all = [];
   const host = document.getElementById('users-host');
-
-  // SuperAdmin tekshiruvi
   const isSuperAdmin = Admin.role === 'super_admin';
 
   async function load() {
-    host.innerHTML = `<div class="admin-loading">${I18N.t('loading')}</div>`;
+    host.innerHTML = '<div class="admin-loading">Loading…</div>';
     const r = await API.adminGet('users');
-    if (!r.success) { host.innerHTML = `<div class="admin-empty">${I18N.t('failedToLoad')}</div>`; return; }
+    if (!r.success) { host.innerHTML = '<div class="admin-empty">Failed.</div>'; return; }
     all = r.data.items;
     render();
+  }
+
+  function userStatus(u) {
+    if (u.banned) return statusPill('banned');
+    if (u.blocked && u.blockedUntil) {
+      const until = new Date(u.blockedUntil).getTime();
+      if (until > Date.now()) return statusPill('blocked');
+      return statusPill('active');
+    }
+    if (u.blocked) return statusPill('blocked');
+    return statusPill('active');
   }
 
   function render() {
@@ -71,30 +81,36 @@
       (u.telegramUsername || '').toLowerCase().includes(q) ||
       (u.telegramId || '').includes(q)
     );
-    if (f === 'blocked') list = list.filter(u => u.blocked);
+    if (f === 'blocked') list = list.filter(u => u.blocked && !u.banned);
+    if (f === 'banned') list = list.filter(u => u.banned);
     if (f === 'verified') list = list.filter(u => u.verified);
     if (f === 'unverified') list = list.filter(u => !u.verified);
 
     renderTable(host,
       [
-        { label: I18N.t('userId'), render: r => `<code>${esc(r.id)}</code>` },
-        { label: I18N.t('nickname'), render: r => esc(r.nickname) },
+        { label: 'ID', render: r => `<code>${esc(r.id)}</code>` },
+        { label: 'Nickname', render: r => esc(r.nickname) },
         { label: 'Telegram', render: r => `${esc(r.telegramUsername || '')}<br><small>${esc(r.telegramId || '')}</small>` },
-        { label: I18N.t('phone'), render: r => esc(r.phone || '—') },
         { label: 'AWC', render: r => fmtAWC(r.balanceAWC) },
-        { label: I18N.t('status'), render: r => r.blocked ? statusPill('blocked') : statusPill('active') },
-        { label: I18N.t('created'), render: r => fmtDateShort(r.createdAt) },
-        { label: I18N.t('actions'), render: r => `
+        { label: 'Strikes', render: r => {
+          const c = (r.moderationStrikes && r.moderationStrikes.count) || 0;
+          return c > 0 ? `<span class="admin-pill admin-pill-warn">${c}/3</span>` : '0/3';
+        }},
+        { label: 'Status', render: r => userStatus(r) },
+        { label: 'Joined', render: r => fmtDateShort(r.createdAt) },
+        { label: 'Actions', render: r => `
           <div class="admin-actions">
-            <button class="admin-btn-sm" data-act="view" data-id="${esc(r.id)}">${I18N.t('view')}</button>
-            ${r.blocked
-              ? `<button class="admin-btn-sm ok" data-act="unblock" data-id="${esc(r.id)}">${I18N.t('unblock')}</button>`
-              : `<button class="admin-btn-sm bad" data-act="block" data-id="${esc(r.id)}">${I18N.t('block')}</button>`}
+            <button class="admin-btn-sm" data-act="view" data-id="${esc(r.id)}">View</button>
+            ${r.banned
+              ? `<button class="admin-btn-sm ok" data-act="unban" data-id="${esc(r.id)}">Unban</button>`
+              : r.blocked
+                ? `<button class="admin-btn-sm ok" data-act="unban" data-id="${esc(r.id)}">Unblock</button>`
+                : `<button class="admin-btn-sm bad" data-act="ban" data-id="${esc(r.id)}">Ban</button>`}
           </div>
         ` }
       ],
       list,
-      { emptyText: I18N.t('noResults') }
+      { emptyText: 'No users.' }
     );
 
     host.querySelectorAll('button[data-act]').forEach(b => {
@@ -102,27 +118,24 @@
         const id = b.dataset.id;
         const act = b.dataset.act;
         if (act === 'view') return viewUser(id);
-        if (act === 'block') return blockUser(id, true);
-        if (act === 'unblock') return blockUser(id, false);
+        if (act === 'ban') return banUser(id);
+        if (act === 'unban') return unbanUser(id);
       });
     });
   }
 
-  // ---------- Create User ----------
+  // ---- Create user ----
   document.getElementById('u-create').addEventListener('click', () => {
-    if (!isSuperAdmin) {
-      toast('Only Super Admin can create users.', 'error');
-      return;
-    }
+    if (!isSuperAdmin) { toast('Only SuperAdmin can create users.', 'error'); return; }
     openModal({
-      title: I18N.t('createUser'),
+      title: 'Create user',
       body: `
         <div class="aw-form">
-          <label><span>${I18N.t('nickname')}</span><input id="cu-nick" autocomplete="off"/></label>
-          <label><span>${I18N.t('password')}</span><input id="cu-pass" type="password" autocomplete="new-password"/></label>
-          <label><span>${I18N.t('phone')}</span><input id="cu-phone"/></label>
-          <label><span>${I18N.t('telegramUsername')}</span><input id="cu-tgu" placeholder="@username"/></label>
-          <label><span>${I18N.t('telegramId')}</span><input id="cu-tgi"/></label>
+          <label><span>Nickname</span><input id="cu-nick"/></label>
+          <label><span>Password</span><input id="cu-pass" type="password"/></label>
+          <label><span>Phone</span><input id="cu-phone"/></label>
+          <label><span>Telegram username</span><input id="cu-tgu" placeholder="@username"/></label>
+          <label><span>Telegram ID</span><input id="cu-tgi"/></label>
           <label><span>Role</span>
             <select id="cu-role">
               <option value="user">User</option>
@@ -131,16 +144,16 @@
             </select>
           </label>
           <label>
-            <span>${I18N.t('userIdCustom')}</span>
-            <input id="cu-id" placeholder="9-digit or leave empty" maxlength="20"/>
+            <span>Custom User ID (SuperAdmin only)</span>
+            <input id="cu-id" placeholder="e.g. 123456789" maxlength="20"/>
             <small class="aw-muted">If empty, a 9-digit ID is auto-generated.</small>
           </label>
           <div class="aw-form-error" id="cu-err" hidden></div>
         </div>
       `,
       actions: [
-        { label: I18N.t('cancel'), className: 'aw-btn-ghost', onClick: () => closeModal() },
-        { label: I18N.t('create'), className: 'aw-btn-primary', onClick: async () => {
+        { label: 'Cancel', className: 'aw-btn-ghost', onClick: () => closeModal() },
+        { label: 'Create', className: 'aw-btn-primary', onClick: async () => {
           const payload = {
             nickname: document.getElementById('cu-nick').value.trim(),
             password: document.getElementById('cu-pass').value,
@@ -150,52 +163,86 @@
             role: document.getElementById('cu-role').value,
             customId: document.getElementById('cu-id').value.trim() || null
           };
-          if (!payload.nickname || !payload.password) {
+          if (!payload.nickname || payload.password.length < 8) {
             const e = document.getElementById('cu-err');
-            e.textContent = 'Nickname and password required.'; e.hidden = false; return;
-          }
-          if (payload.password.length < 8) {
-            const e = document.getElementById('cu-err');
-            e.textContent = 'Password must be at least 8 characters.'; e.hidden = false; return;
+            e.textContent = 'Nickname required. Password min 8 chars.'; e.hidden = false; return;
           }
           const r = await API.adminPost('users/create', payload);
-          if (r.success) { toast(I18N.t('savedSuccess'), 'success'); closeModal(); load(); }
-          else {
-            const e = document.getElementById('cu-err');
-            e.textContent = r.message || 'Failed'; e.hidden = false;
-          }
+          if (r.success) { toast('User created.', 'success'); closeModal(); load(); }
+          else { const e = document.getElementById('cu-err'); e.textContent = r.message; e.hidden = false; }
         }}
       ]
     });
   });
 
+  // ---- View ----
   function viewUser(id) {
     const u = all.find(x => x.id === id);
     if (!u) return;
+    const strikes = (u.moderationStrikes && u.moderationStrikes.count) || 0;
     openModal({
       title: u.nickname,
       body: `
         <div class="admin-kv">
-          <div><span>${I18N.t('userId')}</span><code>${esc(u.id)}</code></div>
-          <div><span>${I18N.t('nickname')}</span>${esc(u.nickname)}</div>
+          <div><span>User ID</span><code>${esc(u.id)}</code></div>
+          <div><span>Nickname</span>${esc(u.nickname)}</div>
           <div><span>Telegram</span>${esc(u.telegramUsername || '—')}</div>
           <div><span>Telegram ID</span>${esc(u.telegramId || '—')}</div>
-          <div><span>${I18N.t('phone')}</span>${esc(u.phone || '—')}</div>
+          <div><span>Phone</span>${esc(u.phone || '—')}</div>
           <div><span>AWC</span>${fmtAWC(u.balanceAWC)}</div>
           <div><span>Role</span>${esc(u.role || 'user')}</div>
           <div><span>Verified</span>${u.verified ? 'Yes' : 'No'}</div>
-          <div><span>${I18N.t('created')}</span>${fmtDateShort(u.createdAt)}</div>
+          <div><span>Strikes</span>${strikes}/3</div>
+          <div><span>Status</span>${userStatus(u)}</div>
+          <div><span>Banned</span>${u.banned ? 'Yes (' + (u.banReason || 'no reason') + ')' : 'No'}</div>
+          <div><span>Joined</span>${fmtDateShort(u.createdAt)}</div>
         </div>
       `,
-      actions: [{ label: I18N.t('close'), className: 'aw-btn-ghost', onClick: () => closeModal() }]
+      actions: [{ label: 'Close', className: 'aw-btn-ghost', onClick: () => closeModal() }]
     });
   }
 
-  async function blockUser(id, blocked) {
-    const ok = await confirmModal(blocked ? I18N.t('block') : I18N.t('unblock'), 'Proceed?');
+  // ---- Ban ----
+  async function banUser(id) {
+    openModal({
+      title: 'Ban user',
+      body: `
+        <div class="aw-form">
+          <label><span>Reason</span><input id="ban-reason" placeholder="Optional"/></label>
+          <label><span>Duration</span>
+            <select id="ban-duration">
+              <option value="1h">1 hour</option>
+              <option value="1d" selected>1 day</option>
+              <option value="1w">1 week</option>
+              <option value="1y">1 year</option>
+              <option value="">Permanent</option>
+            </select>
+          </label>
+          <div class="aw-form-error" id="ban-err" hidden></div>
+        </div>
+      `,
+      actions: [
+        { label: 'Cancel', className: 'aw-btn-ghost', onClick: () => closeModal() },
+        { label: 'Ban', className: 'aw-btn-danger', onClick: async () => {
+          const reason = document.getElementById('ban-reason').value;
+          const duration = document.getElementById('ban-duration').value;
+          const r = await API.adminPost('users/ban-duration', { userId: id, duration, reason });
+          if (r.success) {
+            toast(r.data.message || 'Banned.', 'success');
+            closeModal();
+            load();
+          } else { const e = document.getElementById('ban-err'); e.textContent = r.message; e.hidden = false; }
+        }}
+      ]
+    });
+  }
+
+  // ---- Unban ----
+  async function unbanUser(id) {
+    const ok = await confirmModal('Unban user?', 'This will restore access.');
     if (!ok) return;
-    const r = await API.adminBlockUser(id, blocked);
-    if (r.success) { toast(I18N.t('savedSuccess'), 'success'); load(); }
+    const r = await API.adminPost('users/unban', { userId: id });
+    if (r.success) { toast('Unbanned.', 'success'); load(); }
     else toast(r.message, 'error');
   }
 

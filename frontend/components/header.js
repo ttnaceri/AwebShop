@@ -1,20 +1,9 @@
 // frontend/components/header.js
-// Header har bir sahifaga avtomatik joylanadi.
-// Foydalanish:
-//   <div id="aw-header"></div>
-//   <script src="../components/header.js"></script>
-//
-// Yuklash tartibi:
-//   js/api.js → js/app.js → js/auth.js → components/header.js
-//
-// Font Awesome 6 ikonkalari cdnjs dan avtomatik ulanadi.
+// Nav bar (desktop) + Tab bar (mobile) + Font Awesome.
 
 (function () {
   'use strict';
 
-  // ============================================================
-  // Font Awesome CDN ni bir marta yuklash
-  // ============================================================
   const FA_CDN_ID = 'awebshop-fontawesome';
   function ensureFontAwesome() {
     if (document.getElementById(FA_CDN_ID)) return;
@@ -27,73 +16,59 @@
     document.head.appendChild(link);
   }
 
-  // ============================================================
-  // Lazy wrappers
-  // ============================================================
+  // ---- Helpers ----
   function safeEsc(s) {
     if (typeof window.esc === 'function') return window.esc(s);
     return String(s == null ? '' : s)
-      .replace(/&/g, '&amp;')
-      .replace(/</g, '&lt;')
-      .replace(/>/g, '&gt;')
-      .replace(/"/g, '&quot;')
-      .replace(/'/g, '&#39;');
+      .replace(/&/g, '&amp;').replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#39;');
   }
-
-  function safeT(key) {
-    if (typeof window.t === 'function') return window.t(key);
-    return key;
+  function safeT(k) {
+    if (window.I18N && typeof window.I18N.t === 'function') return window.I18N.t(k);
+    if (typeof window.t === 'function') return window.t(k);
+    return k;
   }
-
   function safeFmtAWC(n) {
     if (typeof window.fmtAWC === 'function') return window.fmtAWC(n);
     return Number(n || 0).toFixed(4).replace(/\.?0+$/, '') + ' AWC';
   }
-
   function safeSetLang(lang) {
+    if (window.I18N && typeof window.I18N.setLang === 'function') return window.I18N.setLang(lang);
     if (typeof window.setLang === 'function') return window.setLang(lang);
     localStorage.setItem('aw_lang', lang);
     location.reload();
   }
-
   function getAuth() {
     return (typeof window.Auth === 'object' && window.Auth !== null) ? window.Auth : null;
   }
-
-  // ============================================================
-  // Theme: holatni o'qish va qo'llash
-  // ============================================================
-  function getTheme() {
-    return localStorage.getItem('aw_theme') || 'dark';
-  }
-
+  function getTheme() { return localStorage.getItem('aw_theme') || 'dark'; }
   function setTheme(theme) {
     localStorage.setItem('aw_theme', theme);
-    // body/html ga klass qo'llash (app.js bilan bir xil mantiq)
     const isDark = theme === 'dark';
     document.documentElement.classList.toggle('dark', isDark);
     document.documentElement.classList.toggle('light', !isDark);
   }
-
-  /**
-   * Theme'ga mos ikonka klassini qaytaradi.
-   * Dark mode'da  → quyosh (light'ga o'tkazish uchun)
-   * Light mode'da → oy (dark'ga o'tkazish uchun)
-   */
   function themeIconClass(theme) {
     return theme === 'light' ? 'fa-moon' : 'fa-sun';
   }
-
-  /**
-   * Theme'ga mos tooltip matnini qaytaradi.
-   */
   function themeTitleText(theme) {
     return theme === 'light' ? 'Switch to dark mode' : 'Switch to light mode';
   }
 
-  // ============================================================
-  // Header render
-  // ============================================================
+  function currentPage() {
+    const p = location.pathname.split('/').pop() || 'main.html';
+    return p.toLowerCase();
+  }
+  function isActive(href) {
+    return currentPage() === href.toLowerCase();
+  }
+
+  function doSearch(query) {
+    const q = String(query || '').trim();
+    if (!q) return;
+    location.href = '/search/' + encodeURIComponent(q);
+  }
+
   async function renderHeader() {
     const host = document.getElementById('aw-header');
     if (!host) return;
@@ -102,40 +77,50 @@
 
     const Auth = getAuth();
     if (Auth && typeof Auth.load === 'function') {
-      try {
-        await Auth.load();
-      } catch (e) {
-        console.warn('[header] Auth.load failed:', e && e.message);
-      }
+      try { await Auth.load(); } catch (e) { console.warn('[header]', e.message); }
     }
 
     const lang = localStorage.getItem('aw_lang') || 'en';
     const theme = getTheme();
     const user = Auth ? Auth.user : null;
-
-    // Dark mode'da → quyosh, Light mode'da → oy
     const themeIcon = themeIconClass(theme);
     const themeTitle = themeTitleText(theme);
+    const loggedIn = !!user;
+
+    const navLinks = [
+      { href: 'main.html',    label: safeT('home'),    icon: 'fa-house' },
+      { href: 'store.html',   label: safeT('store'),   icon: 'fa-store' },
+      { href: 'sell.html',    label: safeT('sell'),    icon: 'fa-tag' },
+      { href: 'wallet.html',  label: safeT('wallet'),  icon: 'fa-wallet' },
+      { href: 'profile.html', label: safeT('profile'), icon: 'fa-user' }
+    ];
 
     host.innerHTML = `
-      <header class="aw-header">
-        <div class="aw-header-inner">
-          <a class="aw-brand" href="main.html">
+      <!-- ============ DESKTOP NAV BAR ============ -->
+      <header class="aw-navbar">
+        <div class="aw-navbar-inner">
+          <a class="aw-navbar-brand" href="main.html">
             <img src="../assets/image/logo.png" alt="AWebShop" onerror="this.style.display='none'"/>
             <span>AWebShop</span>
           </a>
 
-          <nav class="aw-nav">
-            <a href="main.html">${safeEsc(safeT('home'))}</a>
-            <a href="store.html">${safeEsc(safeT('store'))}</a>
-            <a href="sell.html">${safeEsc(safeT('sell'))}</a>
-            <a href="wallet.html">${safeEsc(safeT('wallet'))}</a>
-            <a href="about.html">${safeEsc(safeT('about'))}</a>
+          <nav class="aw-navbar-links">
+            ${navLinks.map(l => `
+              <a href="${l.href}" class="${isActive(l.href) ? 'active' : ''}">
+                <i class="fa-solid ${l.icon}"></i> ${safeEsc(l.label)}
+              </a>
+            `).join('')}
           </nav>
 
-          <div class="aw-header-actions">
-            <button class="aw-icon-btn" id="aw-theme-btn" title="${safeEsc(themeTitle)}" aria-label="Toggle theme">
-              <i class="fa-solid ${themeIcon}" id="aw-theme-icon" aria-hidden="true"></i>
+          <div class="aw-navbar-search">
+            <input type="text" id="aw-global-search"
+                   placeholder="Search websites…"
+                   autocomplete="off"/>
+          </div>
+
+          <div class="aw-navbar-right">
+            <button class="aw-icon-btn" id="aw-theme-btn" title="${safeEsc(themeTitle)}" aria-label="Theme">
+              <i class="fa-solid ${themeIcon}" id="aw-theme-icon"></i>
             </button>
 
             <select id="aw-lang" class="aw-lang-select" aria-label="Language">
@@ -143,80 +128,76 @@
               <option value="uz" ${lang === 'uz' ? 'selected' : ''}>UZ</option>
             </select>
 
-            ${user ? `
+            ${loggedIn ? `
               <a class="aw-user-chip" href="profile.html">
                 <span class="aw-avatar">${safeEsc((user.nickname || '?')[0].toUpperCase())}</span>
                 <span class="aw-user-name">${safeEsc(user.nickname)}</span>
                 <span class="aw-balance-mini">${safeEsc(safeFmtAWC(user.balanceAWC))}</span>
               </a>
               <button class="aw-icon-btn" id="aw-logout-btn" title="${safeEsc(safeT('logout'))}" aria-label="Logout">
-                <i class="fa-solid fa-right-from-bracket" aria-hidden="true"></i>
+                <i class="fa-solid fa-right-from-bracket"></i>
               </button>
             ` : `
               <a class="aw-btn aw-btn-ghost" href="login.html">${safeEsc(safeT('login'))}</a>
               <a class="aw-btn" href="register.html">${safeEsc(safeT('register'))}</a>
             `}
-
-            <button class="aw-burger" id="aw-burger-btn" aria-label="Menu">
-              <i class="fa-solid fa-bars" aria-hidden="true"></i>
-            </button>
           </div>
         </div>
-
-        <div class="aw-mobile-nav" id="aw-mobile-nav">
-          <a href="main.html"><i class="fa-solid fa-house" aria-hidden="true"></i> ${safeEsc(safeT('home'))}</a>
-          <a href="store.html"><i class="fa-solid fa-store" aria-hidden="true"></i> ${safeEsc(safeT('store'))}</a>
-          <a href="sell.html"><i class="fa-solid fa-tag" aria-hidden="true"></i> ${safeEsc(safeT('sell'))}</a>
-          <a href="wallet.html"><i class="fa-solid fa-wallet" aria-hidden="true"></i> ${safeEsc(safeT('wallet'))}</a>
-          <a href="profile.html"><i class="fa-solid fa-user" aria-hidden="true"></i> ${safeEsc(safeT('profile'))}</a>
-          <a href="about.html"><i class="fa-solid fa-circle-info" aria-hidden="true"></i> ${safeEsc(safeT('about'))}</a>
-        </div>
       </header>
+
+      <!-- ============ MOBILE TAB BAR ============ -->
+      <nav class="aw-tabbar">
+        <a href="main.html" class="${isActive('main.html') ? 'active' : ''}">
+          <i class="fa-solid fa-house"></i>
+          <span>${safeEsc(safeT('home'))}</span>
+        </a>
+        <a href="store.html" class="${isActive('store.html') ? 'active' : ''}">
+          <i class="fa-solid fa-store"></i>
+          <span>${safeEsc(safeT('store'))}</span>
+        </a>
+        <a href="sell.html" class="aw-tabbar-center ${isActive('sell.html') ? 'active' : ''}">
+          <i class="fa-solid fa-plus"></i>
+          <span>${safeEsc(safeT('sell'))}</span>
+        </a>
+        <a href="wallet.html" class="${isActive('wallet.html') ? 'active' : ''}">
+          <i class="fa-solid fa-wallet"></i>
+          <span>${safeEsc(safeT('wallet'))}</span>
+        </a>
+        <a href="profile.html" class="${isActive('profile.html') ? 'active' : ''}">
+          <i class="fa-solid fa-user"></i>
+          <span>${safeEsc(safeT('profile'))}</span>
+        </a>
+      </nav>
     `;
 
-    // ---- Theme toggle (ikonkani DARHOL almashtiradi) ----
+    // ---- Events ----
     const themeBtn = document.getElementById('aw-theme-btn');
     if (themeBtn) {
       themeBtn.addEventListener('click', () => {
-        const current = getTheme();
-        const next = current === 'dark' ? 'light' : 'dark';
+        const next = getTheme() === 'dark' ? 'light' : 'dark';
         setTheme(next);
-
-        // Ikonkani yangilash
-        const iconEl = document.getElementById('aw-theme-icon');
-        if (iconEl) {
-          iconEl.className = 'fa-solid ' + themeIconClass(next);
-        }
-        // Tooltip ni yangilash
+        const icon = document.getElementById('aw-theme-icon');
+        if (icon) icon.className = 'fa-solid ' + themeIconClass(next);
         themeBtn.title = themeTitleText(next);
       });
     }
 
-    // ---- Language ----
     const langSel = document.getElementById('aw-lang');
     if (langSel) langSel.addEventListener('change', e => safeSetLang(e.target.value));
 
-    // ---- Burger ----
-    const burger = document.getElementById('aw-burger-btn');
-    if (burger) {
-      burger.addEventListener('click', () => {
-        const nav = document.getElementById('aw-mobile-nav');
-        if (nav) nav.classList.toggle('open');
-      });
-    }
-
-    // ---- Logout ----
     const logoutBtn = document.getElementById('aw-logout-btn');
-    if (logoutBtn) {
-      logoutBtn.addEventListener('click', () => {
-        if (Auth && typeof Auth.logout === 'function') Auth.logout();
+    if (logoutBtn) logoutBtn.addEventListener('click', () => {
+      if (Auth && typeof Auth.logout === 'function') Auth.logout();
+    });
+
+    const searchInput = document.getElementById('aw-global-search');
+    if (searchInput) {
+      searchInput.addEventListener('keydown', e => {
+        if (e.key === 'Enter') doSearch(searchInput.value);
       });
     }
   }
 
-  // ============================================================
-  // Ishga tushirish
-  // ============================================================
   if (document.readyState === 'loading') {
     document.addEventListener('DOMContentLoaded', renderHeader);
   } else {

@@ -17,7 +17,6 @@ try {
   config = require('../config');
 } catch (e) {
   console.warn('⚠  config.js topilmadi. Default sozlamalar ishlatiladi.');
-  console.warn('   → cp config.example.js config.js  va to\'ldiring.');
   config = {};
 }
 
@@ -39,7 +38,7 @@ config.server.host = HOST;
 config.server.baseUrl = config.server.baseUrl || `http://localhost:${PORT}`;
 
 // ============================================================
-// MODULES — safeRequire bilan
+// MODULES
 // ============================================================
 function safeRequire(modPath, label) {
   try {
@@ -48,7 +47,7 @@ function safeRequire(modPath, label) {
     console.error(`❌ Modul yuklanmadi: ${label || modPath}`);
     console.error(`   Sabab: ${e.message}`);
     if (e.code === 'ERR_REQUIRE_ASYNC_MODULE') {
-      console.error(`   → ${modPath} da top-level await bor. Uni funksiya ichiga ko'chiring.`);
+      console.error(`   → ${modPath} da top-level await bor.`);
     }
     throw e;
   }
@@ -67,26 +66,23 @@ const tokenApi    = safeRequire('./api/token', 'api/token.js');
 const adminApi    = safeRequire('./api/admin', 'api/admin.js');
 const premiumApi  = safeRequire('./api/premium', 'api/premium.js');
 
-// Yangi modullar (mavjud bo'lmasa, null bo'ladi)
+// Optional modullar
 let uploadApi = null;
-try { uploadApi = require('./api/upload'); } catch (_) { console.warn('ℹ  api/upload.js yo\'q — /api/upload o\'chirilgan'); }
+try { uploadApi = require('./api/upload'); } catch (_) { console.warn('ℹ  api/upload.js yo\'q'); }
 
 let settingsApi = null;
-try { settingsApi = require('./api/settings'); } catch (_) { console.warn('ℹ  api/settings.js yo\'q — /api/settings/public o\'chirilgan'); }
+try { settingsApi = require('./api/settings'); } catch (_) { console.warn('ℹ  api/settings.js yo\'q'); }
 
 let webhooksApi = null;
-try { webhooksApi = require('./api/webhooks'); } catch (_) { console.warn('ℹ  api/webhooks.js yo\'q — /api/admin/webhooks o\'chirilgan'); }
+try { webhooksApi = require('./api/webhooks'); } catch (_) { console.warn('ℹ  api/webhooks.js yo\'q'); }
 
 let eventsApi = null;
-try { eventsApi = require('./api/events'); } catch (_) { console.warn('ℹ  api/events.js yo\'q — /api/events o\'chirilgan'); }
-
-let forbiddenTgApi = null;
-try { forbiddenTgApi = require('./api/forbidden-telegram'); } catch (_) { /* optional */ }
+try { eventsApi = require('./api/events'); } catch (_) { console.warn('ℹ  api/events.js yo\'q'); }
 
 const ROOT = path.resolve(__dirname, '..');
 
 // ============================================================
-// CORS — localhost, 127.0.0.1, Vercel, GitHub Pages
+// CORS
 // ============================================================
 const EXPLICIT_ORIGINS = new Set([
   'https://ttnaceri.github.io',
@@ -184,7 +180,13 @@ function serveStatic(req, res, pathname) {
     return res.end();
   }
 
-  // Root → index.html
+  // ---------- /search/:query → store.html ----------
+  if (pathname.startsWith('/search/') && pathname.length > 8) {
+    const storeHtml = path.join(ROOT, 'frontend', 'pages', 'store.html');
+    if (fs.existsSync(storeHtml)) return streamFile(req, res, storeHtml);
+  }
+
+  // Root
   if (pathname === '/' || pathname === '') {
     const rootIndex = path.join(ROOT, 'index.html');
     if (fs.existsSync(rootIndex)) return streamFile(req, res, rootIndex);
@@ -196,12 +198,10 @@ function serveStatic(req, res, pathname) {
     return notFound(req, res);
   }
 
-  // Decode
   let decoded;
   try { decoded = decodeURIComponent(pathname); }
   catch { return notFound(req, res); }
 
-  // Path traversal himoyasi
   const filePath = path.resolve(path.join(ROOT, decoded));
   if (!filePath.startsWith(ROOT + path.sep) && filePath !== ROOT) {
     return notFound(req, res);
@@ -209,7 +209,6 @@ function serveStatic(req, res, pathname) {
 
   fs.stat(filePath, (err, stat) => {
     if (err) return notFound(req, res);
-
     if (stat.isDirectory()) {
       const idx = path.join(filePath, 'index.html');
       if (fs.existsSync(idx)) return streamFile(req, res, idx);
@@ -235,7 +234,6 @@ const server = http.createServer(async (req, res) => {
   const pathname = parsed.pathname || '/';
   const query = parsed.query || {};
 
-  // Security headers
   try { securityHeaders(req, res, () => {}); } catch (_) {}
 
   // CORS preflight
@@ -244,7 +242,7 @@ const server = http.createServer(async (req, res) => {
     return res.end();
   }
 
-  // Static (API emas)
+  // Static files
   if (!pathname.startsWith('/api/')) {
     return serveStatic(req, res, pathname);
   }
@@ -282,9 +280,11 @@ const server = http.createServer(async (req, res) => {
   catch (_) { passed = true; }
   if (!passed) return;
 
-  // ==================== API ROUTES ====================
+  // ============================================================
+  // API ROUTES
+  // ============================================================
   try {
-    // ---------- AUTH ----------
+    // ==================== AUTH ====================
     if (pathname === '/api/auth/request-verification' && req.method === 'POST') return await authApi.requestVerification(req, res);
     if (pathname === '/api/auth/register'             && req.method === 'POST') return await authApi.register(req, res);
     if (pathname === '/api/auth/login'                && req.method === 'POST') return await authApi.login(req, res);
@@ -293,29 +293,29 @@ const server = http.createServer(async (req, res) => {
     if (pathname === '/api/auth/reset-password'       && req.method === 'POST') return await authApi.resetPassword(req, res);
     if (pathname === '/api/auth/me'                   && req.method === 'GET')  return authRequired(req, res, () => authApi.me(req, res));
 
-    // ---------- PUBLIC SETTINGS ----------
+    // ==================== PUBLIC SETTINGS ====================
     if (pathname === '/api/settings/public' && req.method === 'GET' && settingsApi) {
       return settingsApi.publicSettings(req, res);
     }
 
-    // ---------- PUBLIC EVENTS ----------
+    // ==================== PUBLIC EVENTS ====================
     if (pathname === '/api/events' && req.method === 'GET' && eventsApi) {
       return eventsApi.list(req, res);
     }
 
-    // ---------- UPLOAD ----------
+    // ==================== UPLOAD ====================
     if (pathname === '/api/upload' && req.method === 'POST' && uploadApi) {
       return authRequired(req, res, () => uploadApi.uploadFile(req, res));
     }
 
-    // ---------- USERS ----------
+    // ==================== USERS ====================
     if (pathname === '/api/users/profile'      && req.method === 'GET') return authRequired(req, res, () => usersApi.profile(req, res));
     if (pathname === '/api/users/profile'      && req.method === 'PUT') return authRequired(req, res, () => usersApi.updateProfile(req, res));
     if (pathname === '/api/users/websites'     && req.method === 'GET') return authRequired(req, res, () => usersApi.myWebsites(req, res));
     if (pathname === '/api/users/transactions' && req.method === 'GET') return authRequired(req, res, () => usersApi.myTransactions(req, res));
     if (pathname === '/api/users/reviews'      && req.method === 'GET') return authRequired(req, res, () => usersApi.myReviews(req, res));
 
-    // ---------- WEBSITES ----------
+    // ==================== WEBSITES ====================
     if (pathname === '/api/websites'        && req.method === 'GET')  return await websitesApi.list(req, res, query);
     if (pathname === '/api/websites/search' && req.method === 'GET')  return await websitesApi.search(req, res, query);
     if (pathname === '/api/websites'        && req.method === 'POST') return authRequired(req, res, () => websitesApi.create(req, res));
@@ -328,7 +328,7 @@ const server = http.createServer(async (req, res) => {
       if (m && req.method === 'GET') return await websitesApi.detail(req, res, m[1]);
     }
 
-    // ---------- TOKEN ----------
+    // ==================== TOKEN ====================
     if (pathname === '/api/token/balance'  && req.method === 'GET')  return authRequired(req, res, () => tokenApi.balance(req, res));
     if (pathname === '/api/token/rate'     && req.method === 'GET')  return tokenApi.rate(req, res);
     if (pathname === '/api/token/history'  && req.method === 'GET')  return authRequired(req, res, () => tokenApi.history(req, res));
@@ -336,7 +336,7 @@ const server = http.createServer(async (req, res) => {
     if (pathname === '/api/token/transfer' && req.method === 'POST') return authRequired(req, res, () => tokenApi.transfer(req, res));
     if (pathname === '/api/token/withdraw' && req.method === 'POST') return authRequired(req, res, () => tokenApi.withdraw(req, res));
 
-    // ---------- PREMIUM (public/user) ----------
+    // ==================== PREMIUM ====================
     if (pathname === '/api/premium/plans'     && req.method === 'GET')  return await premiumApi.plans(req, res);
     if (pathname === '/api/premium/subscribe' && req.method === 'POST') return authRequired(req, res, () => premiumApi.subscribe(req, res));
     if (pathname === '/api/premium/status'    && req.method === 'GET')  return authRequired(req, res, () => premiumApi.status(req, res));
@@ -356,6 +356,14 @@ const server = http.createServer(async (req, res) => {
     if (pathname === '/api/admin/users/restore'        && req.method === 'POST') return guard('admin')(req, res, () => adminApi.restoreUser(req, res));
     if (pathname === '/api/admin/users/badge/assign'   && req.method === 'POST') return guard('admin')(req, res, () => adminApi.assignBadge(req, res));
     if (pathname === '/api/admin/users/badge/unassign' && req.method === 'POST') return guard('admin')(req, res, () => adminApi.unassignBadge(req, res));
+
+    // ==================== ADMIN: BAN / UNBAN ====================
+    if (pathname === '/api/admin/users/ban'          && req.method === 'POST') return guard('admin')(req, res, () => adminApi.banUser(req, res));
+    if (pathname === '/api/admin/users/unban'        && req.method === 'POST') return guard('admin')(req, res, () => adminApi.unbanUser(req, res));
+    if (pathname === '/api/admin/users/ban-duration' && req.method === 'POST') return guard('admin')(req, res, () => adminApi.banUserWithDuration(req, res));
+
+    // ==================== ADMIN: AWC ADJUST ====================
+    if (pathname === '/api/admin/users/awc-adjust'   && req.method === 'POST') return guard('admin')(req, res, () => adminApi.awcAdjust(req, res));
 
     // ==================== ADMIN: ADMINS ====================
     if (pathname === '/api/admin/admins' && req.method === 'GET')    return guard('admin')(req, res, () => adminApi.adminsList(req, res));
@@ -469,7 +477,7 @@ const server = http.createServer(async (req, res) => {
     if (pathname === '/api/admin/schedule' && req.method === 'POST')   return guard('admin')(req, res, () => adminApi.scheduleCreate(req, res));
     if (pathname === '/api/admin/schedule' && req.method === 'DELETE') return guard('admin')(req, res, () => adminApi.scheduleDelete(req, res));
 
-    // ==================== ADMIN: POPUP ====================
+    // ==================== ADMIN: POPUPS ====================
     if (pathname === '/api/admin/popups' && req.method === 'GET')    return guard('moderator')(req, res, () => adminApi.popupList(req, res));
     if (pathname === '/api/admin/popups' && req.method === 'POST')   return guard('admin')(req, res, () => adminApi.popupCreate(req, res));
     if (pathname === '/api/admin/popups' && req.method === 'PUT')    return guard('admin')(req, res, () => adminApi.popupUpdate(req, res));
@@ -507,7 +515,7 @@ const server = http.createServer(async (req, res) => {
     if (pathname === '/api/admin/maintenance' && req.method === 'GET') return guard('moderator')(req, res, () => adminApi.maintenanceGet(req, res));
     if (pathname === '/api/admin/maintenance' && req.method === 'PUT') return guard('super_admin')(req, res, () => adminApi.maintenanceUpdate(req, res));
 
-    // ==================== ADMIN: WEBHOOKS (optional) ====================
+    // ==================== ADMIN: WEBHOOKS ====================
     if (webhooksApi) {
       if (pathname === '/api/admin/webhooks' && req.method === 'GET')    return guard('moderator')(req, res, () => webhooksApi.list(req, res));
       if (pathname === '/api/admin/webhooks' && req.method === 'POST')   return guard('admin')(req, res, () => webhooksApi.create(req, res));
@@ -515,14 +523,7 @@ const server = http.createServer(async (req, res) => {
       if (pathname === '/api/admin/webhooks' && req.method === 'DELETE') return guard('admin')(req, res, () => webhooksApi.remove(req, res));
     }
 
-    // ==================== ADMIN: FORBIDDEN TELEGRAM IDS (optional) ====================
-    if (forbiddenTgApi) {
-      if (pathname === '/api/admin/forbidden-telegram' && req.method === 'GET')    return guard('moderator')(req, res, () => forbiddenTgApi.list(req, res));
-      if (pathname === '/api/admin/forbidden-telegram' && req.method === 'POST')   return guard('admin')(req, res, () => forbiddenTgApi.create(req, res));
-      if (pathname === '/api/admin/forbidden-telegram' && req.method === 'DELETE') return guard('admin')(req, res, () => forbiddenTgApi.remove(req, res));
-    }
-
-    // ---------- 404 ----------
+    // 404
     return notFound(req, res);
 
   } catch (err) {
@@ -550,19 +551,16 @@ server.listen(PORT, HOST, () => {
   console.log('  ' + line);
   console.log(`  🏠 Main:      http://localhost:${PORT}/frontend/pages/main.html`);
   console.log(`  🔑 Login:     http://localhost:${PORT}/frontend/pages/login.html`);
-  console.log(`  📝 Register:  http://localhost:${PORT}/frontend/pages/register.html`);
   console.log(`  🛒 Store:     http://localhost:${PORT}/frontend/pages/store.html`);
   console.log(`  💰 Sell:      http://localhost:${PORT}/frontend/pages/sell.html`);
   console.log(`  👤 Profile:   http://localhost:${PORT}/frontend/pages/profile.html`);
   console.log(`  🛠  Admin:     http://localhost:${PORT}/frontend/admin/dashboard.html`);
+  console.log(`  🔍 Search:    http://localhost:${PORT}/search/keyword`);
   console.log(`  ❤️  Health:    http://localhost:${PORT}/api/health`);
   console.log('  ' + line);
   try {
     console.log(`  📁 Data:      ${require('./utils/db').DATA_PATH}`);
   } catch (_) {}
-  console.log('  ' + line);
-  console.log('  🌐 Live Server bilan ham ishlaydi:');
-  console.log('     http://127.0.0.1:5500/frontend/pages/main.html');
   console.log('  ' + line);
   console.log('  To\'xtatish: Ctrl + C');
   console.log('');
@@ -577,9 +575,8 @@ server.on('error', (err) => {
     console.error(`     netstat -ano | findstr :${PORT}`);
     console.error(`     taskkill /PID <PID> /F`);
     console.error('');
-    console.error('   Yechim 2 — boshqa portda ishga tushirish:');
+    console.error('   Yechim 2 — boshqa port:');
     console.error(`     PowerShell:  $env:PORT=3001; node backend/server.js`);
-    console.error(`     CMD:         set PORT=3001 && node backend/server.js`);
     console.error('');
   } else {
     console.error('[server:listen:error]', err);
@@ -587,9 +584,6 @@ server.on('error', (err) => {
   process.exit(1);
 });
 
-// ============================================================
-// GRACEFUL SHUTDOWN
-// ============================================================
 function shutdown(signal) {
   console.log(`\n⏹  ${signal} — server to'xtatilmoqda…`);
   server.close(() => {
@@ -602,9 +596,6 @@ function shutdown(signal) {
 process.on('SIGINT',  () => shutdown('SIGINT'));
 process.on('SIGTERM', () => shutdown('SIGTERM'));
 
-// ============================================================
-// XATO USHLASH — server crash bo'lmasin
-// ============================================================
 process.on('uncaughtException', (err) => {
   console.error('[uncaughtException]', err && err.stack ? err.stack : err);
 });
@@ -613,5 +604,4 @@ process.on('unhandledRejection', (reason) => {
   console.error('[unhandledRejection]', reason);
 });
 
-// Vercel uchun eksport
 module.exports = server;

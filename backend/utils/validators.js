@@ -67,3 +67,15 @@ module.exports = {
   validateRegistration,
   validateWebsite
 };
+function validateWebsite(body) {
+  const errors = [];
+  const { name, domain, description, topic, price, saleType, type } = body || {};
+
+  // ... mavjud tekshiruvlar
+
+  if (type && !['frontend', 'backend', 'fullstack'].includes(type)) {
+    errors.push('Website type must be frontend, backend, or fullstack.');
+  }
+
+  return errors;
+}

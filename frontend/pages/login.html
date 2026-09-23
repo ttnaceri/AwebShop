@@ -4,9 +4,15 @@
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1"/>
 <title>Login — AWebShop</title>
-<link rel="icon" type="image/png" href="/frontend/assets/image/logo.png">
+
+<link rel="icon" type="image/png" href="../assets/image/logo.png"/>
 <link rel="stylesheet" href="../css/main.css"/>
+<link rel="stylesheet" href="../css/navbar.css"/>
 <link rel="stylesheet" href="../css/responsive.css"/>
+
+<style>
+.aw-auth-card .aw-form label { position: relative; }
+</style>
 </head>
 <body class="aw-body">
 <div id="aw-header"></div>
@@ -39,35 +45,36 @@
 <div id="aw-footer"></div>
 
 <script src="../js/api.js"></script>
+<script src="../js/i18n.js"></script>
 <script src="../js/app.js"></script>
-<script src="../js/auth.js"></script>
 <script src="../js/validation.js"></script>
+<script src="../js/password-toggle.js"></script>
+<script src="../js/auth.js"></script>
 <script src="../components/header.js"></script>
 <script src="../components/footer.js"></script>
 <script src="../components/modals.js"></script>
+<script src="../js/shortcuts.js"></script>
 
 <script>
 (async () => {
   await loadRates();
 
-  const form = document.getElementById('login-form');
-  const errBox = document.getElementById('form-error');
-
-  function showErr(msg) {
-    errBox.textContent = msg;
-    errBox.hidden = false;
-  }
-
-  // Allaqachon tizimga kirgan bo'lsa
+  // Already logged in?
   await Auth.load();
-  if (Auth.isLoggedIn()) {
-    location.href = new URLSearchParams(location.search).get('next') || 'main.html';
+  if (Auth.isLoggedIn() && !Auth.isBanned()) {
+    const next = new URLSearchParams(location.search).get('next') || 'main.html';
+    location.href = next;
     return;
   }
 
+  const form = document.getElementById('login-form');
+  const errBox = document.getElementById('form-error');
+  const showErr = m => { errBox.textContent = m; errBox.hidden = false; };
+  const hideErr = () => { errBox.hidden = true; };
+
   form.addEventListener('submit', async (e) => {
     e.preventDefault();
-    errBox.hidden = true;
+    hideErr();
 
     const nickname = form.nickname.value.trim();
     const password = form.password.value;
@@ -79,6 +86,7 @@
     btn.disabled = true; btn.textContent = 'Logging in…';
 
     const res = await Auth.login(nickname, password);
+
     if (res.success) {
       toast('Welcome, ' + res.data.user.nickname + '!', 'success');
       const next = new URLSearchParams(location.search).get('next') || 'main.html';
@@ -89,6 +97,7 @@
     }
   });
 
+  // Recover account
   document.getElementById('forgot-link').addEventListener('click', async (e) => {
     e.preventDefault();
     openModal({
@@ -100,7 +109,7 @@
             <button type="button" class="aw-btn aw-btn-primary aw-btn-block" id="rc-send">Send recovery code</button>
           </div>
           <div id="rc-step2" hidden>
-            <label><span>Recovery code (6 digits)</span><input type="text" id="rc-code"/></label>
+            <label><span>Recovery code (6 digits)</span><input type="text" id="rc-code" inputmode="numeric" maxlength="6"/></label>
             <label><span>New password</span><input type="password" id="rc-pass"/></label>
             <button type="button" class="aw-btn aw-btn-primary aw-btn-block" id="rc-reset">Reset password</button>
           </div>
@@ -110,6 +119,9 @@
       actions: [{ label: 'Close', className: 'aw-btn-ghost', onClick: () => closeModal() }]
     });
 
+    // Password toggle yangi modal ichida
+    if (window.PasswordToggle) setTimeout(() => window.PasswordToggle.scan(), 100);
+
     const err = document.getElementById('rc-err');
     const show = m => { err.textContent = m; err.hidden = false; };
 
@@ -118,8 +130,8 @@
       if (!nickname) return show('Enter your nickname.');
       const res = await API.forgotPassword({ nickname });
       if (res.success) {
-        toast('If the account exists, a code was sent via Telegram.', 'info');
-        if (res.data.debugCode) toast('DEV code: ' + res.data.debugCode, 'warn', 8000);
+        toast('Recovery code sent.', 'success');
+        if (res.data.debugCode) toast('DEV code: ' + res.data.debugCode, 'warn', 10000);
         document.getElementById('rc-step2').hidden = false;
       } else show(res.message);
     });
@@ -132,7 +144,7 @@
       if (!Validators.password(newPassword)) return show('Password must be at least 8 characters.');
       const res = await API.resetPassword({ nickname, code, newPassword });
       if (res.success) {
-        toast('Password updated. You can login now.', 'success');
+        toast('Password updated. Login now.', 'success');
         closeModal();
       } else show(res.message);
     });

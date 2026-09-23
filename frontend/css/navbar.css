@@ -1,0 +1,207 @@
+/* ============================================================
+   AWebShop — Nav bar (desktop) + Tab bar (mobile)
+   ============================================================ */
+
+/* ---------- DESKTOP NAV BAR ---------- */
+.aw-navbar {
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  background: color-mix(in srgb, var(--bg) 82%, transparent);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border-bottom: 1px solid var(--border);
+}
+.aw-navbar-inner {
+  max-width: 1280px;
+  margin: 0 auto;
+  padding: 12px 20px;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+.aw-navbar-brand {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  color: var(--text);
+  font-weight: 700;
+  font-size: 18px;
+  text-decoration: none;
+  flex-shrink: 0;
+}
+.aw-navbar-brand img {
+  width: 32px;
+  height: 32px;
+  border-radius: 6px;
+  object-fit: contain;
+}
+.aw-navbar-links {
+  display: flex;
+  gap: 20px;
+  margin-left: 24px;
+  align-items: center;
+}
+.aw-navbar-links a {
+  color: var(--text);
+  opacity: 0.85;
+  font-weight: 500;
+  font-size: 14px;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  text-decoration: none;
+  transition: opacity .15s, color .15s;
+  white-space: nowrap;
+}
+.aw-navbar-links a i {
+  font-size: 13px;
+}
+.aw-navbar-links a:hover {
+  opacity: 1;
+  color: var(--primary);
+}
+.aw-navbar-links a.active {
+  color: var(--primary);
+  opacity: 1;
+}
+.aw-navbar-right {
+  margin-left: auto;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-shrink: 0;
+}
+
+/* Global search */
+.aw-navbar-search {
+  position: relative;
+  flex: 1;
+  max-width: 380px;
+  margin: 0 16px;
+}
+.aw-navbar-search input {
+  width: 100%;
+  background: var(--card);
+  color: var(--text);
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  padding: 9px 14px 9px 38px;
+  font-family: inherit;
+  font-size: 13.5px;
+  outline: none;
+  transition: border-color .15s;
+}
+.aw-navbar-search input:focus { border-color: var(--primary); }
+.aw-navbar-search::before {
+  content: '\f002';
+  font-family: 'Font Awesome 6 Free';
+  font-weight: 900;
+  position: absolute;
+  left: 14px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: var(--muted);
+  font-size: 13px;
+  pointer-events: none;
+}
+
+/* ---------- MOBILE TAB BAR ---------- */
+.aw-tabbar {
+  display: none;
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  z-index: 100;
+  background: color-mix(in srgb, var(--bg-elev) 92%, transparent);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border-top: 1px solid var(--border);
+  padding: 6px 4px calc(6px + env(safe-area-inset-bottom, 0px));
+  justify-content: space-around;
+  align-items: center;
+}
+.aw-tabbar a {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 3px;
+  padding: 6px 4px;
+  color: var(--muted);
+  font-size: 10.5px;
+  text-decoration: none;
+  transition: color .15s;
+  border-radius: 10px;
+}
+.aw-tabbar a:hover,
+.aw-tabbar a.active { color: var(--primary); }
+.aw-tabbar a i {
+  font-size: 20px;
+  line-height: 1;
+}
+.aw-tabbar a.aw-tabbar-center {
+  position: relative;
+  top: -14px;
+}
+.aw-tabbar a.aw-tabbar-center i {
+  font-size: 22px;
+  width: 48px;
+  height: 48px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(135deg, var(--primary), var(--primary-hover));
+  color: #fff;
+  border-radius: 50%;
+  box-shadow: 0 6px 20px rgba(123, 92, 255, 0.4);
+}
+.aw-tabbar a.aw-tabbar-center span { margin-top: 2px; }
+
+/* ---------- RESPONSIVE ---------- */
+@media (max-width: 991px) {
+  .aw-navbar-links { display: none; }
+  .aw-navbar-search { display: none; }
+  .aw-tabbar { display: flex; }
+  body.aw-body { padding-bottom: 68px; }
+}
+
+@media (max-width: 991px) and (min-width: 768px) {
+  .aw-navbar-search {
+    display: block;
+    max-width: 260px;
+  }
+}
+
+/* ---------- PASSWORD TOGGLE ---------- */
+.aw-pw-wrap {
+  position: relative;
+  display: flex;
+  width: 100%;
+}
+.aw-pw-wrap input {
+  flex: 1;
+  padding-right: 42px !important;
+}
+.aw-pw-toggle {
+  position: absolute;
+  right: 6px;
+  top: 50%;
+  transform: translateY(-50%);
+  background: transparent;
+  border: none;
+  color: var(--muted);
+  width: 34px;
+  height: 34px;
+  border-radius: 8px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background .15s, color .15s;
+}
+.aw-pw-toggle:hover {
+  background: var(--card-hover);
+  color: var(--text);
+}

@@ -1375,3 +1375,172 @@ async function usersCreate(req, res) {
   await logAdmin(req, 'user_create', id, { nickname });
   ok(res, { message: 'User created.', userId: id });
 }
+// ============================================================
+// BAN / UNBAN
+// ============================================================
+async function banUser(req, res) {
+  const body = await readBody(req);
+  const { userId, reason, permanent } = body;
+
+  if (!userId) return err(res, 400, 'userId required.', 'MISSING_USER_ID');
+
+  let user = null;
+  await update(d => {
+    const u = d.users.find(x => x.id === userId);
+    if (u) {
+      u.banned = !!permanent;
+      u.banReason = sanitizeString(reason || '', 500);
+      u.bannedAt = now();
+      u.blocked = true;
+      u.blockedUntil = permanent
+        ? null
+        : new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString();
+      user = { ...u };
+    }
+    return d;
+  });
+
+  if (!user) return err(res, 404, 'User not found.', 'NOT_FOUND');
+
+  await logAdmin(req, permanent ? 'user_ban_permanent' : 'user_ban_temp', userId, { reason });
+
+  // Telegram notification
+  try {
+    const { notifyUser } = require('../services/telegramService');
+    if (user.telegramId) {
+      await notifyUser(user.telegramId,
+        permanent
+          ? `🚫 Your account has been permanently banned.\nReason: ${reason || 'N/A'}`
+          : `🚫 You have been blocked for 24 hours.\nReason: ${reason || 'N/A'}`
+      );
+    }
+  } catch (_) {}
+
+  ok(res, {
+    message: permanent ? 'User permanently banned.' : 'User banned for 24 hours.',
+    user
+  });
+}
+
+async function unbanUser(req, res) {
+  const body = await readBody(req);
+  const { userId } = body;
+
+  if (!userId) return err(res, 400, 'userId required.', 'MISSING_USER_ID');
+
+  await update(d => {
+    const u = d.users.find(x => x.id === userId);
+    if (u) {
+      u.banned = false;
+      u.banReason = null;
+      u.bannedAt = null;
+      u.blocked = false;
+      u.blockedUntil = null;
+      u.moderationStrikes = { count: 0, until: null };
+    }
+    return d;
+  });
+
+  await logAdmin(req, 'user_unban', userId);
+  ok(res, { message: 'User unbanned.' });
+}
+
+// Ban with custom duration (console uchun)
+async function banUserWithDuration(req, res) {
+  const body = await readBody(req);
+  const { userId, duration, reason } = body; // duration: '1s'|'1m'|'1h'|'1d'|'1w'|'1y'|null
+
+  if (!userId) return err(res, 400, 'userId required.', 'MISSING_USER_ID');
+
+  const durations = {
+    '1s': 1000,
+    '1m': 60 * 1000,
+    '1h': 60 * 60 * 1000,
+    '1d': 24 * 60 * 60 * 1000,
+    '1w': 7 * 24 * 60 * 60 * 1000,
+    '1y': 365 * 24 * 60 * 60 * 1000
+  };
+
+  const isPermanent = !duration || !durations[duration];
+  const ms = isPermanent ? null : durations[duration];
+  const until = ms ? new Date(Date.now() + ms).toISOString() : null;
+
+  let user = null;
+  await update(d => {
+    const u = d.users.find(x => x.id === userId);
+    if (u) {
+      u.banned = isPermanent;
+      u.banReason = sanitizeString(reason || '', 500);
+      u.bannedAt = now();
+      u.blocked = true;
+      u.blockedUntil = until;
+      user = { ...u };
+    }
+    return d;
+  });
+
+  if (!user) return err(res, 404, 'User not found.', 'NOT_FOUND');
+
+  await logAdmin(req, isPermanent ? 'user_ban_forever' : 'user_ban_' + duration, userId, { reason });
+
+  try {
+    const { notifyUser } = require('../services/telegramService');
+    if (user.telegramId) {
+      await notifyUser(user.telegramId,
+        isPermanent
+          ? `🚫 Your account has been permanently banned.\nReason: ${reason || 'N/A'}`
+          : `🚫 You have been blocked until ${new Date(until).toLocaleString()}.\nReason: ${reason || 'N/A'}`
+      );
+    }
+  } catch (_) {}
+
+  ok(res, {
+    message: isPermanent ? 'Permanently banned.' : `Banned for ${duration}.`,
+    until, user
+  });
+}
+
+// ============================================================
+// AWC ADD / REMOVE (console uchun)
+// ============================================================
+async function awcAdjust(req, res) {
+  const body = await readBody(req);
+  const { userId, amount, reason } = body;
+
+  if (!userId) return err(res, 400, 'userId required.', 'MISSING_USER_ID');
+  const amt = Number(amount);
+  if (!amt || isNaN(amt)) return err(res, 400, 'Invalid amount.', 'INVALID_AMOUNT');
+
+  const { adjustBalance, recordTransaction } = require('../services/tokenService');
+
+  const d1 = readData();
+  const user = d1.users.find(u => u.id === userId);
+  if (!user) return err(res, 404, 'User not found.', 'NOT_FOUND');
+
+  const newBalance = +(user.balanceAWC + amt).toFixed(4);
+  if (newBalance < 0) {
+    return err(res, 400, `Insufficient balance. Current: ${user.balanceAWC} AWC`, 'INSUFFICIENT_BALANCE');
+  }
+
+  await adjustBalance(userId, amt);
+  await recordTransaction(userId, amt > 0 ? 'admin_credit' : 'admin_debit', {
+    amountAWC: amt,
+    description: sanitizeString(reason || `Admin ${amt > 0 ? 'credit' : 'debit'}`, 200)
+  });
+
+  await logAdmin(req, amt > 0 ? 'awc_add' : 'awc_remove', userId, { amount: amt, reason });
+
+  ok(res, {
+    message: `${amt > 0 ? 'Added' : 'Removed'} ${Math.abs(amt)} AWC.`,
+    newBalance
+  });
+}
+
+// Yangi eksportlar
+module.exports = {
+  // ... mavjud funksiyalar
+  banUser,
+  unbanUser,
+  banUserWithDuration,
+  awcAdjust
+};

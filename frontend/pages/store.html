@@ -4,8 +4,10 @@
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1"/>
 <title>Store — AWebShop</title>
-  <link rel="icon" type="image/png" href="/frontend/assets/image/logo.png">
+
+<link rel="icon" type="image/png" href="../assets/image/logo.png"/>
 <link rel="stylesheet" href="../css/main.css"/>
+<link rel="stylesheet" href="../css/navbar.css"/>
 <link rel="stylesheet" href="../css/responsive.css"/>
 </head>
 <body class="aw-body">
@@ -20,14 +22,16 @@
   <div class="aw-filters">
     <input id="aw-search-input" type="text" placeholder="Search by name, domain, description"/>
     <select id="f-topic">
-      <option value="">All topics</option>
-      <option>AI</option>
-      <option>Online Shop</option>
-      <option>3D Game</option>
-      <option>Other</option>
+      <option value="">All themes</option>
+    </select>
+    <select id="f-type">
+      <option value="">All types</option>
+      <option value="frontend">Frontend</option>
+      <option value="backend">Backend</option>
+      <option value="fullstack">Fullstack</option>
     </select>
     <select id="f-sale">
-      <option value="">All types</option>
+      <option value="">All sale types</option>
       <option value="safe">Safe (escrow)</option>
       <option value="fast">Fast (direct)</option>
     </select>
@@ -50,6 +54,7 @@
 <div id="aw-footer"></div>
 
 <script src="../js/api.js"></script>
+<script src="../js/i18n.js"></script>
 <script src="../js/app.js"></script>
 <script src="../js/auth.js"></script>
 <script src="../components/header.js"></script>
@@ -67,6 +72,7 @@
     perPage: 30,
     search: '',
     topic: '',
+    type: '',
     saleType: '',
     sort: 'newest'
   };
@@ -74,6 +80,27 @@
   const grid = document.getElementById('store-grid');
   const pager = document.getElementById('pager');
   const countLabel = document.getElementById('count-label');
+
+  // Parse URL: /search/... yoki ?search=...
+  function parseSearch() {
+    const path = location.pathname;
+    const m = path.match(/^\/search\/(.+)$/);
+    if (m) return decodeURIComponent(m[1]).replace(/\+/g, ' ');
+    return new URLSearchParams(location.search).get('search') || '';
+  }
+
+  // Load topics dynamically
+  async function loadTopics() {
+    try {
+      const r = await API.request('/api/settings/public', { auth: false });
+      const topics = (r && r.success && Array.isArray(r.data.topics))
+        ? r.data.topics
+        : ['AI', 'Online Shop', '3D Game', 'Other'];
+      const sel = document.getElementById('f-topic');
+      sel.innerHTML = '<option value="">All themes</option>' +
+        topics.map(t => `<option value="${String(t).replace(/"/g, '&quot;')}">${String(t).replace(/</g, '&lt;')}</option>`).join('');
+    } catch (_) {}
+  }
 
   async function load() {
     showLoading(grid);
@@ -86,39 +113,50 @@
     countLabel.textContent = `${total} websites`;
 
     if (!items.length) {
-      grid.innerHTML = '<div class="aw-empty">' + t('noResults') + '</div>';
+      grid.innerHTML = '<div class="aw-empty">No results.</div>';
     } else {
       grid.innerHTML = items.map(websiteCard).join('');
     }
-    renderPagination(pager, { page, totalPages, onChange: p => { state.page = p; load(); window.scrollTo({top:0,behavior:'smooth'}); } });
+    renderPagination(pager, {
+      page, totalPages,
+      onChange: p => { state.page = p; load(); window.scrollTo({top:0,behavior:'smooth'}); }
+    });
   }
 
-  // URL dan boshlang'ich qiymatlarni o'qish
-  const usp = new URLSearchParams(location.search);
-  if (usp.get('search')) state.search = usp.get('search');
-  if (usp.get('topic')) state.topic = usp.get('topic');
-  if (usp.get('saleType')) state.saleType = usp.get('saleType');
-  if (usp.get('sort')) state.sort = usp.get('sort');
-
-  // UI sinxronlash
+  // Init from URL
+  state.search = parseSearch();
+  if (!state.search) state.search = new URLSearchParams(location.search).get('search') || '';
   document.getElementById('aw-search-input').value = state.search;
-  document.getElementById('f-topic').value = state.topic;
-  document.getElementById('f-sale').value = state.saleType;
-  document.getElementById('f-sort').value = state.sort;
 
-  document.getElementById('aw-search-input').addEventListener('input', e => {
+  await loadTopics();
+
+  // Events
+  const searchInput = document.getElementById('aw-search-input');
+  let searchTimer = null;
+  searchInput.addEventListener('input', e => {
     state.search = e.target.value.trim();
     state.page = 1;
-    clearTimeout(window.__sT);
-    window.__sT = setTimeout(load, 350);
+    clearTimeout(searchTimer);
+    searchTimer = setTimeout(load, 350);
   });
-  document.getElementById('f-topic').addEventListener('change', e => { state.topic = e.target.value; state.page = 1; load(); });
-  document.getElementById('f-sale').addEventListener('change', e => { state.saleType = e.target.value; state.page = 1; load(); });
-  document.getElementById('f-sort').addEventListener('change', e => { state.sort = e.target.value; state.page = 1; load(); });
+
+  document.getElementById('f-topic').addEventListener('change', e => {
+    state.topic = e.target.value; state.page = 1; load();
+  });
+  document.getElementById('f-type').addEventListener('change', e => {
+    state.type = e.target.value; state.page = 1; load();
+  });
+  document.getElementById('f-sale').addEventListener('change', e => {
+    state.saleType = e.target.value; state.page = 1; load();
+  });
+  document.getElementById('f-sort').addEventListener('change', e => {
+    state.sort = e.target.value; state.page = 1; load();
+  });
   document.getElementById('f-reset').addEventListener('click', () => {
-    state.page = 1; state.search = ''; state.topic = ''; state.saleType = ''; state.sort = 'newest';
+    state.page = 1; state.search = ''; state.topic = ''; state.type = ''; state.saleType = ''; state.sort = 'newest';
     document.getElementById('aw-search-input').value = '';
     document.getElementById('f-topic').value = '';
+    document.getElementById('f-type').value = '';
     document.getElementById('f-sale').value = '';
     document.getElementById('f-sort').value = 'newest';
     load();

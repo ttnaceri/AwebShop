@@ -176,3 +176,22 @@
   .admin-topbar h1 { font-size: 16px; }
   .admin-role-pill, .admin-nick { display: none; }
 }
+.admin-topics-list {
+  display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 12px;
+}
+.admin-topic-chip {
+  display: inline-flex; align-items: center; gap: 6px;
+  background: var(--card); border: 1px solid var(--border);
+  padding: 6px 12px; border-radius: 999px; font-size: 13px;
+}
+.admin-chip-remove {
+  background: transparent; border: none; color: var(--muted);
+  cursor: pointer; font-size: 16px; line-height: 1;
+  padding: 0 2px;
+}
+.admin-chip-remove:hover { color: var(--danger); }
+.admin-inline-add { display: flex; gap: 8px; }
+.admin-inline-add input {
+  flex: 1; background: var(--card); color: var(--text);
+  border: 1px solid var(--border); border-radius: 8px; padding: 8px 10px;
+}
