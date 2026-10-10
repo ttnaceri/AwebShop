@@ -4,10 +4,11 @@
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1"/>
 <title>Escrow — Admin</title>
-<link rel="icon" type="image/png" href="/frontend/assets/image/logo.png">
+<link rel="icon" type="image/png" href="../assets/image/logo.png"/>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" crossorigin="anonymous"/>
 <link rel="stylesheet" href="../css/main.css"/>
 <link rel="stylesheet" href="../css/admin.css"/>
-<link rel="stylesheet" href="../css/console.css"/>
+<link rel="stylesheet" href="../css/navbar.css"/>
 <link rel="stylesheet" href="../css/responsive.css"/>
 </head>
 <body class="admin-body">
@@ -16,38 +17,29 @@
   <header id="admin-topbar" class="admin-topbar"></header>
   <div class="admin-content">
     <p id="admin-subtitle" class="admin-sub"></p>
-
-    <div class="admin-legend-note">
-      Statuses: pending → paid → transferred → verified → completed (or cancelled / disputed / refunded).
-      Safe deals are escrow-protected. Fast deals do not appear here.
-    </div>
-
     <div class="admin-toolbar">
-      <input id="e-search" placeholder="Search by ID, buyer, seller, website…"/>
       <select id="e-filter">
-        <option value="">All statuses</option>
-        <option>pending</option>
-        <option>paid</option>
-        <option>transferred</option>
-        <option>verified</option>
-        <option>completed</option>
-        <option>cancelled</option>
-        <option>disputed</option>
-        <option>refunded</option>
+        <option value="">All</option>
+        <option value="pending">Pending</option>
+        <option value="paid">Paid</option>
+        <option value="transferred">Transferred</option>
+        <option value="verified">Verified</option>
+        <option value="completed">Completed</option>
+        <option value="disputed">Disputed</option>
+        <option value="refunded">Refunded</option>
       </select>
       <button class="aw-btn aw-btn-ghost" id="e-refresh">Refresh</button>
     </div>
-
     <div id="escrow-host"></div>
   </div>
 </div>
 
 <script src="../js/api.js"></script>
+<script src="../js/i18n.js"></script>
 <script src="../js/app.js"></script>
 <script src="../js/auth.js"></script>
 <script src="../js/admin.js"></script>
 <script src="../components/modals.js"></script>
-<script src="../components/admin-console.js"></script>
 
 <script>
 (async () => {
@@ -60,31 +52,24 @@
 
   async function load() {
     host.innerHTML = '<div class="admin-loading">Loading…</div>';
-    const r = await API.adminEscrow();
-    if (!r.success) { host.innerHTML = '<div class="admin-empty">Failed.</div>'; return; }
-    all = r.data.items;
+    const r = await API.adminGet('escrow');
+    if (!r.success) { host.innerHTML = '<div class="admin-empty">Failed: ' + esc(r.message || '') + '</div>'; return; }
+    all = r.data.items || [];
     render();
   }
 
   function render() {
-    const q = document.getElementById('e-search').value.trim().toLowerCase();
     const f = document.getElementById('e-filter').value;
-    let list = all.slice();
-    if (q) list = list.filter(e =>
-      (e.id || '').toLowerCase().includes(q) ||
-      (e.buyerId || '').includes(q) ||
-      (e.sellerId || '').includes(q) ||
-      (e.websiteId || '').toLowerCase().includes(q)
-    );
-    if (f) list = list.filter(e => e.status === f);
+    const list = f ? all.filter(e => e.status === f) : all;
 
     renderTable(host,
       [
-        { label: 'Escrow ID', render: r => `<code>${esc(r.id)}</code>` },
-        { label: 'Website', render: r => `<code>${esc(r.websiteId)}</code>` },
+        { label: 'ID', render: r => '<code>' + esc(r.id) + '</code>' },
+        { label: 'Website', render: r => '<code>' + esc(r.websiteId) + '</code>' },
         { label: 'Buyer', render: r => esc(r.buyerId) },
         { label: 'Seller', render: r => esc(r.sellerId) },
-        { label: 'Amount', render: r => `${fmtMoney(r.amountUZS)}<br><small>${fmtUSD(r.amountUSD)}</small>` },
+        { label: 'UZS', render: r => fmtMoney(r.amountUZS) },
+        { label: 'AWC', render: r => (r.amountAWC || 0).toFixed(2) },
         { label: 'Status', render: r => statusPill(r.status) },
         { label: 'Created', render: r => fmtDateShort(r.createdAt) },
         { label: 'Actions', render: r => `<button class="admin-btn-sm" data-id="${esc(r.id)}">Manage</button>` }
@@ -94,53 +79,38 @@
     );
 
     host.querySelectorAll('button[data-id]').forEach(b => {
-      b.addEventListener('click', () => openManage(b.dataset.id));
+      b.addEventListener('click', () => manage(b.dataset.id));
     });
   }
 
-  function openManage(id) {
+  function manage(id) {
     const e = all.find(x => x.id === id);
     if (!e) return;
     openModal({
-      title: 'Escrow ' + e.id,
-      body: `
-        <div class="admin-kv">
-          <div><span>Website</span><code>${esc(e.websiteId)}</code></div>
-          <div><span>Buyer</span>${esc(e.buyerId)}</div>
-          <div><span>Seller</span>${esc(e.sellerId)}</div>
-          <div><span>Amount</span>${fmtMoney(e.amountUZS)} / ${fmtUSD(e.amountUSD)}</div>
-          <div><span>Current status</span>${statusPill(e.status)}</div>
-        </div>
-        <div class="aw-form" style="margin-top:16px">
-          <label><span>New status</span>
-            <select id="es-status">
-              ${['pending','paid','transferred','verified','completed','cancelled','disputed','refunded']
-                .map(s => `<option value="${s}" ${s === e.status ? 'selected' : ''}>${s}</option>`).join('')}
-            </select>
-          </label>
-          <label><span>Admin notes</span>
-            <textarea id="es-notes" rows="3">${esc(e.adminNotes || '')}</textarea>
-          </label>
-          <div class="aw-form-error" id="es-err" hidden></div>
-        </div>
-      `,
+      title: 'Escrow ' + id,
+      body: '<div class="aw-form">' +
+        '<label><span>Status</span>' +
+        '<select id="es-status">' +
+        ['pending','paid','transferred','verified','completed','cancelled','disputed','refunded']
+          .map(s => '<option value="' + s + '"' + (s === e.status ? ' selected' : '') + '>' + s + '</option>').join('') +
+        '</select></label>' +
+        '<label><span>Admin notes</span><textarea id="es-notes" rows="3">' + esc(e.adminNotes || '') + '</textarea></label>' +
+        '</div>',
       actions: [
         { label: 'Cancel', className: 'aw-btn-ghost', onClick: () => closeModal() },
-        { label: 'Save changes', className: 'aw-btn-primary', onClick: async () => {
+        { label: 'Save', className: 'aw-btn-primary', onClick: async () => {
           const status = document.getElementById('es-status').value;
           const adminNotes = document.getElementById('es-notes').value;
-          const r = await API.adminEscrowUpdate(id, status, adminNotes);
-          if (r.success) { toast('Escrow updated.', 'success'); closeModal(); load(); }
-          else { const e2 = document.getElementById('es-err'); e2.textContent = r.message; e2.hidden = false; }
+          const r = await API.adminPost('escrow/update', { escrowId: id, status, adminNotes });
+          if (r.success) { toast('Updated', 'success'); closeModal(); load(); }
+          else toast(r.message, 'error');
         }}
       ]
     });
   }
 
-  document.getElementById('e-search').addEventListener('input', render);
   document.getElementById('e-filter').addEventListener('change', render);
   document.getElementById('e-refresh').addEventListener('click', load);
-
   load();
 })();
 </script>

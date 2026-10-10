@@ -37,67 +37,35 @@
     adminData: null,
     lastError: null,
 
-    /**
-     * Admin huquqini tekshirish.
-     * @returns {Promise<boolean>}
-     */
     load: async function () {
       console.log('[admin] load() chaqirildi');
       this.lastError = null;
 
-      if (!window.API) {
-        console.error('[admin] ❌ API topilmadi');
-        this.lastError = 'API topilmadi';
-        return false;
-      }
-      if (!window.Auth) {
-        console.error('[admin] ❌ Auth topilmadi');
-        this.lastError = 'Auth topilmadi';
-        return false;
-      }
+      if (!window.API) { this.lastError = 'API yoq'; return false; }
+      if (!window.Auth) { this.lastError = 'Auth yoq'; return false; }
 
-      // Auth.load() — userni yuklash
-      try {
-        await window.Auth.load();
-      } catch (e) {
-        console.error('[admin] Auth.load xato:', e.message);
-        this.lastError = e.message;
-      }
+      try { await window.Auth.load(); }
+      catch (e) { this.lastError = e.message; }
 
       if (!window.Auth.isLoggedIn()) {
-        console.warn('[admin] ❌ User logged in emas');
         this.lastError = 'Not logged in';
-        this.role = null;
         return false;
       }
 
       console.log('[admin] User:', window.Auth.user.nickname);
 
-      // Admin stats tekshiruvi
       var res = null;
-      try {
-        res = await window.API.adminStats();
-      } catch (e) {
-        console.error('[admin] adminStats exception:', e.message);
-        this.lastError = e.message;
-        // Network xatosi — admin deb hisoblaymiz (chunki user bor)
-        this.role = (window.Auth.user && window.Auth.user.role) || 'moderator';
-        this.adminData = { warning: 'Server xatosi, lekin admin huquqi tasdiqlanmadi' };
-        return true;
-      }
+      try { res = await window.API.adminStats(); }
+      catch (e) { this.lastError = e.message; }
 
-      console.log('[admin] adminStats javob:', res);
-
-      // ---- Response tekshiruvi ----
       if (!res) {
-        // Bo'sh javob — server xatosi
-        console.warn('[admin] adminStats bo\'sh javob');
+        // Network xatosi — user bor, admin deb hisoblaymiz
         this.role = (window.Auth.user && window.Auth.user.role) || 'moderator';
+        this.adminData = { warning: 'Server xato' };
         return true;
       }
 
       if (res.success) {
-        // MUVAFFAQIYAT
         var uRole = (window.Auth.user && window.Auth.user.role) || 'user';
         this.role = uRole === 'user' ? 'moderator' : uRole;
         this.adminData = res.data;
@@ -105,83 +73,57 @@
         return true;
       }
 
-      // ---- XATO holatlar ----
+      // 500 — server xatosi, lekin user admin bo'lishi mumkin
       var code = res.code || '';
-      console.warn('[admin] adminStats success emas. Code:', code);
-
-      if (code === 'UNAUTHORIZED') {
-        // Token yo'q yoki eskirgan
-        this.lastError = 'Unauthorized';
-        this.role = null;
-        return false;
+      if (code === 'SERVER_ERROR' || code === 'INTERNAL_ERROR') {
+        console.warn('[admin] ⚠️ Server xatosi, lekin admin deb hisoblaymiz');
+        this.role = (window.Auth.user && window.Auth.user.role) || 'moderator';
+        this.adminData = { error: res.message };
+        return true;
       }
 
+      // 403 — haqiqiy admin emas
       if (code === 'FORBIDDEN') {
-        // Haqiqiy admin emas
         this.lastError = 'Forbidden';
         this.role = null;
         return false;
       }
 
-      if (code === 'SERVER_ERROR' || code === 'INTERNAL_ERROR' || code === 'SERVER_ERROR') {
-        // Server xatosi — admin deb hisoblaymiz (user bor)
-        console.warn('[admin] ⚠️ Server xatosi, lekin admin deb hisoblaymiz');
-        this.lastError = res.message || 'Server error';
-        var uRole2 = (window.Auth.user && window.Auth.user.role) || 'moderator';
-        this.role = uRole2 === 'user' ? 'moderator' : uRole2;
-        this.adminData = { error: res.message };
-        return true;
+      // 401 — token yo'q
+      if (code === 'UNAUTHORIZED') {
+        this.lastError = 'Unauthorized';
+        this.role = null;
+        return false;
       }
 
-      // Boshqa xato — admin deb hisoblaymiz (token va user bor)
-      console.warn('[admin] ⚠️ Noma\'lum xato:', code, res.message);
+      // Boshqa xato — admin deb hisoblaymiz
+      this.role = (window.Auth.user && window.Auth.user.role) || 'moderator';
       this.lastError = res.message || code;
-      var uRole3 = (window.Auth.user && window.Auth.user.role) || 'moderator';
-      this.role = uRole3 === 'user' ? 'moderator' : uRole3;
       return true;
     },
 
-    /**
-     * Admin panelga ruxsat.
-     * Faqat 401 va 403 da loginga yo'naltiradi.
-     * 500 va boshqa xatolarda — ruxsat beradi.
-     */
     requireAdmin: async function (customRedirect) {
-      console.log('[admin] requireAdmin chaqirildi');
+      console.log('[admin] requireAdmin');
       var ok = await this.load();
-
       if (ok) return true;
 
-      // ---- Ruxsat yo'q ----
       var hasToken = API.getToken();
       var code = this.lastError || '';
 
       if (!hasToken) {
-        // Token yo'q — login sahifasiga
-        console.warn('[admin] Token yo\'q → login');
+        console.warn('[admin] Token yoq → login');
         var next = encodeURIComponent('../admin/dashboard.html');
         location.href = customRedirect || ('../pages/login.html?next=' + next);
         return false;
       }
 
-      if (code === 'Forbidden' || code === 'FORBIDDEN') {
-        // Token bor lekin admin emas — alert YO'Q, main.html ga
-        console.warn('[admin] Admin emas → main.html');
+      if (code === 'Forbidden') {
+        console.warn('[admin] Admin emas → main');
         location.href = '../pages/main.html';
         return false;
       }
 
-      if (code === 'Unauthorized' || code === 'UNAUTHORIZED') {
-        // Token eskirgan — login
-        console.warn('[admin] Token eskirgan → login');
-        API.clearToken();
-        var next2 = encodeURIComponent('../admin/dashboard.html');
-        location.href = customRedirect || ('../pages/login.html?next=' + next2);
-        return false;
-      }
-
-      // Boshqa xato — ruxsat berish (yumshoq yondashuv)
-      console.warn('[admin] Noma\'lum xato, lekin davom etamiz:', code);
+      // Boshqa xato — davom etamiz (yumshoq)
       return true;
     },
 
@@ -199,8 +141,7 @@
     { section: 'Overview', items: [
       { href: 'dashboard.html',    label: 'Dashboard',    icon: '▦' },
       { href: 'analytics.html',    label: 'Analytics',    icon: '📊' },
-      { href: 'logs.html',         label: 'Logs',         icon: '📜' },
-      { href: 'console.html',      label: 'Console',      icon: '⌨' }
+      { href: 'logs.html',         label: 'Logs',         icon: '📜' }
     ]},
     { section: 'Users & Access', items: [
       { href: 'users.html',        label: 'Users',        icon: '👤' },
@@ -287,19 +228,11 @@
       '<div class="admin-top-right">' +
       '<span class="admin-role-pill">' + safeEsc((u.role || 'moderator').toUpperCase()) + '</span>' +
       '<span class="admin-nick">' + safeEsc(u.nickname || '') + '</span>' +
-      '<button class="admin-btn-ghost" id="admin-open-console" title="Console">⌨ Console</button>' +
       '<button class="admin-btn-ghost" id="admin-logout">Logout</button>' +
       '</div>';
 
     var lo = document.getElementById('admin-logout');
-    if (lo) lo.addEventListener('click', function () {
-      if (window.Auth && window.Auth.logout) window.Auth.logout();
-    });
-
-    var oc = document.getElementById('admin-open-console');
-    if (oc) oc.addEventListener('click', function () {
-      if (window.AdminConsole) window.AdminConsole.toggle();
-    });
+    if (lo) lo.addEventListener('click', function () { window.Auth.logout(); });
 
     var b = document.getElementById('admin-burger');
     if (b) b.addEventListener('click', function () {
@@ -326,7 +259,7 @@
     columns.forEach(function (c) { html += '<th>' + safeEsc(c.label) + '</th>'; });
     html += '</tr></thead><tbody>';
     rows.forEach(function (row, i) {
-      html += '<tr data-row-index="' + i + '">';
+      html += '<tr>';
       columns.forEach(function (c) {
         if (c.render) html += '<td>' + c.render(row) + '</td>';
         else html += '<td>' + safeEsc(row[c.key] != null ? row[c.key] : '') + '</td>';
@@ -351,7 +284,27 @@
     return '<span class="admin-pill admin-pill-' + (map[s] || 'neutral') + '">' + safeEsc(s || '—') + '</span>';
   }
 
-  // Export
+  // API helperlar
+  function installAdminAPI() {
+    if (!window.API) return;
+    if (typeof window.API.adminGet === 'function') return;
+
+    window.API.adminFetch = function (path, opts) {
+      var o = opts || {};
+      return this.request('/api/admin/' + path, { method: o.method || 'GET', body: o.body || null });
+    };
+    window.API.adminGet = function (path, params) {
+      var q = new URLSearchParams(params || {}).toString();
+      return this.request('/api/admin/' + path + (q ? '?' + q : ''));
+    };
+    window.API.adminPost   = function (path, body) { return this.adminFetch(path, { method: 'POST',   body: body }); };
+    window.API.adminPut    = function (path, body) { return this.adminFetch(path, { method: 'PUT',    body: body }); };
+    window.API.adminDelete = function (path, body) { return this.adminFetch(path, { method: 'DELETE', body: body }); };
+  }
+
+  installAdminAPI();
+
+  // Global
   window.Admin = Admin;
   window.renderAdminSidebar = renderAdminSidebar;
   window.renderAdminTopbar = renderAdminTopbar;

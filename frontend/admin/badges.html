@@ -1,39 +1,101 @@
 <!DOCTYPE html>
-<html lang="en"><head><meta charset="UTF-8"/><meta name="viewport" content="width=device-width, initial-scale=1"/>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1"/>
 <title>Badges — Admin</title>
-<link rel="icon" type="image/png" href="/frontend/assets/image/logo.png">
-<link rel="stylesheet" href="../css/main.css"/><link rel="stylesheet" href="../css/admin.css"/>
-<link rel="stylesheet" href="../css/console.css"/><link rel="stylesheet" href="../css/responsive.css"/></head>
+<link rel="icon" type="image/png" href="../assets/image/logo.png"/>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" crossorigin="anonymous"/>
+<link rel="stylesheet" href="../css/main.css"/>
+<link rel="stylesheet" href="../css/admin.css"/>
+<link rel="stylesheet" href="../css/navbar.css"/>
+<link rel="stylesheet" href="../css/responsive.css"/>
+</head>
 <body class="admin-body">
 <aside id="admin-sidebar" class="admin-sidebar"></aside>
 <div class="admin-main">
   <header id="admin-topbar" class="admin-topbar"></header>
-  <div class="admin-content"><p id="admin-subtitle" class="admin-sub"></p></div>
+  <div class="admin-content">
+    <p id="admin-subtitle" class="admin-sub"></p>
+    <div class="admin-toolbar">
+      <button class="aw-btn aw-btn-primary" id="b-add">+ New badge</button>
+      <button class="aw-btn aw-btn-ghost" id="b-refresh">Refresh</button>
+    </div>
+    <div id="badges-host"></div>
+  </div>
 </div>
-<script src="../js/api.js"></script><script src="../js/app.js"></script><script src="../js/auth.js"></script>
-<script src="../js/admin.js"></script><script src="../components/modals.js"></script><script src="../components/admin-console.js"></script>
+
+<script src="../js/api.js"></script>
+<script src="../js/i18n.js"></script>
+<script src="../js/app.js"></script>
+<script src="../js/auth.js"></script>
+<script src="../js/admin.js"></script>
+<script src="../components/modals.js"></script>
+
 <script>
 (async () => {
   await loadRates();
   if (!(await Admin.requireAdmin())) return;
-  buildCrudPage({
-    title: 'Badges',
-    subtitle: 'Badge manager',
-    endpoint: 'badges',
-    idField: 'id',
-    columns: [
-      { label: 'Name', render: r => esc(r.name) },
-      { label: 'Color', render: r => `<span style="display:inline-block;width:14px;height:14px;border-radius:50%;background:${esc(r.color||'#7b5cff')};vertical-align:middle"></span> ${esc(r.color||'')}` },
-      { label: 'Image', render: r => r.image ? `<img src="/${esc(r.image)}" style="width:24px;height:24px" onerror="this.style.display='none'"/>` : '—' },
-      { label: 'Enabled', render: r => r.enabled ? statusPill('active') : statusPill('cancelled') }
-    ],
-    formFields: [
-      { key: 'name', label: 'Name', type: 'text' },
-      { key: 'image', label: 'Image path (e.g. frontend/assets/image/galochka.png)', type: 'text' },
-      { key: 'color', label: 'Color (hex)', type: 'text', default: '#7b5cff' },
-      { key: 'enabled', label: 'Enabled', type: 'checkbox', default: true }
-    ]
+  adminPage('Badges', 'Badge manager');
+
+  const host = document.getElementById('badges-host');
+
+  async function load() {
+    host.innerHTML = '<div class="admin-loading">Loading…</div>';
+    const r = await API.adminGet('badges');
+    if (!r.success) { host.innerHTML = '<div class="admin-empty">Failed: ' + esc(r.message || '') + '</div>'; return; }
+    render(r.data.items || []);
+  }
+
+  function render(items) {
+    renderTable(host,
+      [
+        { label: 'Name', render: x => esc(x.name) },
+        { label: 'Color', render: x => '<span style="display:inline-block;width:14px;height:14px;border-radius:50%;background:' + esc(x.color || '#7b5cff') + '"></span> ' + esc(x.color || '') },
+        { label: 'Image', render: x => x.image ? '<code>' + esc(x.image) + '</code>' : '—' },
+        { label: 'Status', render: x => x.enabled ? statusPill('active') : statusPill('cancelled') },
+        { label: 'Actions', render: x => '<div class="admin-actions"><button class="admin-btn-sm bad" data-del="' + esc(x.id) + '">Delete</button></div>' }
+      ],
+      items,
+      { emptyText: 'No badges yet.' }
+    );
+    host.querySelectorAll('button[data-del]').forEach(b => {
+      b.addEventListener('click', async () => {
+        if (!(await confirmModal('Delete badge?', 'Proceed?'))) return;
+        const r = await API.adminDelete('badges', { id: b.dataset.del });
+        if (r.success) { toast('Deleted.', 'success'); load(); }
+        else toast(r.message, 'error');
+      });
+    });
+  }
+
+  document.getElementById('b-add').addEventListener('click', () => {
+    openModal({
+      title: 'New badge',
+      body: '<div class="aw-form">' +
+        '<label><span>Name</span><input id="b-name"/></label>' +
+        '<label><span>Image path</span><input id="b-img" value="frontend/assets/image/galochka.png"/></label>' +
+        '<label><span>Color (hex)</span><input id="b-color" value="#7b5cff"/></label>' +
+        '<label class="aw-checkbox"><input type="checkbox" id="b-enabled" checked/><span>Enabled</span></label>' +
+        '</div>',
+      actions: [
+        { label: 'Cancel', className: 'aw-btn-ghost', onClick: () => closeModal() },
+        { label: 'Create', className: 'aw-btn-primary', onClick: async () => {
+          const r = await API.adminPost('badges', {
+            name: document.getElementById('b-name').value,
+            image: document.getElementById('b-img').value,
+            color: document.getElementById('b-color').value,
+            enabled: document.getElementById('b-enabled').checked
+          });
+          if (r.success) { toast('Created.', 'success'); closeModal(); load(); }
+          else toast(r.message, 'error');
+        }}
+      ]
+    });
   });
+  document.getElementById('b-refresh').addEventListener('click', load);
+  load();
 })();
 </script>
-</body></html>
+</body>
+</html>

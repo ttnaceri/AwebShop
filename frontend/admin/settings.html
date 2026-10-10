@@ -1,77 +1,85 @@
 <!DOCTYPE html>
-<html lang="en"><head><meta charset="UTF-8"/><meta name="viewport" content="width=device-width, initial-scale=1"/>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1"/>
 <title>Settings — Admin</title>
-<link rel="icon" type="image/png" href="/frontend/assets/image/logo.png">
-<link rel="stylesheet" href="../css/main.css"/><link rel="stylesheet" href="../css/admin.css"/>
-<link rel="stylesheet" href="../css/console.css"/><link rel="stylesheet" href="../css/responsive.css"/></head>
+<link rel="icon" type="image/png" href="../assets/image/logo.png"/>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" crossorigin="anonymous"/>
+<link rel="stylesheet" href="../css/main.css"/>
+<link rel="stylesheet" href="../css/admin.css"/>
+<link rel="stylesheet" href="../css/navbar.css"/>
+<link rel="stylesheet" href="../css/responsive.css"/>
+</head>
 <body class="admin-body">
 <aside id="admin-sidebar" class="admin-sidebar"></aside>
 <div class="admin-main">
   <header id="admin-topbar" class="admin-topbar"></header>
-  <div class="admin-content"><p id="admin-subtitle" class="admin-sub"></p></div>
+  <div class="admin-content">
+    <p id="admin-subtitle" class="admin-sub"></p>
+
+    <div class="admin-card">
+      <h3>Site Settings</h3>
+      <div class="aw-form">
+        <label><span>Site name</span><input id="s-name"/></label>
+        <label><span>Contact email</span><input id="s-email"/></label>
+        <label><span>AWC price (UZS)</span><input type="number" id="s-awc"/></label>
+        <label><span>Listing fee (UZS)</span><input type="number" id="s-fee"/></label>
+        <button class="aw-btn aw-btn-primary" id="save-settings">Save</button>
+      </div>
+    </div>
+
+    <div class="admin-card">
+      <h3>Payment Providers (Future integrations)</h3>
+      <p class="aw-muted">Bu yerda API kalitlarni <b>soon</b> sifatida ko'rsatamiz. Ulanish bo'lganda faollashtiriladi.</p>
+      <div class="aw-form">
+        <label><span>Payme merchant ID</span><input id="m-payme" placeholder="soon"/></label>
+        <label><span>Hamkorbank merchant ID</span><input id="m-hamkor" placeholder="soon"/></label>
+        <label><span>Stripe API key</span><input id="m-stripe" placeholder="soon"/></label>
+        <label><span>PayPal Client ID</span><input id="m-paypal" placeholder="soon"/></label>
+        <button class="aw-btn aw-btn-ghost" id="save-merchant">Save</button>
+      </div>
+    </div>
+  </div>
 </div>
-<script src="../js/api.js"></script><script src="../js/app.js"></script><script src="../js/auth.js"></script>
-<script src="../js/admin.js"></script><script src="../components/admin-console.js"></script>
+
+<script src="../js/api.js"></script>
+<script src="../js/i18n.js"></script>
+<script src="../js/app.js"></script>
+<script src="../js/auth.js"></script>
+<script src="../js/admin.js"></script>
+<script src="../components/modals.js"></script>
+
 <script>
 (async () => {
   await loadRates();
   if (!(await Admin.requireAdmin())) return;
-  adminPage('Settings', 'Site-wide settings');
+  adminPage('Settings', 'Global platform settings');
 
   const r = await API.adminGet('settings');
-  if (!r.success) return;
-  const s = r.data.settings;
+  if (r.success) {
+    const s = r.data.settings || {};
+    document.getElementById('s-name').value = s.siteName || 'AWebShop';
+    document.getElementById('s-email').value = s.contactEmail || '';
+    document.getElementById('s-awc').value = s.awcPriceUZS || 10000;
+    document.getElementById('s-fee').value = s.listingFeeUZS || 10000;
+  }
 
-  const content = document.querySelector('.admin-content');
-  content.insertAdjacentHTML('beforeend', `
-    <div class="admin-card">
-      <div class="aw-form" style="display:grid;grid-template-columns:1fr 1fr;gap:14px">
-        <label><span>Site name</span><input id="s-name" value="${esc(s.siteName||'')}"/></label>
-        <label><span>Contact email</span><input id="s-email" value="${esc(s.contactEmail||'')}"/></label>
-        <label><span>Default language</span>
-          <select id="s-lang">
-            <option value="en" ${s.defaultLanguage==='en'?'selected':''}>English</option>
-            <option value="uz" ${s.defaultLanguage==='uz'?'selected':''}>O'zbek</option>
-          </select>
-        </label>
-        <label><span>Default currency</span>
-          <select id="s-cur">
-            <option value="UZS" ${s.defaultCurrency==='UZS'?'selected':''}>UZS</option>
-            <option value="USD" ${s.defaultCurrency==='USD'?'selected':''}>USD</option>
-          </select>
-        </label>
-        <label><span>Footer text</span><input id="s-footer" value="${esc(s.footerText||'')}"/></label>
-        <label><span>Logo path</span><input id="s-logo" value="${esc(s.logo||'')}"/></label>
-        <label><span>Favicon path</span><input id="s-fav" value="${esc(s.favicon||'')}"/></label>
-        <label><span>GitHub</span><input id="s-gh" value="${esc(s.social?.github||'')}"/></label>
-        <label><span>Telegram</span><input id="s-tg" value="${esc(s.social?.telegram||'')}"/></label>
-        <label><span>Instagram</span><input id="s-ig" value="${esc(s.social?.instagram||'')}"/></label>
-        <label><span>LinkedIn</span><input id="s-li" value="${esc(s.social?.linkedin||'')}"/></label>
-      </div>
-      <button class="aw-btn aw-btn-primary" id="s-save" style="margin-top:14px">Save settings</button>
-    </div>
-  `);
-
-  document.getElementById('s-save').addEventListener('click', async () => {
-    const payload = {
+  document.getElementById('save-settings').addEventListener('click', async () => {
+    const r2 = await API.adminPut('settings', {
       siteName: document.getElementById('s-name').value,
       contactEmail: document.getElementById('s-email').value,
-      defaultLanguage: document.getElementById('s-lang').value,
-      defaultCurrency: document.getElementById('s-cur').value,
-      footerText: document.getElementById('s-footer').value,
-      logo: document.getElementById('s-logo').value,
-      favicon: document.getElementById('s-fav').value,
-      social: {
-        github: document.getElementById('s-gh').value,
-        telegram: document.getElementById('s-tg').value,
-        instagram: document.getElementById('s-ig').value,
-        linkedin: document.getElementById('s-li').value
-      }
-    };
-    const r2 = await API.adminPut('settings', payload);
-    if (r2.success) toast('Saved.', 'success');
+      awcPriceUZS: Number(document.getElementById('s-awc').value),
+      listingFeeUZS: Number(document.getElementById('s-fee').value)
+    });
+    if (r2.success) toast('Saved', 'success');
     else toast(r2.message, 'error');
+  });
+
+  document.getElementById('save-merchant').addEventListener('click', () => {
+    toast('Merchant integration coming soon', 'info');
   });
 })();
 </script>
-</body></html>
+</body>
+</html>

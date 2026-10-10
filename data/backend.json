@@ -9,16 +9,16 @@
       "phone": "+998950540920",
       "email": "ttnacerifan@gmail.com",
       "role": "super_admin",
-      "balanceAWC": 10001,
+      "balanceAWC": 10490,
       "totalSpent": 0,
-      "totalEarned": 0,
+      "totalEarned": 5000000,
       "rating": 0,
       "verified": true,
       "darkMode": true,
       "language": "en",
       "currency": "UZS",
-      "premiumPlan": null,
-      "premiumExpiresAt": null,
+      "premiumPlan": "Enterprise",
+      "premiumExpiresAt": "2026-11-10T14:55:42.612Z",
       "badges": [],
       "moderationStrikes": {
         "count": 0,
@@ -29,7 +29,7 @@
       "bannedAt": null,
       "blockedUntil": null,
       "createdAt": "2026-09-13T15:28:05.153Z",
-      "updatedAt": "2026-10-10T12:29:02.556Z",
+      "updatedAt": "2026-10-10T14:55:42.613Z",
       "nicknameUpdatedAt": "2026-09-13T15:28:05.154Z",
       "deleted": false,
       "blocked": false
@@ -43,7 +43,7 @@
       "phone": "+998900000007",
       "email": null,
       "role": "user",
-      "balanceAWC": 499,
+      "balanceAWC": 500,
       "totalSpent": 0,
       "totalEarned": 0,
       "rating": 0,
@@ -63,10 +63,185 @@
       "bannedAt": null,
       "blockedUntil": null,
       "createdAt": "2026-10-09T12:00:00.000Z",
-      "updatedAt": "2026-10-10T12:29:02.538Z",
+      "updatedAt": "2026-10-09T12:00:00.000Z",
       "nicknameUpdatedAt": "2026-10-09T12:00:00.000Z",
       "deleted": false,
       "blocked": false
+    },
+    {
+      "id": "300000001",
+      "nickname": "Behruz",
+      "passwordHash": "544a123e34100088499e6ff2ab75201d:69dc7507bda8d0e344731691012e8871022db661d71dcd026e53226d40c98d1d19f8500845a9d813cda2362dc95173b8dbcae52b2c62d26a8796c6c740f0b79a",
+      "telegramUsername": "",
+      "telegramId": "",
+      "phone": "",
+      "email": null,
+      "role": "admin",
+      "balanceAWC": 499,
+      "totalSpent": 5010000,
+      "totalEarned": 0,
+      "rating": 0,
+      "verified": true,
+      "darkMode": true,
+      "language": "en",
+      "currency": "UZS",
+      "premiumPlan": null,
+      "premiumExpiresAt": null,
+      "badges": [],
+      "moderationStrikes": {
+        "count": 0,
+        "until": null
+      },
+      "banned": false,
+      "banReason": null,
+      "bannedAt": null,
+      "blockedUntil": null,
+      "createdAt": "2026-10-10T00:00:00.000Z",
+      "updatedAt": "2026-10-10T14:51:46.294Z",
+      "nicknameUpdatedAt": "2026-10-10T00:00:00.000Z",
+      "deleted": false,
+      "blocked": false,
+      "needsPasswordSetup": true
+    },
+    {
+      "id": "300000002",
+      "nickname": "Bekhzod",
+      "passwordHash": "544a123e34100088499e6ff2ab75201d:69dc7507bda8d0e344731691012e8871022db661d71dcd026e53226d40c98d1d19f8500845a9d813cda2362dc95173b8dbcae52b2c62d26a8796c6c740f0b79a",
+      "telegramUsername": "",
+      "telegramId": "",
+      "phone": "",
+      "email": null,
+      "role": "admin",
+      "balanceAWC": 1000,
+      "totalSpent": 0,
+      "totalEarned": 0,
+      "rating": 0,
+      "verified": true,
+      "darkMode": true,
+      "language": "en",
+      "currency": "UZS",
+      "premiumPlan": null,
+      "premiumExpiresAt": null,
+      "badges": [],
+      "moderationStrikes": {
+        "count": 0,
+        "until": null
+      },
+      "banned": false,
+      "banReason": null,
+      "bannedAt": null,
+      "blockedUntil": null,
+      "createdAt": "2026-10-10T00:00:00.000Z",
+      "updatedAt": "2026-10-10T00:00:00.000Z",
+      "nicknameUpdatedAt": "2026-10-10T00:00:00.000Z",
+      "deleted": false,
+      "blocked": false,
+      "needsPasswordSetup": true
+    },
+    {
+      "id": "300000003",
+      "nickname": "Lutfulla",
+      "passwordHash": "544a123e34100088499e6ff2ab75201d:69dc7507bda8d0e344731691012e8871022db661d71dcd026e53226d40c98d1d19f8500845a9d813cda2362dc95173b8dbcae52b2c62d26a8796c6c740f0b79a",
+      "telegramUsername": "",
+      "telegramId": "",
+      "phone": "",
+      "email": null,
+      "role": "admin",
+      "balanceAWC": 1000,
+      "totalSpent": 0,
+      "totalEarned": 0,
+      "rating": 0,
+      "verified": true,
+      "darkMode": true,
+      "language": "en",
+      "currency": "UZS",
+      "premiumPlan": null,
+      "premiumExpiresAt": null,
+      "badges": [],
+      "moderationStrikes": {
+        "count": 0,
+        "until": null
+      },
+      "banned": false,
+      "banReason": null,
+      "bannedAt": null,
+      "blockedUntil": null,
+      "createdAt": "2026-10-10T00:00:00.000Z",
+      "updatedAt": "2026-10-10T00:00:00.000Z",
+      "nicknameUpdatedAt": "2026-10-10T00:00:00.000Z",
+      "deleted": false,
+      "blocked": false,
+      "needsPasswordSetup": true
+    },
+    {
+      "id": "300000004",
+      "nickname": "Shorahim",
+      "passwordHash": "544a123e34100088499e6ff2ab75201d:69dc7507bda8d0e344731691012e8871022db661d71dcd026e53226d40c98d1d19f8500845a9d813cda2362dc95173b8dbcae52b2c62d26a8796c6c740f0b79a",
+      "telegramUsername": "",
+      "telegramId": "",
+      "phone": "",
+      "email": null,
+      "role": "admin",
+      "balanceAWC": 1000,
+      "totalSpent": 0,
+      "totalEarned": 0,
+      "rating": 0,
+      "verified": true,
+      "darkMode": true,
+      "language": "en",
+      "currency": "UZS",
+      "premiumPlan": null,
+      "premiumExpiresAt": null,
+      "badges": [],
+      "moderationStrikes": {
+        "count": 0,
+        "until": null
+      },
+      "banned": false,
+      "banReason": null,
+      "bannedAt": null,
+      "blockedUntil": null,
+      "createdAt": "2026-10-10T00:00:00.000Z",
+      "updatedAt": "2026-10-10T00:00:00.000Z",
+      "nicknameUpdatedAt": "2026-10-10T00:00:00.000Z",
+      "deleted": false,
+      "blocked": false,
+      "needsPasswordSetup": true
+    },
+    {
+      "id": "300000005",
+      "nickname": "Mirolim",
+      "passwordHash": "544a123e34100088499e6ff2ab75201d:69dc7507bda8d0e344731691012e8871022db661d71dcd026e53226d40c98d1d19f8500845a9d813cda2362dc95173b8dbcae52b2c62d26a8796c6c740f0b79a",
+      "telegramUsername": "",
+      "telegramId": "",
+      "phone": "",
+      "email": null,
+      "role": "admin",
+      "balanceAWC": 1000,
+      "totalSpent": 0,
+      "totalEarned": 0,
+      "rating": 0,
+      "verified": true,
+      "darkMode": true,
+      "language": "en",
+      "currency": "UZS",
+      "premiumPlan": null,
+      "premiumExpiresAt": null,
+      "badges": [],
+      "moderationStrikes": {
+        "count": 0,
+        "until": null
+      },
+      "banned": false,
+      "banReason": null,
+      "bannedAt": null,
+      "blockedUntil": null,
+      "createdAt": "2026-10-10T00:00:00.000Z",
+      "updatedAt": "2026-10-10T00:00:00.000Z",
+      "nicknameUpdatedAt": "2026-10-10T00:00:00.000Z",
+      "deleted": false,
+      "blocked": false,
+      "needsPasswordSetup": true
     }
   ],
   "admins": [
@@ -94,14 +269,14 @@
       "imageUrl": "",
       "priceUZS": 10000000,
       "priceUSD": 790.5138,
-      "priceAWC": 1000,
+      "priceAWC": 10,
       "saleType": "safe",
-      "status": "active",
-      "views": 0,
+      "status": "sold",
+      "views": 8,
       "rating": 0,
       "createdAt": "2026-10-07T12:23:32.463Z",
-      "updatedAt": "2026-10-07T12:23:32.463Z",
-      "soldAt": null
+      "updatedAt": "2026-10-10T14:50:22.711Z",
+      "soldAt": "2026-10-10T14:50:22.711Z"
     },
     {
       "webId": "AN73QGH",
@@ -116,17 +291,118 @@
       "imageUrl": "",
       "priceUZS": 5000000,
       "priceUSD": 395.2569,
-      "priceAWC": 500,
+      "priceAWC": 100,
       "saleType": "fast",
-      "status": "active",
-      "views": 0,
+      "status": "sold",
+      "views": 1,
       "rating": 0,
       "createdAt": "2026-10-08T10:15:00.000Z",
-      "updatedAt": "2026-10-08T10:15:00.000Z",
-      "soldAt": null
+      "updatedAt": "2026-10-10T14:50:43.384Z",
+      "soldAt": "2026-10-10T14:50:43.384Z"
+    },
+    {
+      "webId": "HREH87W",
+      "orderId": "UZ6YPUHKC3",
+      "sellerId": "100000001",
+      "name": "epic",
+      "domain": "mysite.epic.com",
+      "type": "fullstack",
+      "description": "11",
+      "descriptionLength": 2,
+      "topic": "3D Game",
+      "imageUrl": "",
+      "priceUZS": 10000,
+      "priceUSD": 0.7905,
+      "priceAWC": 1,
+      "saleType": "safe",
+      "status": "sold",
+      "views": 2,
+      "rating": 0,
+      "createdAt": "2026-10-10T14:24:48.371Z",
+      "updatedAt": "2026-10-10T14:24:57.640Z",
+      "soldAt": "2026-10-10T14:24:57.640Z"
+    },
+    {
+      "webId": "7GZD3S9",
+      "orderId": "BKJZXDEWBX",
+      "sellerId": "300000001",
+      "name": "epic",
+      "domain": "epic.com",
+      "type": "frontend",
+      "description": "html",
+      "descriptionLength": 4,
+      "topic": "2D Game",
+      "imageUrl": "",
+      "priceUZS": 7000,
+      "priceUSD": 0.5534,
+      "priceAWC": 0.7,
+      "saleType": "safe",
+      "status": "sold",
+      "views": 4,
+      "rating": 0,
+      "createdAt": "2026-10-10T14:51:46.294Z",
+      "updatedAt": "2026-10-10T14:51:53.248Z",
+      "soldAt": "2026-10-10T14:51:53.248Z"
     }
   ],
-  "orders": [],
+  "orders": [
+    {
+      "id": "ord_4X4MAKQMCCDX",
+      "websiteWebId": "HREH87W",
+      "buyerId": "200000001",
+      "sellerId": "100000001",
+      "amountUZS": 10000,
+      "amountUSD": 0.7905,
+      "amountAWC": 1,
+      "saleType": "safe",
+      "status": "pending_escrow",
+      "escrowId": "esc_TLA5HT4UR698",
+      "createdAt": "2026-10-10T14:24:57.640Z",
+      "updatedAt": "2026-10-10T14:24:57.640Z"
+    },
+    {
+      "id": "ord_XPFPYT33KD6V",
+      "websiteWebId": "NAMQVZ2",
+      "buyerId": "300000001",
+      "sellerId": "100000001",
+      "amountUZS": 10000000,
+      "amountUSD": 790.5138,
+      "amountAWC": 1000,
+      "saleType": "safe",
+      "status": "pending_escrow",
+      "escrowId": "esc_HFQ7RSRSQQ6M",
+      "createdAt": "2026-10-10T14:50:22.711Z",
+      "updatedAt": "2026-10-10T14:50:22.711Z"
+    },
+    {
+      "id": "ord_QPGRVJVSKJWD",
+      "websiteWebId": "AN73QGH",
+      "buyerId": "300000001",
+      "sellerId": "100000001",
+      "amountUZS": 5000000,
+      "amountUSD": 395.2569,
+      "amountAWC": 500,
+      "saleType": "fast",
+      "status": "completed",
+      "escrowId": null,
+      "createdAt": "2026-10-10T14:50:43.383Z",
+      "updatedAt": "2026-10-10T14:50:43.383Z"
+    },
+    {
+      "id": "ord_8FQWZFW3SHKY",
+      "websiteWebId": "7GZD3S9",
+      "buyerId": "200000001",
+      "sellerId": "300000001",
+      "amountUZS": 7000,
+      "amountUSD": 0.5534,
+      "amountAWC": 0.7,
+      "saleType": "safe",
+      "status": "pending_escrow",
+      "escrowId": "esc_W634P875P9PT",
+      "createdAt": "2026-10-10T14:51:53.248Z",
+      "updatedAt": "2026-10-10T14:51:53.248Z"
+    }
+  ],
   "transactions": [
     {
       "id": "tx_TTUZ3ZMLB6Q8",
@@ -159,24 +435,232 @@
       "adminNotes": "",
       "createdAt": "2026-10-10T12:29:02.581Z",
       "updatedAt": "2026-10-10T12:29:02.581Z"
+    },
+    {
+      "id": "tx_XXA89GW9XCRU",
+      "userId": "200000001",
+      "type": "withdraw_approved",
+      "amountAWC": -100,
+      "amountUSD": 0,
+      "amountUZS": -1000000,
+      "status": "completed",
+      "paymentMethod": null,
+      "paymentDetailsReference": null,
+      "description": "Withdrawal approved",
+      "referenceId": null,
+      "adminNotes": "",
+      "createdAt": "2026-10-10T14:14:36.200Z",
+      "updatedAt": "2026-10-10T14:14:36.200Z"
+    },
+    {
+      "id": "tx_P5E9PE44X3XF",
+      "userId": "200000001",
+      "type": "topup_pending",
+      "amountAWC": 0.1,
+      "amountUSD": 0.08,
+      "amountUZS": 1000,
+      "status": "completed",
+      "paymentMethod": "pm_manual_card",
+      "paymentDetailsReference": "1234",
+      "description": "Manual top-up awaiting admin verification",
+      "referenceId": null,
+      "adminNotes": "",
+      "createdAt": "2026-10-10T14:20:42.244Z",
+      "updatedAt": "2026-10-10T14:21:31.404Z"
+    },
+    {
+      "id": "tx_XRL6QHU6SCJP",
+      "userId": "200000001",
+      "type": "withdraw_approved",
+      "amountAWC": -100,
+      "amountUSD": 0,
+      "amountUZS": -1000000,
+      "status": "completed",
+      "paymentMethod": null,
+      "paymentDetailsReference": null,
+      "description": "Withdrawal approved",
+      "referenceId": null,
+      "adminNotes": "",
+      "createdAt": "2026-10-10T14:20:56.072Z",
+      "updatedAt": "2026-10-10T14:20:56.072Z"
+    },
+    {
+      "id": "tx_9MSQEATBRXS3",
+      "userId": "200000001",
+      "type": "topup_pending",
+      "amountAWC": 0.1,
+      "amountUSD": 0.08,
+      "amountUZS": 1000,
+      "status": "completed",
+      "paymentMethod": "pm_manual_card",
+      "paymentDetailsReference": "12344",
+      "description": "Manual top-up awaiting admin verification",
+      "referenceId": null,
+      "adminNotes": "",
+      "createdAt": "2026-10-10T14:21:55.747Z",
+      "updatedAt": "2026-10-10T14:22:00.319Z"
+    },
+    {
+      "id": "tx_mv2hk5bnj9at",
+      "userId": "100000001",
+      "type": "listing_fee",
+      "amountAWC": -1,
+      "amountUZS": -10000,
+      "amountUSD": 0,
+      "status": "completed",
+      "description": "Listing fee: epic",
+      "referenceId": "HREH87W",
+      "paymentMethod": "AWC",
+      "adminNotes": "",
+      "createdAt": "2026-10-10T14:24:48.371Z",
+      "updatedAt": "2026-10-10T14:24:48.371Z"
+    },
+    {
+      "id": "tx_mv2ihh6fbddc",
+      "userId": "300000001",
+      "type": "purchase",
+      "amountAWC": -500,
+      "amountUZS": -5000000,
+      "status": "completed",
+      "description": "Bought: let for dead I",
+      "referenceId": "ord_QPGRVJVSKJWD",
+      "paymentMethod": "AWC",
+      "createdAt": "2026-10-10T14:50:43.383Z",
+      "updatedAt": "2026-10-10T14:50:43.384Z"
+    },
+    {
+      "id": "tx_mv2ihh6gsua0",
+      "userId": "100000001",
+      "type": "sale_income",
+      "amountAWC": 500,
+      "amountUZS": 5000000,
+      "status": "completed",
+      "description": "Sold: let for dead I",
+      "referenceId": "ord_QPGRVJVSKJWD",
+      "paymentMethod": "AWC",
+      "createdAt": "2026-10-10T14:50:43.384Z",
+      "updatedAt": "2026-10-10T14:50:43.384Z"
+    },
+    {
+      "id": "tx_mv2iitpybz6o",
+      "userId": "300000001",
+      "type": "listing_fee",
+      "amountAWC": -1,
+      "amountUZS": -10000,
+      "amountUSD": 0,
+      "status": "completed",
+      "description": "Listing fee: epic",
+      "referenceId": "7GZD3S9",
+      "paymentMethod": "AWC",
+      "adminNotes": "",
+      "createdAt": "2026-10-10T14:51:46.294Z",
+      "updatedAt": "2026-10-10T14:51:46.294Z"
+    },
+    {
+      "id": "tx_mv2inw2deqcw",
+      "userId": "100000001",
+      "type": "premium_subscription",
+      "amountAWC": -10,
+      "amountUZS": -100000,
+      "amountUSD": -7.91,
+      "status": "completed",
+      "description": "Enterprise (monthly) subscription",
+      "referenceId": "sub_AYJ637AJ4CGY",
+      "paymentMethod": "AWC",
+      "adminNotes": "",
+      "createdAt": "2026-10-10T14:55:42.613Z",
+      "updatedAt": "2026-10-10T14:55:42.613Z"
     }
   ],
-  "escrows": [],
+  "escrows": [
+    {
+      "id": "esc_TLA5HT4UR698",
+      "websiteId": "HREH87W",
+      "orderId": "ord_4X4MAKQMCCDX",
+      "buyerId": "200000001",
+      "sellerId": "100000001",
+      "amountUZS": 10000,
+      "amountUSD": 0.7905,
+      "amountAWC": 1,
+      "status": "pending",
+      "adminNotes": "YAXSHI",
+      "createdAt": "2026-10-10T14:24:57.640Z",
+      "updatedAt": "2026-10-10T14:25:32.819Z"
+    },
+    {
+      "id": "esc_HFQ7RSRSQQ6M",
+      "websiteId": "NAMQVZ2",
+      "orderId": "ord_XPFPYT33KD6V",
+      "buyerId": "300000001",
+      "sellerId": "100000001",
+      "amountUZS": 10000000,
+      "amountUSD": 790.5138,
+      "amountAWC": 1000,
+      "status": "pending",
+      "adminNotes": "",
+      "createdAt": "2026-10-10T14:50:22.711Z",
+      "updatedAt": "2026-10-10T14:50:22.711Z"
+    },
+    {
+      "id": "esc_W634P875P9PT",
+      "websiteId": "7GZD3S9",
+      "orderId": "ord_8FQWZFW3SHKY",
+      "buyerId": "200000001",
+      "sellerId": "300000001",
+      "amountUZS": 7000,
+      "amountUSD": 0.5534,
+      "amountAWC": 0.7,
+      "status": "pending",
+      "adminNotes": "",
+      "createdAt": "2026-10-10T14:51:53.248Z",
+      "updatedAt": "2026-10-10T14:51:53.248Z"
+    }
+  ],
   "withdrawals": [
     {
       "id": "wd_9YLX5XVWL6EC",
       "userId": "200000001",
       "amountAWC": 100,
       "amountUZS": 1000000,
-      "status": "pending",
+      "status": "approved",
       "cardNumber": "5614681887750416",
       "adminNotes": "",
       "createdAt": "2026-10-10T12:29:38.796Z",
-      "updatedAt": "2026-10-10T12:29:38.796Z"
+      "updatedAt": "2026-10-10T14:14:36.192Z"
+    },
+    {
+      "id": "wd_N9WKJXZSEKQW",
+      "userId": "200000001",
+      "amountAWC": 100,
+      "amountUZS": 1000000,
+      "status": "approved",
+      "cardNumber": "5614681887750416",
+      "adminNotes": "",
+      "createdAt": "2026-10-10T14:15:31.469Z",
+      "updatedAt": "2026-10-10T14:20:56.065Z"
     }
   ],
   "refunds": [],
-  "premiumSubscriptions": [],
+  "premiumSubscriptions": [
+    {
+      "id": "sub_AYJ637AJ4CGY",
+      "userId": "100000001",
+      "planId": "plan_enterprise",
+      "plan": "Enterprise",
+      "billingPeriod": "monthly",
+      "status": "active",
+      "startDate": "2026-10-10T14:55:42.613Z",
+      "endDate": "2026-11-10T14:55:42.612Z",
+      "autoRenew": false,
+      "paymentMethod": "AWC",
+      "priceUZS": 100000,
+      "priceAWC": 10,
+      "priceUSD": 7.91,
+      "trialUsed": false,
+      "createdAt": "2026-10-10T14:55:42.613Z",
+      "updatedAt": "2026-10-10T14:55:42.613Z"
+    }
+  ],
   "premiumPlans": [
     {
       "id": "plan_plus",
@@ -364,6 +848,108 @@
       "target": null,
       "meta": {},
       "timestamp": "2026-09-14T14:01:43.170Z"
+    },
+    {
+      "id": "log_1791641676523_ihemzb",
+      "adminId": "100000001",
+      "action": "withdraw_approve",
+      "target": "wd_9YLX5XVWL6EC",
+      "meta": {},
+      "timestamp": "2026-10-10T14:14:36.523Z"
+    },
+    {
+      "id": "log_1791642056601_df6bcp",
+      "adminId": "100000001",
+      "action": "withdraw_approve",
+      "target": "wd_N9WKJXZSEKQW",
+      "meta": {},
+      "timestamp": "2026-10-10T14:20:56.602Z"
+    },
+    {
+      "id": "log_1791642091811_iqo924",
+      "adminId": "100000001",
+      "action": "payment_approve",
+      "target": "tx_P5E9PE44X3XF",
+      "meta": {},
+      "timestamp": "2026-10-10T14:21:31.811Z"
+    },
+    {
+      "id": "log_1791642120461_u61bp8",
+      "adminId": "100000001",
+      "action": "payment_approve",
+      "target": "tx_9MSQEATBRXS3",
+      "meta": {},
+      "timestamp": "2026-10-10T14:22:00.461Z"
+    },
+    {
+      "id": "log_1791642333273_hahkxq",
+      "adminId": "100000001",
+      "action": "escrow_update",
+      "target": "esc_TLA5HT4UR698",
+      "meta": {
+        "status": "pending"
+      },
+      "timestamp": "2026-10-10T14:25:33.273Z"
+    },
+    {
+      "id": "log_1791642490555_75tita",
+      "adminId": "100000001",
+      "action": "settings_update",
+      "target": null,
+      "meta": {
+        "keys": [
+          "topics"
+        ]
+      },
+      "timestamp": "2026-10-10T14:28:10.555Z"
+    },
+    {
+      "id": "log_1791642495032_v4hnkh",
+      "adminId": "100000001",
+      "action": "settings_update",
+      "target": null,
+      "meta": {
+        "keys": [
+          "topics"
+        ]
+      },
+      "timestamp": "2026-10-10T14:28:15.032Z"
+    },
+    {
+      "id": "log_1791642501612_0cwe1h",
+      "adminId": "100000001",
+      "action": "settings_update",
+      "target": null,
+      "meta": {
+        "keys": [
+          "topics"
+        ]
+      },
+      "timestamp": "2026-10-10T14:28:21.612Z"
+    },
+    {
+      "id": "log_1791642509913_33bk2u",
+      "adminId": "100000001",
+      "action": "settings_update",
+      "target": null,
+      "meta": {
+        "keys": [
+          "topics"
+        ]
+      },
+      "timestamp": "2026-10-10T14:28:29.913Z"
+    },
+    {
+      "id": "log_1791642515508_rr2vy4",
+      "adminId": "100000001",
+      "action": "settings_update",
+      "target": null,
+      "meta": {
+        "keys": [
+          "topics"
+        ]
+      },
+      "timestamp": "2026-10-10T14:28:35.508Z"
     }
   ],
   "securityLogs": [],
@@ -395,7 +981,12 @@
       "AI",
       "Online Shop",
       "3D Game",
-      "Other"
+      "Other",
+      "2D Game",
+      "Platform",
+      "Crypto",
+      "Envoriment",
+      "Goverement"
     ],
     "social": {
       "github": "https://github.com/ttnaceri/",
@@ -442,7 +1033,8 @@
         "order": "🛒 New order: {name}. Order ID: {orderId}",
         "payment": "💳 Payment status: {status}"
       }
-    }
+    },
+    "updatedAt": "2026-10-10T14:28:35.505Z"
   },
   "apiConfig": {
     "exchangeRate": {

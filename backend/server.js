@@ -35,6 +35,9 @@ config.escrow       = config.escrow || { sellerTransferDays: 7, verificationDays
 config.security     = config.security || { maxLoginAttempts: 5, lockoutMinutes: 15, rateLimitWindowMs: 60000, rateLimitMaxRequests: 120, passwordMinLength: 8 };
 config.cleanup      = config.cleanup || { enabled: true, intervalMs: 3600000, soldWebsiteTtlMs: 86400000, sessionTtlMs: 604800000 };
 
+// ============================================================
+// LOCALHOST:3000 — MAJBURIY
+// ============================================================
 const PORT = Number(process.env.PORT) || Number(config.server.port) || 3000;
 const HOST = process.env.HOST || config.server.host || '0.0.0.0';
 
@@ -90,9 +93,9 @@ const forbiddenTgApi = optionalRequire('./api/forbidden-telegram', 'api/forbidde
 const ROOT = path.resolve(__dirname, '..');
 
 // ============================================================
-// STATIC FILE CACHE (RAM) — TEZLASHTIRISH
+// STATIC FILE CACHE (RAM)
 // ============================================================
-const staticCache = new Map(); // filePath → { content, mtime, contentType, etag, size }
+const staticCache = new Map();
 
 const MIME = {
   '.html': 'text/html; charset=utf-8',
@@ -192,13 +195,12 @@ function notFound(req, res) {
 }
 
 // ============================================================
-// STATIC FILE SERVING — TEZ (RAM kesh)
+// STATIC FILE SERVING
 // ============================================================
 function sendFile(req, res, filePath) {
   const cached = getCachedFile(filePath);
   if (!cached) return notFound(req, res);
 
-  // ETag — 304 qaytarish (tez, 0 ta byte)
   const ifNoneMatch = req.headers['if-none-match'];
   if (ifNoneMatch && ifNoneMatch === cached.etag) {
     res.writeHead(304);
@@ -212,9 +214,6 @@ function sendFile(req, res, filePath) {
     'ETag': cached.etag
   };
 
-  // HTML — har doim yangi (no-cache)
-  // CSS/JS — 1 kun cache (immutable)
-  // Rasm/shrift — 7 kun cache (immutable)
   if (ext === '.html') {
     headers['Cache-Control'] = 'no-cache, no-store, must-revalidate, max-age=0';
     headers['Pragma'] = 'no-cache';
@@ -226,11 +225,10 @@ function sendFile(req, res, filePath) {
   }
 
   res.writeHead(200, headers);
-  res.end(cached.content); // RAM dan to'g'ridan-to'g'ri
+  res.end(cached.content);
 }
 
 function serveStatic(req, res, pathname) {
-  // Favicon
   if (pathname === '/favicon.ico') {
     const fav = path.join(ROOT, 'frontend', 'assets', 'image', 'favicon.png');
     if (fs.existsSync(fav)) return sendFile(req, res, fav);
@@ -240,7 +238,6 @@ function serveStatic(req, res, pathname) {
     return res.end();
   }
 
-  // /search/:query → 302 redirect to search.html?q=...
   if (pathname.startsWith('/search/') && pathname.length > 8) {
     const searchQuery = decodeURIComponent(pathname.slice(8)).replace(/\+/g, ' ');
     res.writeHead(302, {
@@ -249,13 +246,11 @@ function serveStatic(req, res, pathname) {
     return res.end();
   }
 
-  // /search (bo'sh) → search.html
   if (pathname === '/search' || pathname === '/search/') {
     res.writeHead(302, { 'Location': '/frontend/pages/search.html' });
     return res.end();
   }
 
-  // Root → index.html yoki main.html
   if (pathname === '/' || pathname === '') {
     const rootIndex = path.join(ROOT, 'index.html');
     if (fs.existsSync(rootIndex)) return sendFile(req, res, rootIndex);
@@ -263,7 +258,6 @@ function serveStatic(req, res, pathname) {
     return res.end();
   }
 
-  // Path traversal himoyasi
   let decoded;
   try { decoded = decodeURIComponent(pathname); }
   catch (_) { return notFound(req, res); }
@@ -302,18 +296,16 @@ const server = http.createServer(async (req, res) => {
 
   try { securityHeaders(req, res, () => {}); } catch (_) {}
 
-  // CORS preflight
   if (req.method === 'OPTIONS') {
     res.writeHead(204, corsHeaders(req));
     return res.end();
   }
 
-  // Static (API emas)
   if (!pathname.startsWith('/api/')) {
     return serveStatic(req, res, pathname);
   }
 
-  // ---- Health check ----
+  // ==================== HEALTH ====================
   if (pathname === '/api/health' && req.method === 'GET') {
     return sendJson(req, res, 200, {
       success: true,
@@ -322,13 +314,14 @@ const server = http.createServer(async (req, res) => {
         uptime: Math.round(process.uptime()),
         ts: new Date().toISOString(),
         port: PORT,
+        host: HOST,
         node: process.version,
         cacheSize: staticCache.size
       }
     });
   }
 
-  // ---- Maintenance ----
+  // ==================== MAINTENANCE ====================
   try {
     const data = readData();
     if (data && data.settings && data.settings.maintenanceMode &&
@@ -341,17 +334,15 @@ const server = http.createServer(async (req, res) => {
     }
   } catch (_) {}
 
-  // ---- Rate limit ----
+  // ==================== RATE LIMIT ====================
   let passed = false;
   try { rateLimiter(req, res, () => { passed = true; }); }
   catch (_) { passed = true; }
   if (!passed) return;
 
-  // ============================================================
-  // API ROUTES
-  // ============================================================
+  // ==================== API ROUTES ====================
   try {
-    // ==================== AUTH ====================
+    // ---------- AUTH ----------
     if (pathname === '/api/auth/request-verification' && req.method === 'POST') return await authApi.requestVerification(req, res);
     if (pathname === '/api/auth/register'             && req.method === 'POST') return await authApi.register(req, res);
     if (pathname === '/api/auth/login'                && req.method === 'POST') return await authApi.login(req, res);
@@ -360,24 +351,24 @@ const server = http.createServer(async (req, res) => {
     if (pathname === '/api/auth/reset-password'       && req.method === 'POST') return await authApi.resetPassword(req, res);
     if (pathname === '/api/auth/me'                   && req.method === 'GET')  return authRequired(req, res, () => authApi.me(req, res));
 
-    // ==================== PUBLIC ====================
+    // ---------- PUBLIC ----------
     if (pathname === '/api/settings/public' && req.method === 'GET' && settingsApi) return settingsApi.publicSettings(req, res);
     if (pathname === '/api/events'          && req.method === 'GET' && eventsApi)   return eventsApi.list(req, res);
     if (pathname === '/api/cards/public'    && req.method === 'GET' && cardsApi)    return cardsApi.publicCard(req, res);
 
-    // ==================== UPLOAD ====================
+    // ---------- UPLOAD ----------
     if (pathname === '/api/upload' && req.method === 'POST' && uploadApi) {
       return authRequired(req, res, () => uploadApi.uploadFile(req, res));
     }
 
-    // ==================== USERS ====================
+    // ---------- USERS ----------
     if (pathname === '/api/users/profile'      && req.method === 'GET') return authRequired(req, res, () => usersApi.profile(req, res));
     if (pathname === '/api/users/profile'      && req.method === 'PUT') return authRequired(req, res, () => usersApi.updateProfile(req, res));
     if (pathname === '/api/users/websites'     && req.method === 'GET') return authRequired(req, res, () => usersApi.myWebsites(req, res));
     if (pathname === '/api/users/transactions' && req.method === 'GET') return authRequired(req, res, () => usersApi.myTransactions(req, res));
     if (pathname === '/api/users/reviews'      && req.method === 'GET') return authRequired(req, res, () => usersApi.myReviews(req, res));
 
-    // ==================== WEBSITES ====================
+    // ---------- WEBSITES ----------
     if (pathname === '/api/websites'        && req.method === 'GET')  return await websitesApi.list(req, res, query);
     if (pathname === '/api/websites/search' && req.method === 'GET')  return await websitesApi.search(req, res, query);
     if (pathname === '/api/websites'        && req.method === 'POST') return authRequired(req, res, () => websitesApi.create(req, res));
@@ -390,7 +381,7 @@ const server = http.createServer(async (req, res) => {
       if (m && req.method === 'GET') return await websitesApi.detail(req, res, m[1]);
     }
 
-    // ==================== TOKEN ====================
+    // ---------- TOKEN ----------
     if (pathname === '/api/token/balance'  && req.method === 'GET')  return authRequired(req, res, () => tokenApi.balance(req, res));
     if (pathname === '/api/token/rate'     && req.method === 'GET')  return tokenApi.rate(req, res);
     if (pathname === '/api/token/history'  && req.method === 'GET')  return authRequired(req, res, () => tokenApi.history(req, res));
@@ -398,19 +389,21 @@ const server = http.createServer(async (req, res) => {
     if (pathname === '/api/token/transfer' && req.method === 'POST') return authRequired(req, res, () => tokenApi.transfer(req, res));
     if (pathname === '/api/token/withdraw' && req.method === 'POST') return authRequired(req, res, () => tokenApi.withdraw(req, res));
 
-    // ==================== PREMIUM ====================
+    // ---------- PREMIUM ----------
     if (pathname === '/api/premium/plans'     && req.method === 'GET')  return await premiumApi.plans(req, res);
     if (pathname === '/api/premium/subscribe' && req.method === 'POST') return authRequired(req, res, () => premiumApi.subscribe(req, res));
     if (pathname === '/api/premium/status'    && req.method === 'GET')  return authRequired(req, res, () => premiumApi.status(req, res));
     if (pathname === '/api/premium/cancel'    && req.method === 'POST') return authRequired(req, res, () => premiumApi.cancel(req, res));
     if (pathname === '/api/premium/trial'     && req.method === 'POST') return authRequired(req, res, () => premiumApi.trial(req, res));
 
-    // ==================== ADMIN: CORE ====================
+    // ==================== ADMIN ====================
+
+    // ---------- CORE ----------
     if (pathname === '/api/admin/stats'     && req.method === 'GET') return guard('moderator')(req, res, () => adminApi.stats(req, res));
     if (pathname === '/api/admin/logs'      && req.method === 'GET') return guard('moderator')(req, res, () => adminApi.logs(req, res));
     if (pathname === '/api/admin/analytics' && req.method === 'GET') return guard('moderator')(req, res, () => adminApi.analytics(req, res));
 
-    // ==================== ADMIN: USERS ====================
+    // ---------- USERS ----------
     if (pathname === '/api/admin/users'                && req.method === 'GET')  return guard('moderator')(req, res, () => adminApi.usersList(req, res));
     if (pathname === '/api/admin/users/create'         && req.method === 'POST') return guard('super_admin')(req, res, () => adminApi.usersCreate(req, res));
     if (pathname === '/api/admin/users/block'          && req.method === 'POST') return guard('admin')(req, res, () => adminApi.blockUser(req, res));
@@ -423,164 +416,164 @@ const server = http.createServer(async (req, res) => {
     if (pathname === '/api/admin/users/ban-duration'   && req.method === 'POST') return guard('admin')(req, res, () => adminApi.banUserWithDuration(req, res));
     if (pathname === '/api/admin/users/awc-adjust'     && req.method === 'POST') return guard('admin')(req, res, () => adminApi.awcAdjust(req, res));
 
-    // ==================== ADMIN: FORBIDDEN TELEGRAM ====================
+    // ---------- FORBIDDEN TELEGRAM ----------
     if (forbiddenTgApi) {
       if (pathname === '/api/admin/forbidden-telegram' && req.method === 'GET')    return guard('moderator')(req, res, () => forbiddenTgApi.list(req, res));
       if (pathname === '/api/admin/forbidden-telegram' && req.method === 'POST')   return guard('admin')(req, res, () => forbiddenTgApi.create(req, res));
       if (pathname === '/api/admin/forbidden-telegram' && req.method === 'DELETE') return guard('admin')(req, res, () => forbiddenTgApi.remove(req, res));
     }
 
-    // ==================== ADMIN: ADMINS ====================
+    // ---------- ADMINS ----------
     if (pathname === '/api/admin/admins' && req.method === 'GET')    return guard('admin')(req, res, () => adminApi.adminsList(req, res));
     if (pathname === '/api/admin/admins' && req.method === 'POST')   return guard('super_admin')(req, res, () => adminApi.adminsCreate(req, res));
     if (pathname === '/api/admin/admins' && req.method === 'PUT')    return guard('super_admin')(req, res, () => adminApi.adminsUpdate(req, res));
     if (pathname === '/api/admin/admins' && req.method === 'DELETE') return guard('super_admin')(req, res, () => adminApi.adminsDelete(req, res));
 
-    // ==================== ADMIN: WEBSITES ====================
+    // ---------- WEBSITES ----------
     if (pathname === '/api/admin/websites' && req.method === 'GET')    return guard('moderator')(req, res, () => adminApi.websitesList(req, res));
     if (pathname === '/api/admin/websites' && req.method === 'PUT')    return guard('admin')(req, res, () => adminApi.websiteUpdate(req, res));
     if (pathname === '/api/admin/websites' && req.method === 'DELETE') return guard('admin')(req, res, () => adminApi.websiteDelete(req, res));
 
-    // ==================== ADMIN: ESCROW ====================
+    // ---------- ESCROW ----------
     if (pathname === '/api/admin/escrow'        && req.method === 'GET')  return guard('moderator')(req, res, () => adminApi.escrowList(req, res));
     if (pathname === '/api/admin/escrow/update' && req.method === 'POST') return guard('admin')(req, res, () => adminApi.escrowUpdate(req, res));
 
-    // ==================== ADMIN: WITHDRAW ====================
+    // ---------- WITHDRAW ----------
     if (pathname === '/api/admin/withdraw'         && req.method === 'GET')  return guard('moderator')(req, res, () => adminApi.withdrawList(req, res));
     if (pathname === '/api/admin/withdraw/approve' && req.method === 'POST') return guard('admin')(req, res, () => adminApi.withdrawApprove(req, res));
 
-    // ==================== ADMIN: PAYMENTS ====================
+    // ---------- PAYMENTS ----------
     if (pathname === '/api/admin/transactions'    && req.method === 'GET')  return guard('moderator')(req, res, () => adminApi.transactionsList(req, res));
     if (pathname === '/api/admin/payments/verify' && req.method === 'POST') return guard('admin')(req, res, () => adminApi.verifyPayment(req, res));
 
-    // ==================== ADMIN: CARDS ====================
+    // ---------- CARDS ----------
     if (pathname === '/api/admin/cards' && req.method === 'GET'    && cardsApi) return guard('moderator')(req, res, () => cardsApi.adminList(req, res));
     if (pathname === '/api/admin/cards' && req.method === 'POST'   && cardsApi) return guard('admin')(req, res, () => cardsApi.adminCreate(req, res));
     if (pathname === '/api/admin/cards' && req.method === 'PUT'    && cardsApi) return guard('admin')(req, res, () => cardsApi.adminUpdate(req, res));
     if (pathname === '/api/admin/cards' && req.method === 'DELETE' && cardsApi) return guard('admin')(req, res, () => cardsApi.adminDelete(req, res));
 
-    // ==================== ADMIN: PROMOCODES ====================
+    // ---------- PROMOCODES ----------
     if (pathname === '/api/admin/promocodes' && req.method === 'GET')    return guard('moderator')(req, res, () => adminApi.promocodesList(req, res));
     if (pathname === '/api/admin/promocodes' && req.method === 'POST')   return guard('admin')(req, res, () => adminApi.promocodesCreate(req, res));
     if (pathname === '/api/admin/promocodes' && req.method === 'PUT')    return guard('admin')(req, res, () => adminApi.promocodesUpdate(req, res));
     if (pathname === '/api/admin/promocodes' && req.method === 'DELETE') return guard('admin')(req, res, () => adminApi.promocodesDelete(req, res));
 
-    // ==================== ADMIN: DISCOUNTS ====================
+    // ---------- DISCOUNTS ----------
     if (pathname === '/api/admin/discounts' && req.method === 'GET')    return guard('moderator')(req, res, () => adminApi.discountsList(req, res));
     if (pathname === '/api/admin/discounts' && req.method === 'POST')   return guard('admin')(req, res, () => adminApi.discountsCreate(req, res));
     if (pathname === '/api/admin/discounts' && req.method === 'PUT')    return guard('admin')(req, res, () => adminApi.discountsUpdate(req, res));
     if (pathname === '/api/admin/discounts' && req.method === 'DELETE') return guard('admin')(req, res, () => adminApi.discountsDelete(req, res));
 
-    // ==================== ADMIN: EVENTS ====================
+    // ---------- EVENTS ----------
     if (pathname === '/api/admin/events' && req.method === 'GET')    return guard('moderator')(req, res, () => adminApi.eventsList(req, res));
     if (pathname === '/api/admin/events' && req.method === 'POST')   return guard('admin')(req, res, () => adminApi.eventsCreate(req, res));
     if (pathname === '/api/admin/events' && req.method === 'PUT')    return guard('admin')(req, res, () => adminApi.eventsUpdate(req, res));
     if (pathname === '/api/admin/events' && req.method === 'DELETE') return guard('admin')(req, res, () => adminApi.eventsDelete(req, res));
 
-    // ==================== ADMIN: ANNOUNCEMENTS ====================
+    // ---------- ANNOUNCEMENTS ----------
     if (pathname === '/api/admin/announcements' && req.method === 'GET')    return guard('moderator')(req, res, () => adminApi.announcementsList(req, res));
     if (pathname === '/api/admin/announcements' && req.method === 'POST')   return guard('admin')(req, res, () => adminApi.announcementsCreate(req, res));
     if (pathname === '/api/admin/announcements' && req.method === 'DELETE') return guard('admin')(req, res, () => adminApi.announcementsDelete(req, res));
 
-    // ==================== ADMIN: REVIEWS ====================
+    // ---------- REVIEWS ----------
     if (pathname === '/api/admin/reviews' && req.method === 'GET')    return guard('moderator')(req, res, () => adminApi.reviewsList(req, res));
     if (pathname === '/api/admin/reviews' && req.method === 'PUT')    return guard('admin')(req, res, () => adminApi.reviewsUpdate(req, res));
     if (pathname === '/api/admin/reviews' && req.method === 'DELETE') return guard('admin')(req, res, () => adminApi.reviewsDelete(req, res));
 
-    // ==================== ADMIN: FEATURED ====================
+    // ---------- FEATURED ----------
     if (pathname === '/api/admin/featured'        && req.method === 'GET')  return guard('moderator')(req, res, () => adminApi.featuredList(req, res));
     if (pathname === '/api/admin/featured/toggle' && req.method === 'POST') return guard('admin')(req, res, () => adminApi.featuredToggle(req, res));
 
-    // ==================== ADMIN: BADGES ====================
+    // ---------- BADGES ----------
     if (pathname === '/api/admin/badges' && req.method === 'GET'    && adminApi.badgesList)   return guard('moderator')(req, res, () => adminApi.badgesList(req, res));
     if (pathname === '/api/admin/badges' && req.method === 'POST'   && adminApi.badgesCreate) return guard('admin')(req, res, () => adminApi.badgesCreate(req, res));
     if (pathname === '/api/admin/badges' && req.method === 'PUT'    && adminApi.badgesUpdate) return guard('admin')(req, res, () => adminApi.badgesUpdate(req, res));
     if (pathname === '/api/admin/badges' && req.method === 'DELETE' && adminApi.badgesDelete) return guard('admin')(req, res, () => adminApi.badgesDelete(req, res));
 
-    // ==================== ADMIN: MODERATION ====================
+    // ---------- MODERATION ----------
     if (pathname === '/api/admin/words' && req.method === 'GET') return guard('moderator')(req, res, () => adminApi.wordsList(req, res));
     if (pathname === '/api/admin/words' && req.method === 'PUT') return guard('admin')(req, res, () => adminApi.wordsUpdate(req, res));
 
-    // ==================== ADMIN: SETTINGS ====================
+    // ---------- SETTINGS ----------
     if (pathname === '/api/admin/settings' && req.method === 'GET') return guard('moderator')(req, res, () => adminApi.settingsGet(req, res));
     if (pathname === '/api/admin/settings' && req.method === 'PUT') return guard('admin')(req, res, () => adminApi.settingsUpdate(req, res));
 
-    // ==================== ADMIN: PRICES ====================
+    // ---------- PRICES ----------
     if (pathname === '/api/admin/prices' && req.method === 'GET') return guard('moderator')(req, res, () => adminApi.pricesGet(req, res));
     if (pathname === '/api/admin/prices' && req.method === 'PUT') return guard('admin')(req, res, () => adminApi.pricesUpdate(req, res));
 
-    // ==================== ADMIN: PREMIUM ====================
+    // ---------- PREMIUM ----------
     if (pathname === '/api/admin/premium/plans'         && req.method === 'GET') return guard('moderator')(req, res, () => adminApi.premiumPlansList(req, res));
     if (pathname === '/api/admin/premium/plans'         && req.method === 'PUT') return guard('admin')(req, res, () => adminApi.premiumPlansUpdate(req, res));
     if (pathname === '/api/admin/premium/subscriptions' && req.method === 'GET') return guard('moderator')(req, res, () => adminApi.premiumSubscriptionsList(req, res));
     if (pathname === '/api/admin/premium/subscriptions' && req.method === 'PUT') return guard('admin')(req, res, () => adminApi.premiumSubscriptionUpdate(req, res));
 
-    // ==================== ADMIN: FORCE SUBSCRIBE ====================
+    // ---------- FORCE SUBSCRIBE ----------
     if (pathname === '/api/admin/force-subscribe' && req.method === 'GET')    return guard('moderator')(req, res, () => adminApi.forceSubList(req, res));
     if (pathname === '/api/admin/force-subscribe' && req.method === 'POST')   return guard('admin')(req, res, () => adminApi.forceSubCreate(req, res));
     if (pathname === '/api/admin/force-subscribe' && req.method === 'PUT')    return guard('admin')(req, res, () => adminApi.forceSubUpdate(req, res));
     if (pathname === '/api/admin/force-subscribe' && req.method === 'DELETE') return guard('admin')(req, res, () => adminApi.forceSubDelete(req, res));
 
-    // ==================== ADMIN: ENVIRONMENT ====================
+    // ---------- ENVIRONMENT ----------
     if (pathname === '/api/admin/environment' && req.method === 'GET')    return guard('admin')(req, res, () => adminApi.envList(req, res));
     if (pathname === '/api/admin/environment' && req.method === 'POST')   return guard('super_admin')(req, res, () => adminApi.envCreate(req, res));
     if (pathname === '/api/admin/environment' && req.method === 'DELETE') return guard('super_admin')(req, res, () => adminApi.envDelete(req, res));
 
-    // ==================== ADMIN: MESSAGES ====================
+    // ---------- MESSAGES ----------
     if (pathname === '/api/admin/messages' && req.method === 'GET')    return guard('moderator')(req, res, () => adminApi.messagesList(req, res));
     if (pathname === '/api/admin/messages' && req.method === 'PUT')    return guard('moderator')(req, res, () => adminApi.messagesUpdate(req, res));
     if (pathname === '/api/admin/messages' && req.method === 'DELETE') return guard('admin')(req, res, () => adminApi.messagesDelete(req, res));
 
-    // ==================== ADMIN: TODO ====================
+    // ---------- TODO ----------
     if (pathname === '/api/admin/todo' && req.method === 'GET')    return guard('moderator')(req, res, () => adminApi.todoList(req, res));
     if (pathname === '/api/admin/todo' && req.method === 'POST')   return guard('moderator')(req, res, () => adminApi.todoCreate(req, res));
     if (pathname === '/api/admin/todo' && req.method === 'PUT')    return guard('moderator')(req, res, () => adminApi.todoUpdate(req, res));
     if (pathname === '/api/admin/todo' && req.method === 'DELETE') return guard('moderator')(req, res, () => adminApi.todoDelete(req, res));
 
-    // ==================== ADMIN: SCHEDULE ====================
+    // ---------- SCHEDULE ----------
     if (pathname === '/api/admin/schedule' && req.method === 'GET')    return guard('moderator')(req, res, () => adminApi.scheduleList(req, res));
     if (pathname === '/api/admin/schedule' && req.method === 'POST')   return guard('admin')(req, res, () => adminApi.scheduleCreate(req, res));
     if (pathname === '/api/admin/schedule' && req.method === 'DELETE') return guard('admin')(req, res, () => adminApi.scheduleDelete(req, res));
 
-    // ==================== ADMIN: POPUPS ====================
+    // ---------- POPUPS ----------
     if (pathname === '/api/admin/popups' && req.method === 'GET')    return guard('moderator')(req, res, () => adminApi.popupList(req, res));
     if (pathname === '/api/admin/popups' && req.method === 'POST')   return guard('admin')(req, res, () => adminApi.popupCreate(req, res));
     if (pathname === '/api/admin/popups' && req.method === 'PUT')    return guard('admin')(req, res, () => adminApi.popupUpdate(req, res));
     if (pathname === '/api/admin/popups' && req.method === 'DELETE') return guard('admin')(req, res, () => adminApi.popupDelete(req, res));
 
-    // ==================== ADMIN: NOTIFICATIONS ====================
+    // ---------- NOTIFICATIONS ----------
     if (pathname === '/api/admin/notifications' && req.method === 'GET')    return guard('moderator')(req, res, () => adminApi.notificationsList(req, res));
     if (pathname === '/api/admin/notifications' && req.method === 'POST')   return guard('admin')(req, res, () => adminApi.notificationsCreate(req, res));
     if (pathname === '/api/admin/notifications' && req.method === 'DELETE') return guard('admin')(req, res, () => adminApi.notificationsDelete(req, res));
 
-    // ==================== ADMIN: BACKUP ====================
+    // ---------- BACKUP ----------
     if (pathname === '/api/admin/backup'         && req.method === 'POST') return guard('admin')(req, res, () => adminApi.backup(req, res));
     if (pathname === '/api/admin/backup'         && req.method === 'GET')  return guard('moderator')(req, res, () => adminApi.backupList(req, res));
     if (pathname === '/api/admin/backup/restore' && req.method === 'POST') return guard('super_admin')(req, res, () => adminApi.backupRestore(req, res));
 
-    // ==================== ADMIN: EXPORT / IMPORT ====================
+    // ---------- EXPORT / IMPORT ----------
     if (pathname === '/api/admin/export' && req.method === 'GET')  return guard('admin')(req, res, () => adminApi.exportData(req, res, query));
     if (pathname === '/api/admin/import' && req.method === 'POST') return guard('super_admin')(req, res, () => adminApi.importData(req, res));
 
-    // ==================== ADMIN: SECURITY ====================
+    // ---------- SECURITY ----------
     if (pathname === '/api/admin/security'     && req.method === 'GET')  return guard('admin')(req, res, () => adminApi.securityList(req, res));
     if (pathname === '/api/admin/security'     && req.method === 'PUT')  return guard('super_admin')(req, res, () => adminApi.securityUpdate(req, res));
     if (pathname === '/api/admin/security/log' && req.method === 'POST') return guard('admin')(req, res, () => adminApi.securityLogAdd(req, res));
 
-    // ==================== ADMIN: SEO ====================
+    // ---------- SEO ----------
     if (pathname === '/api/admin/seo' && req.method === 'GET') return guard('moderator')(req, res, () => adminApi.seoGet(req, res));
     if (pathname === '/api/admin/seo' && req.method === 'PUT') return guard('admin')(req, res, () => adminApi.seoUpdate(req, res));
 
-    // ==================== ADMIN: TELEGRAM SETTINGS ====================
+    // ---------- TELEGRAM SETTINGS ----------
     if (pathname === '/api/admin/telegram'      && req.method === 'GET')  return guard('admin')(req, res, () => adminApi.telegramGet(req, res));
     if (pathname === '/api/admin/telegram'      && req.method === 'PUT')  return guard('admin')(req, res, () => adminApi.telegramUpdate(req, res));
     if (pathname === '/api/admin/telegram/test' && req.method === 'POST') return guard('admin')(req, res, () => adminApi.telegramTest(req, res));
 
-    // ==================== ADMIN: MAINTENANCE ====================
+    // ---------- MAINTENANCE ----------
     if (pathname === '/api/admin/maintenance' && req.method === 'GET') return guard('moderator')(req, res, () => adminApi.maintenanceGet(req, res));
     if (pathname === '/api/admin/maintenance' && req.method === 'PUT') return guard('super_admin')(req, res, () => adminApi.maintenanceUpdate(req, res));
 
-    // ==================== ADMIN: WEBHOOKS ====================
+    // ---------- WEBHOOKS ----------
     if (webhooksApi) {
       if (pathname === '/api/admin/webhooks' && req.method === 'GET')    return guard('moderator')(req, res, () => webhooksApi.list(req, res));
       if (pathname === '/api/admin/webhooks' && req.method === 'POST')   return guard('admin')(req, res, () => webhooksApi.create(req, res));
@@ -611,14 +604,12 @@ function autoCleanup() {
     const nowTs = Date.now();
 
     update(d => {
-      // 1. Sold websites (24 soatdan keyin)
       const soldCutoff = nowTs - config.cleanup.soldWebsiteTtlMs;
       const beforeWebsites = (d.websites || []).length;
 
       d.websites = (d.websites || []).filter(w => {
         if (w.status === 'sold' && w.soldAt) {
-          const soldTime = new Date(w.soldAt).getTime();
-          if (soldTime < soldCutoff) {
+          if (new Date(w.soldAt).getTime() < soldCutoff) {
             console.log(`[cleanup] 🗑 Removed sold: ${w.webId} (${w.name})`);
             return false;
           }
@@ -626,28 +617,22 @@ function autoCleanup() {
         return true;
       });
 
-      const removedWebsites = beforeWebsites - d.websites.length;
-
-      // 2. Expired sessions
       const sessionCutoff = nowTs - config.cleanup.sessionTtlMs;
-      const beforeSessions = (d.sessions || []).length;
       d.sessions = (d.sessions || []).filter(s => {
         const created = s.createdAt ? new Date(s.createdAt).getTime() : 0;
         return created > sessionCutoff;
       });
-      const removedSessions = beforeSessions - d.sessions.length;
 
-      // 3. Expired verification codes
-      const beforeCodes = (d.verificationCodes || []).length;
       d.verificationCodes = (d.verificationCodes || []).filter(c => {
         if (c.used) return false;
         const exp = c.expiresAt ? new Date(c.expiresAt).getTime() : 0;
         return exp > nowTs;
       });
-      const removedCodes = beforeCodes - d.verificationCodes.length;
 
-      if (removedWebsites || removedSessions || removedCodes) {
-        console.log(`[cleanup] websites: -${removedWebsites}, sessions: -${removedSessions}, codes: -${removedCodes}`);
+      const removedWebsites = beforeWebsites - d.websites.length;
+
+      if (removedWebsites) {
+        console.log(`[cleanup] websites: -${removedWebsites}`);
       }
 
       return d;
@@ -658,7 +643,7 @@ function autoCleanup() {
 }
 
 // ============================================================
-// LISTEN
+// LISTEN — LOCALHOST:3000
 // ============================================================
 server.listen(PORT, HOST, () => {
   const line = '─'.repeat(56);
@@ -672,6 +657,7 @@ server.listen(PORT, HOST, () => {
   console.log('  ' + line);
   console.log(`  🏠 Main:      http://localhost:${PORT}/frontend/pages/main.html`);
   console.log(`  🔑 Login:     http://localhost:${PORT}/frontend/pages/login.html`);
+  console.log(`  📝 Register:  http://localhost:${PORT}/frontend/pages/register.html`);
   console.log(`  🛒 Store:     http://localhost:${PORT}/frontend/pages/store.html`);
   console.log(`  🔍 Search:    http://localhost:${PORT}/frontend/pages/search.html`);
   console.log(`  💰 Sell:      http://localhost:${PORT}/frontend/pages/sell.html`);
@@ -690,13 +676,15 @@ server.listen(PORT, HOST, () => {
   console.log('  To\'xtatish: Ctrl + C');
   console.log('');
 
-  // Cleanup taskni ishga tushirish
   if (config.cleanup.enabled) {
     setTimeout(autoCleanup, 10 * 1000);
     setInterval(autoCleanup, config.cleanup.intervalMs);
   }
 });
 
+// ============================================================
+// ERROR HANDLING
+// ============================================================
 server.on('error', (err) => {
   if (err.code === 'EADDRINUSE') {
     console.error('');
@@ -738,4 +726,5 @@ process.on('unhandledRejection', (reason) => {
   console.error('[unhandledRejection]', reason);
 });
 
+// Vercel uchun export
 module.exports = server;
