@@ -6,15 +6,61 @@
 <title>AWebShop — Marketplace for websites</title>
 
 <link rel="icon" type="image/png" href="../assets/image/logo.png"/>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" crossorigin="anonymous"/>
 <link rel="stylesheet" href="../css/main.css"/>
 <link rel="stylesheet" href="../css/navbar.css"/>
 <link rel="stylesheet" href="../css/responsive.css"/>
 </head>
 <body class="aw-body">
-<div id="aw-header"></div>
 
+<!-- ============ NAVBAR ============ -->
+<header class="aw-navbar">
+  <div class="aw-navbar-inner">
+    <a class="aw-navbar-brand" href="main.html">
+      <img src="../assets/image/logo.png" alt="AWebShop" onerror="this.style.display='none'"/>
+      <span>AWebShop</span>
+    </a>
+
+    <nav class="aw-navbar-links">
+      <a href="main.html" class="active"><i class="fa-solid fa-house"></i> Home</a>
+      <a href="store.html"><i class="fa-solid fa-store"></i> Store</a>
+      <a href="sell.html"><i class="fa-solid fa-tag"></i> Sell</a>
+      <a href="wallet.html"><i class="fa-solid fa-wallet"></i> Wallet</a>
+      <a href="profile.html"><i class="fa-solid fa-user"></i> Profile</a>
+    </nav>
+
+    <div class="aw-navbar-search">
+      <input type="text" id="aw-global-search" placeholder="Search websites…" autocomplete="off"/>
+    </div>
+
+    <div class="aw-navbar-right">
+      <button class="aw-icon-btn" id="aw-theme-btn" aria-label="Theme">
+        <i class="fa-solid fa-sun" id="aw-theme-icon"></i>
+      </button>
+
+      <select id="aw-lang" class="aw-lang-select" aria-label="Language">
+        <option value="en">EN</option>
+        <option value="uz">UZ</option>
+      </select>
+
+      <a class="aw-btn aw-btn-ghost" href="login.html" id="aw-login-btn">Login</a>
+      <a class="aw-btn aw-btn-primary" href="register.html" id="aw-register-btn">Register</a>
+
+      <a class="aw-user-chip" href="profile.html" id="aw-user-chip" style="display:none">
+        <span class="aw-avatar" id="aw-avatar">?</span>
+        <span class="aw-user-name" id="aw-user-name">User</span>
+        <span class="aw-balance-mini" id="aw-balance">0 AWC</span>
+      </a>
+
+      <button class="aw-icon-btn" id="aw-logout-btn" aria-label="Logout" style="display:none">
+        <i class="fa-solid fa-right-from-bracket"></i>
+      </button>
+    </div>
+  </div>
+</header>
+
+<!-- ============ MAIN CONTENT ============ -->
 <main class="aw-page">
-  <!-- HERO -->
   <section class="aw-hero">
     <div class="aw-hero-text">
       <h1>Buy and sell real websites</h1>
@@ -30,10 +76,9 @@
     </div>
   </section>
 
-  <!-- EVENTS -->
   <section class="aw-section" id="events-section">
     <div class="aw-section-head">
-      <h2 id="events-title">Latest Events</h2>
+      <h2>Latest Events</h2>
       <div class="aw-events-dots" id="events-dots"></div>
     </div>
     <div class="aw-events-rotator" id="events-area">
@@ -41,10 +86,9 @@
     </div>
   </section>
 
-  <!-- RECOMMENDED -->
   <section class="aw-section">
     <div class="aw-section-head">
-      <h2 id="recommended-title">Recommended Websites</h2>
+      <h2>Recommended Websites</h2>
       <a class="aw-link" href="store.html">See all →</a>
     </div>
     <div class="aw-grid" id="recommended-grid">
@@ -52,7 +96,6 @@
     </div>
   </section>
 
-  <!-- PREMIUM PLANS -->
   <section class="aw-section">
     <div class="aw-section-head">
       <h2>Premium Plans</h2>
@@ -64,68 +107,210 @@
   </section>
 </main>
 
-<div id="aw-footer"></div>
+<!-- ============ MOBILE TAB BAR ============ -->
+<nav class="aw-tabbar" id="aw-tabbar">
+  <a href="main.html" class="active">
+    <i class="fa-solid fa-house"></i><span>Home</span>
+  </a>
+  <a href="store.html">
+    <i class="fa-solid fa-store"></i><span>Store</span>
+  </a>
+  <a href="sell.html" class="aw-tabbar-center">
+    <i class="fa-solid fa-plus"></i><span>Sell</span>
+  </a>
+  <a href="wallet.html">
+    <i class="fa-solid fa-wallet"></i><span>Wallet</span>
+  </a>
+  <a href="profile.html">
+    <i class="fa-solid fa-user"></i><span>Profile</span>
+  </a>
+</nav>
 
+<!-- ============ FOOTER ============ -->
+<footer class="aw-footer">
+  <div class="aw-footer-grid">
+    <div>
+      <h4>AWebShop</h4>
+      <p class="aw-muted">Marketplace for buying and selling fully functional websites.</p>
+    </div>
+    <div>
+      <h4>Links</h4>
+      <ul>
+        <li><a href="about.html">About</a></li>
+        <li><a href="about.html#help">Help</a></li>
+        <li><a href="about.html#contact">Contact</a></li>
+      </ul>
+    </div>
+    <div>
+      <h4>Social</h4>
+      <ul>
+        <li><a href="https://github.com/ttnaceri/" target="_blank" rel="noopener">GitHub</a></li>
+        <li><a href="https://t.me/updateDevNews" target="_blank" rel="noopener">Telegram</a></li>
+        <li><a href="https://www.instagram.com/update.dev26/" target="_blank" rel="noopener">Instagram</a></li>
+      </ul>
+    </div>
+  </div>
+  <div class="aw-footer-bottom">
+    <span>© 2026 UPDATE Inc. All Rights Reserved.</span>
+    <span>Made with ❤️ in Uzbekistan</span>
+  </div>
+</footer>
+
+<!-- ============ SCRIPTS ============ -->
 <script src="../js/api.js"></script>
 <script src="../js/i18n.js"></script>
 <script src="../js/app.js"></script>
 <script src="../js/auth.js"></script>
-<script src="../components/header.js"></script>
-<script src="../components/footer.js"></script>
-<script src="../components/website-card.js"></script>
-<script src="../js/shortcuts.js"></script>
 
 <script>
 (function () {
   'use strict';
 
-  function safeT(k) {
-    if (window.I18N && typeof window.I18N.t === 'function') return window.I18N.t(k);
-    if (typeof window.t === 'function') return window.t(k);
-    return k;
+  console.log('[main] init');
+
+  // ============================================================
+  // HELPERS
+  // ============================================================
+  function fmtUZS(n) {
+    if (typeof window.fmtUZS === 'function') return window.fmtUZS(n);
+    return new Intl.NumberFormat('uz-UZ').format(Math.round(n || 0)) + " so'm";
   }
-  function fmtUZS(n) { return (window.fmtUZS || (x => new Intl.NumberFormat('uz-UZ').format(Math.round(x || 0)) + " so'm"))(n); }
-  function fmtUSD(n) { return (window.fmtUSD || (x => '$' + Number(x || 0).toFixed(2)))(n); }
-  function fmtAWC(n) { return (window.fmtAWC || (x => Number(x || 0).toFixed(4).replace(/\.?0+$/, '') + ' AWC'))(n); }
+  function fmtUSD(n) {
+    if (typeof window.fmtUSD === 'function') return window.fmtUSD(n);
+    return '$' + Number(n || 0).toFixed(2);
+  }
+  function fmtAWC(n) {
+    if (typeof window.fmtAWC === 'function') return window.fmtAWC(n);
+    return Number(n || 0).toFixed(4).replace(/\.?0+$/, '') + ' AWC';
+  }
   function esc(s) {
     if (typeof window.esc === 'function') return window.esc(s);
-    return String(s == null ? '' : s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;');
+    return String(s == null ? '' : s)
+      .replace(/&/g, '&amp;').replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#39;');
   }
 
-  async function init() {
-    try { if (typeof window.loadRates === 'function') await window.loadRates(); } catch (_) {}
+  // ============================================================
+  // NAVBAR
+  // ============================================================
+  function setupNavbar() {
+    console.log('[main] setupNavbar');
 
-    // AWC rate
-    const rateEl = document.getElementById('awc-rate');
+    // Theme
+    var themeBtn = document.getElementById('aw-theme-btn');
+    var themeIcon = document.getElementById('aw-theme-icon');
+    if (themeBtn && themeIcon) {
+      var currentTheme = localStorage.getItem('aw_theme') || 'dark';
+      themeIcon.className = 'fa-solid ' + (currentTheme === 'light' ? 'fa-moon' : 'fa-sun');
+      themeBtn.addEventListener('click', function () {
+        var next = (localStorage.getItem('aw_theme') || 'dark') === 'dark' ? 'light' : 'dark';
+        localStorage.setItem('aw_theme', next);
+        document.documentElement.classList.toggle('dark', next === 'dark');
+        document.documentElement.classList.toggle('light', next === 'light');
+        themeIcon.className = 'fa-solid ' + (next === 'light' ? 'fa-moon' : 'fa-sun');
+      });
+    }
+
+    // Language
+    var langSel = document.getElementById('aw-lang');
+    if (langSel) {
+      langSel.value = localStorage.getItem('aw_lang') || 'en';
+      langSel.addEventListener('change', function (e) {
+        localStorage.setItem('aw_lang', e.target.value);
+        location.reload();
+      });
+    }
+
+    // Search
+    var searchInput = document.getElementById('aw-global-search');
+    if (searchInput) {
+      searchInput.addEventListener('keydown', function (e) {
+        if (e.key === 'Enter') {
+          var q = searchInput.value.trim();
+          if (q) location.href = '/search/' + encodeURIComponent(q);
+        }
+      });
+    }
+
+    // Auth state
+    if (window.Auth && typeof window.Auth.load === 'function') {
+      window.Auth.load().then(function () {
+        updateAuthUI();
+      }).catch(function (e) {
+        console.warn('[main] Auth.load:', e.message);
+        updateAuthUI();
+      });
+    } else {
+      updateAuthUI();
+    }
+  }
+
+  function updateAuthUI() {
+    var user = (window.Auth && window.Auth.user) || null;
+
+    var loginBtn = document.getElementById('aw-login-btn');
+    var registerBtn = document.getElementById('aw-register-btn');
+    var userChip = document.getElementById('aw-user-chip');
+    var logoutBtn = document.getElementById('aw-logout-btn');
+
+    if (user) {
+      console.log('[main] User logged in:', user.nickname);
+      if (loginBtn) loginBtn.style.display = 'none';
+      if (registerBtn) registerBtn.style.display = 'none';
+      if (userChip) {
+        userChip.style.display = 'flex';
+        document.getElementById('aw-avatar').textContent = (user.nickname || '?')[0].toUpperCase();
+        document.getElementById('aw-user-name').textContent = user.nickname || '';
+        document.getElementById('aw-balance').textContent = fmtAWC(user.balanceAWC);
+      }
+      if (logoutBtn) {
+        logoutBtn.style.display = 'inline-flex';
+        logoutBtn.onclick = function () {
+          if (window.Auth && typeof window.Auth.logout === 'function') window.Auth.logout();
+        };
+      }
+    } else {
+      console.log('[main] Anonymous user');
+      if (loginBtn) loginBtn.style.display = '';
+      if (registerBtn) registerBtn.style.display = '';
+      if (userChip) userChip.style.display = 'none';
+      if (logoutBtn) logoutBtn.style.display = 'none';
+    }
+  }
+
+  // ============================================================
+  // CONTENT LOADING
+  // ============================================================
+  async function loadContent() {
+    try {
+      if (typeof window.loadRates === 'function') await window.loadRates();
+    } catch (e) {
+      console.warn('[main] loadRates:', e.message);
+    }
+
+    var rateEl = document.getElementById('awc-rate');
     if (rateEl && window.RATES) {
-      const awcRate = window.RATES.awcPriceUZS || 10000;
-      const usdRate = window.RATES.usdRate || 12650;
+      var awcRate = window.RATES.awcPriceUZS || 10000;
+      var usdRate = window.RATES.usdRate || 12650;
       rateEl.textContent = '1 AWC = ' + fmtUZS(awcRate) + '  •  ' + fmtUSD(awcRate / usdRate);
     }
 
-    const evTitle = document.getElementById('events-title');
-    const recTitle = document.getElementById('recommended-title');
-    if (evTitle) evTitle.textContent = safeT('latestEvents');
-    if (recTitle) recTitle.textContent = safeT('recommended');
-
-    loadPublicEvents();
-    loadRecommended();
-    loadPremiumPlans();
+    loadEvents().catch(function (e) { console.warn('[events]', e.message); });
+    loadRecommended().catch(function (e) { console.warn('[recommended]', e.message); });
+    loadPlans().catch(function (e) { console.warn('[plans]', e.message); });
   }
 
-  // EVENTS
-  let eventsTimer = null;
-  async function loadPublicEvents() {
-    const host = document.getElementById('events-area');
-    const dots = document.getElementById('events-dots');
+  async function loadEvents() {
+    var host = document.getElementById('events-area');
+    var dots = document.getElementById('events-dots');
     if (!host || !dots) return;
 
-    let res = null;
+    var res = null;
     try {
       if (window.API && typeof window.API.request === 'function') {
         res = await window.API.request('/api/events', { auth: false });
       }
-    } catch (_) {}
+    } catch (e) {}
 
     if (!res || !res.success || !res.data || !Array.isArray(res.data.items) || !res.data.items.length) {
       host.innerHTML = '<div class="aw-event-skel">Events will appear here once admins add them.</div>';
@@ -133,79 +318,108 @@
       return;
     }
 
-    const items = res.data.items.slice(0, 6);
+    var items = res.data.items.slice(0, 6);
+    host.innerHTML = items.map(function (e, i) {
+      return '<div class="aw-event-slide ' + (i === 0 ? 'active' : '') + '">' +
+        (e.imageUrl ? '<img src="' + esc(e.imageUrl) + '" alt=""/>' : '') +
+        '<h3>' + esc(e.title || '') + '</h3>' +
+        '<p>' + esc(e.description || '') + '</p>' +
+        (e.link ? '<a class="aw-btn aw-btn-ghost" href="' + esc(e.link) + '" target="_blank">Open →</a>' : '') +
+        '</div>';
+    }).join('');
 
-    host.innerHTML = items.map((e, i) => `
-      <div class="aw-event-slide ${i === 0 ? 'active' : ''}" data-i="${i}">
-        ${e.imageUrl ? `<img src="${esc(e.imageUrl)}" alt="${esc(e.title || '')}" onerror="this.style.display='none'"/>` : ''}
-        <h3>${esc(e.title || '')}</h3>
-        <p>${esc(e.description || '')}</p>
-        ${e.link ? `<a class="aw-btn aw-btn-ghost" href="${esc(e.link)}" target="_blank" rel="noopener">Open →</a>` : ''}
-      </div>
-    `).join('');
-
-    dots.innerHTML = items.map((_, i) => `<span class="${i === 0 ? 'active' : ''}" data-dot="${i}"></span>`).join('');
-
-    let current = 0;
-    function show(i) {
-      current = (i + items.length) % items.length;
-      host.querySelectorAll('.aw-event-slide').forEach((el, idx) => el.classList.toggle('active', idx === current));
-      dots.querySelectorAll('span').forEach((el, idx) => el.classList.toggle('active', idx === current));
-    }
-    dots.querySelectorAll('span').forEach(s => {
-      s.addEventListener('click', () => { show(Number(s.dataset.dot)); restart(); });
-    });
-    function restart() {
-      if (eventsTimer) clearInterval(eventsTimer);
-      eventsTimer = setInterval(() => show(current + 1), 5000);
-    }
-    restart();
+    dots.innerHTML = items.map(function (_, i) {
+      return '<span class="' + (i === 0 ? 'active' : '') + '" data-dot="' + i + '"></span>';
+    }).join('');
   }
 
-  // RECOMMENDED
   async function loadRecommended() {
-    const grid = document.getElementById('recommended-grid');
+    var grid = document.getElementById('recommended-grid');
     if (!grid) return;
+
+    if (!window.API || typeof window.API.listWebsites !== 'function') {
+      grid.innerHTML = '<div class="aw-empty">API not loaded.</div>';
+      return;
+    }
+
     try {
-      const res = await window.API.listWebsites({ page: 1, perPage: 8, sort: 'popular' });
+      var res = await window.API.listWebsites({ page: 1, perPage: 8, sort: 'popular' });
       if (res && res.success && res.data && Array.isArray(res.data.items) && res.data.items.length) {
-        grid.innerHTML = res.data.items.map(window.websiteCard).join('');
+        grid.innerHTML = res.data.items.map(function (w) {
+          return '<a class="aw-card" href="website-detail.html?id=' + encodeURIComponent(w.webId || '') + '">' +
+            '<div class="aw-card-img">' +
+            (w.imageUrl
+              ? '<img src="' + esc(w.imageUrl) + '" alt="" onerror="this.style.display=\'none\'"/>'
+              : '<div class="aw-card-noimg">' + esc((w.name || '?')[0] || '?') + '</div>') +
+            '</div>' +
+            '<div class="aw-card-body">' +
+            '<div class="aw-card-top"><h3 class="aw-card-title">' + esc(w.name) + '</h3>' +
+            (w.saleType === 'safe'
+              ? '<span class="aw-badge aw-badge-safe">Safe</span>'
+              : '<span class="aw-badge aw-badge-fast">Fast</span>') +
+            '</div>' +
+            '<div class="aw-card-domain">' + esc(w.domain) + '</div>' +
+            '<div class="aw-card-topic">' + esc(w.topic) + '</div>' +
+            '<div class="aw-card-bottom">' +
+            '<div class="aw-price">' +
+            '<strong>' + fmtAWC(w.priceAWC) + '</strong>' +
+            '<small>' + fmtUZS(w.priceUZS) + '</small>' +
+            '</div>' +
+            '<div class="aw-card-meta">👁 ' + (w.views || 0) + '</div>' +
+            '</div>' +
+            '</div></a>';
+        }).join('');
       } else {
         grid.innerHTML = '<div class="aw-empty">No websites yet. Be the first to sell!</div>';
       }
     } catch (e) {
-      console.warn('[main]', e.message);
       grid.innerHTML = '<div class="aw-empty">Failed to load.</div>';
     }
   }
 
-  // PREMIUM PLANS
-  async function loadPremiumPlans() {
-    const grid = document.getElementById('plans-grid');
+  async function loadPlans() {
+    var grid = document.getElementById('plans-grid');
     if (!grid) return;
+
+    if (!window.API || typeof window.API.premiumPlans !== 'function') {
+      grid.innerHTML = '<div class="aw-empty">API not loaded.</div>';
+      return;
+    }
+
     try {
-      const res = await window.API.premiumPlans();
+      var res = await window.API.premiumPlans();
       if (!res || !res.success || !Array.isArray(res.data.items)) {
-        grid.innerHTML = '<div class="aw-empty">Premium plans unavailable.</div>';
+        grid.innerHTML = '<div class="aw-empty">Plans unavailable.</div>';
         return;
       }
-      grid.innerHTML = res.data.items.map(p => `
-        <div class="aw-plan-card">
-          <h3>${esc(p.name)}</h3>
-          <div class="aw-plan-price">
-            <strong>${fmtUZS(p.monthlyPriceUZS)}</strong>
-            <small>${fmtUSD(p.monthlyPriceUSD)} / month</small>
-          </div>
-          <ul class="aw-plan-features">
-            ${Array.isArray(p.features) ? p.features.map(f => `<li>${esc(f)}</li>`).join('') : ''}
-          </ul>
-          <div class="aw-plan-commission">${esc(p.commission)}% commission</div>
-          <button class="aw-btn aw-btn-primary aw-btn-block" data-plan="${esc(p.id)}">Choose ${esc(p.name)}</button>
-        </div>
-      `).join('');
 
-      grid.querySelectorAll('button[data-plan]').forEach(btn => {
-        btn.addEventListener('click', () => {
+      grid.innerHTML = res.data.items.map(function (p) {
+        var awcMonthly = p.monthlyPriceAWC != null
+          ? p.monthlyPriceAWC
+          : +(p.monthlyPriceUZS / 10000).toFixed(2);
+        var awcYearly = p.yearlyPriceAWC != null
+          ? p.yearlyPriceAWC
+          : +(p.yearlyPriceUZS / 10000).toFixed(2);
+
+        return '<div class="aw-plan-card">' +
+          '<h3>' + esc(p.name) + (p.badge ? ' 🏅' : '') + '</h3>' +
+          '<div class="aw-plan-price">' +
+          '<strong>' + fmtAWC(awcMonthly) + '</strong>' +
+          '<small>' + fmtUZS(p.monthlyPriceUZS) + ' • ' + fmtUSD(p.monthlyPriceUSD) + ' / month</small>' +
+          '<div class="aw-muted" style="font-size:12px;margin-top:4px">' + fmtAWC(awcYearly) + ' / year</div>' +
+          '</div>' +
+          '<ul class="aw-plan-features">' +
+          (Array.isArray(p.features) ? p.features.map(function (f) {
+            return '<li>' + esc(f) + '</li>';
+          }).join('') : '') +
+          '</ul>' +
+          '<div class="aw-plan-commission">' + esc(p.commission) + '% commission</div>' +
+          '<button class="aw-btn aw-btn-primary aw-btn-block" data-plan="' + esc(p.id) + '">Choose ' + esc(p.name) + '</button>' +
+          '</div>';
+      }).join('');
+
+      grid.querySelectorAll('button[data-plan]').forEach(function (btn) {
+        btn.addEventListener('click', function () {
           if (!window.Auth || !window.Auth.isLoggedIn()) {
             location.href = 'login.html?next=wallet.html';
             return;
@@ -214,15 +428,23 @@
         });
       });
     } catch (e) {
-      console.warn('[main]', e.message);
       grid.innerHTML = '<div class="aw-empty">Failed.</div>';
     }
   }
 
+  // ============================================================
+  // START
+  // ============================================================
+  function start() {
+    setupNavbar();
+    loadContent();
+    console.log('[main] ready');
+  }
+
   if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', init);
+    document.addEventListener('DOMContentLoaded', start);
   } else {
-    init();
+    start();
   }
 })();
 </script>

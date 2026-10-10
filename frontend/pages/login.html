@@ -6,16 +6,38 @@
 <title>Login — AWebShop</title>
 
 <link rel="icon" type="image/png" href="../assets/image/logo.png"/>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" crossorigin="anonymous"/>
 <link rel="stylesheet" href="../css/main.css"/>
 <link rel="stylesheet" href="../css/navbar.css"/>
 <link rel="stylesheet" href="../css/responsive.css"/>
-
-<style>
-.aw-auth-card .aw-form label { position: relative; }
-</style>
 </head>
 <body class="aw-body">
-<div id="aw-header"></div>
+
+<header class="aw-navbar">
+  <div class="aw-navbar-inner">
+    <a class="aw-navbar-brand" href="main.html">
+      <img src="../assets/image/logo.png" alt="AWebShop" onerror="this.style.display='none'"/>
+      <span>AWebShop</span>
+    </a>
+    <nav class="aw-navbar-links">
+      <a href="main.html"><i class="fa-solid fa-house"></i> Home</a>
+      <a href="store.html"><i class="fa-solid fa-store"></i> Store</a>
+      <a href="sell.html"><i class="fa-solid fa-tag"></i> Sell</a>
+      <a href="wallet.html"><i class="fa-solid fa-wallet"></i> Wallet</a>
+      <a href="profile.html"><i class="fa-solid fa-user"></i> Profile</a>
+    </nav>
+    <div class="aw-navbar-search">
+      <input type="text" id="aw-global-search" placeholder="Search websites…" autocomplete="off"/>
+    </div>
+    <div class="aw-navbar-right">
+      <button class="aw-icon-btn" id="aw-theme-btn"><i class="fa-solid fa-sun" id="aw-theme-icon"></i></button>
+      <select id="aw-lang" class="aw-lang-select">
+        <option value="en">EN</option>
+        <option value="uz">UZ</option>
+      </select>
+    </div>
+  </div>
+</header>
 
 <main class="aw-page aw-auth-page">
   <div class="aw-auth-card">
@@ -25,11 +47,11 @@
     <form id="login-form" class="aw-form" autocomplete="on">
       <label>
         <span>Nickname</span>
-        <input type="text" id="nickname" name="nickname" autocomplete="username" required/>
+        <input type="text" id="nickname" autocomplete="username" required/>
       </label>
       <label>
         <span>Password</span>
-        <input type="password" id="password" name="password" autocomplete="current-password" required/>
+        <input type="password" id="password" autocomplete="current-password" required/>
       </label>
       <div class="aw-form-error" id="form-error" hidden></div>
       <button type="submit" class="aw-btn aw-btn-primary aw-btn-block">Login</button>
@@ -42,113 +64,143 @@
   </div>
 </main>
 
-<div id="aw-footer"></div>
+<nav class="aw-tabbar">
+  <a href="main.html"><i class="fa-solid fa-house"></i><span>Home</span></a>
+  <a href="store.html"><i class="fa-solid fa-store"></i><span>Store</span></a>
+  <a href="sell.html" class="aw-tabbar-center"><i class="fa-solid fa-plus"></i><span>Sell</span></a>
+  <a href="wallet.html"><i class="fa-solid fa-wallet"></i><span>Wallet</span></a>
+  <a href="profile.html"><i class="fa-solid fa-user"></i><span>Profile</span></a>
+</nav>
+
+<footer class="aw-footer">
+  <div class="aw-footer-bottom">
+    <span>© 2026 UPDATE Inc. All Rights Reserved.</span>
+    <span>Made with ❤️ in Uzbekistan</span>
+  </div>
+</footer>
 
 <script src="../js/api.js"></script>
 <script src="../js/i18n.js"></script>
 <script src="../js/app.js"></script>
-<script src="../js/validation.js"></script>
-<script src="../js/password-toggle.js"></script>
 <script src="../js/auth.js"></script>
-<script src="../components/header.js"></script>
-<script src="../components/footer.js"></script>
+<script src="../js/password-toggle.js"></script>
 <script src="../components/modals.js"></script>
-<script src="../js/shortcuts.js"></script>
 
 <script>
-(async () => {
-  await loadRates();
+(function () {
+  'use strict';
 
-  // Already logged in?
-  await Auth.load();
-  if (Auth.isLoggedIn() && !Auth.isBanned()) {
-    const next = new URLSearchParams(location.search).get('next') || 'main.html';
-    location.href = next;
-    return;
+  // Navbar
+  var themeBtn = document.getElementById('aw-theme-btn');
+  var themeIcon = document.getElementById('aw-theme-icon');
+  if (themeBtn && themeIcon) {
+    var t = localStorage.getItem('aw_theme') || 'dark';
+    themeIcon.className = 'fa-solid ' + (t === 'light' ? 'fa-moon' : 'fa-sun');
+    themeBtn.addEventListener('click', function () {
+      var next = (localStorage.getItem('aw_theme') || 'dark') === 'dark' ? 'light' : 'dark';
+      localStorage.setItem('aw_theme', next);
+      document.documentElement.classList.toggle('dark', next === 'dark');
+      document.documentElement.classList.toggle('light', next === 'light');
+      themeIcon.className = 'fa-solid ' + (next === 'light' ? 'fa-moon' : 'fa-sun');
+    });
   }
-
-  const form = document.getElementById('login-form');
-  const errBox = document.getElementById('form-error');
-  const showErr = m => { errBox.textContent = m; errBox.hidden = false; };
-  const hideErr = () => { errBox.hidden = true; };
-
-  form.addEventListener('submit', async (e) => {
-    e.preventDefault();
-    hideErr();
-
-    const nickname = form.nickname.value.trim();
-    const password = form.password.value;
-
-    if (!Validators.nickname(nickname)) return showErr('Invalid nickname format.');
-    if (!Validators.password(password)) return showErr('Password must be at least 8 characters.');
-
-    const btn = form.querySelector('button[type=submit]');
-    btn.disabled = true; btn.textContent = 'Logging in…';
-
-    const res = await Auth.login(nickname, password);
-
-    if (res.success) {
-      toast('Welcome, ' + res.data.user.nickname + '!', 'success');
-      const next = new URLSearchParams(location.search).get('next') || 'main.html';
-      setTimeout(() => location.href = next, 400);
-    } else {
-      showErr(res.message || 'Login failed.');
-      btn.disabled = false; btn.textContent = 'Login';
+  var langSel = document.getElementById('aw-lang');
+  if (langSel) {
+    langSel.value = localStorage.getItem('aw_lang') || 'en';
+    langSel.addEventListener('change', function (e) {
+      localStorage.setItem('aw_lang', e.target.value);
+      location.reload();
+    });
+  }
+  var searchInput = document.getElementById('aw-global-search');
+  if (searchInput) searchInput.addEventListener('keydown', function (e) {
+    if (e.key === 'Enter') {
+      var q = searchInput.value.trim();
+      if (q) location.href = '/search/' + encodeURIComponent(q);
     }
   });
 
-  // Recover account
-  document.getElementById('forgot-link').addEventListener('click', async (e) => {
-    e.preventDefault();
-    openModal({
-      title: 'Recover Account',
-      body: `
-        <div class="aw-form">
-          <label><span>Nickname</span><input type="text" id="rc-nick"/></label>
-          <div id="rc-step1">
-            <button type="button" class="aw-btn aw-btn-primary aw-btn-block" id="rc-send">Send recovery code</button>
-          </div>
-          <div id="rc-step2" hidden>
-            <label><span>Recovery code (6 digits)</span><input type="text" id="rc-code" inputmode="numeric" maxlength="6"/></label>
-            <label><span>New password</span><input type="password" id="rc-pass"/></label>
-            <button type="button" class="aw-btn aw-btn-primary aw-btn-block" id="rc-reset">Reset password</button>
-          </div>
-          <div class="aw-form-error" id="rc-err" hidden></div>
-        </div>
-      `,
-      actions: [{ label: 'Close', className: 'aw-btn-ghost', onClick: () => closeModal() }]
-    });
+  // Login logic
+  (async function () {
+    await loadRates();
+    await Auth.load();
+    if (Auth.isLoggedIn() && !Auth.isBanned()) {
+      var next = new URLSearchParams(location.search).get('next') || 'main.html';
+      location.href = next;
+      return;
+    }
 
-    // Password toggle yangi modal ichida
-    if (window.PasswordToggle) setTimeout(() => window.PasswordToggle.scan(), 100);
+    var form = document.getElementById('login-form');
+    var errBox = document.getElementById('form-error');
+    function showErr(m) { errBox.textContent = m; errBox.hidden = false; }
 
-    const err = document.getElementById('rc-err');
-    const show = m => { err.textContent = m; err.hidden = false; };
+    form.addEventListener('submit', async function (e) {
+      e.preventDefault();
+      errBox.hidden = true;
 
-    document.getElementById('rc-send').addEventListener('click', async () => {
-      const nickname = document.getElementById('rc-nick').value.trim();
-      if (!nickname) return show('Enter your nickname.');
-      const res = await API.forgotPassword({ nickname });
+      var nickname = form.nickname.value.trim();
+      var password = form.password.value;
+
+      if (!nickname || nickname.length < 3) return showErr('Invalid nickname.');
+      if (!password || password.length < 8) return showErr('Password must be at least 8 characters.');
+
+      var btn = form.querySelector('button[type=submit]');
+      btn.disabled = true; btn.textContent = 'Logging in…';
+
+      var res = await Auth.login(nickname, password);
       if (res.success) {
-        toast('Recovery code sent.', 'success');
-        if (res.data.debugCode) toast('DEV code: ' + res.data.debugCode, 'warn', 10000);
-        document.getElementById('rc-step2').hidden = false;
-      } else show(res.message);
+        toast('Welcome, ' + res.data.user.nickname + '!', 'success');
+        var next = new URLSearchParams(location.search).get('next') || 'main.html';
+        setTimeout(function () { location.href = next; }, 400);
+      } else {
+        showErr(res.message || 'Login failed.');
+        btn.disabled = false; btn.textContent = 'Login';
+      }
     });
 
-    document.getElementById('rc-reset').addEventListener('click', async () => {
-      const nickname = document.getElementById('rc-nick').value.trim();
-      const code = document.getElementById('rc-code').value.trim();
-      const newPassword = document.getElementById('rc-pass').value;
-      if (!Validators.code(code)) return show('Code must be 6 digits.');
-      if (!Validators.password(newPassword)) return show('Password must be at least 8 characters.');
-      const res = await API.resetPassword({ nickname, code, newPassword });
-      if (res.success) {
-        toast('Password updated. Login now.', 'success');
-        closeModal();
-      } else show(res.message);
+    document.getElementById('forgot-link').addEventListener('click', function (e) {
+      e.preventDefault();
+      openModal({
+        title: 'Recover Account',
+        body: '<div class="aw-form">' +
+          '<label><span>Nickname</span><input type="text" id="rc-nick"/></label>' +
+          '<div id="rc-step1"><button type="button" class="aw-btn aw-btn-primary aw-btn-block" id="rc-send">Send recovery code</button></div>' +
+          '<div id="rc-step2" hidden>' +
+          '<label><span>Recovery code (6 digits)</span><input type="text" id="rc-code" maxlength="6"/></label>' +
+          '<label><span>New password</span><input type="password" id="rc-pass"/></label>' +
+          '<button type="button" class="aw-btn aw-btn-primary aw-btn-block" id="rc-reset">Reset password</button>' +
+          '</div>' +
+          '<div class="aw-form-error" id="rc-err" hidden></div>' +
+          '</div>',
+        actions: [{ label: 'Close', className: 'aw-btn-ghost', onClick: function () { closeModal(); } }]
+      });
+
+      setTimeout(function () { if (window.PasswordToggle) window.PasswordToggle.scan(); }, 100);
+
+      var err = document.getElementById('rc-err');
+      function show(m) { err.textContent = m; err.hidden = false; }
+
+      document.getElementById('rc-send').addEventListener('click', async function () {
+        var nickname = document.getElementById('rc-nick').value.trim();
+        if (!nickname) return show('Enter nickname.');
+        var res = await API.forgotPassword({ nickname: nickname });
+        if (res.success) {
+          toast('Recovery code sent.', 'success');
+          if (res.data.debugCode) toast('DEV code: ' + res.data.debugCode, 'warn', 10000);
+          document.getElementById('rc-step2').hidden = false;
+        } else show(res.message);
+      });
+
+      document.getElementById('rc-reset').addEventListener('click', async function () {
+        var nickname = document.getElementById('rc-nick').value.trim();
+        var code = document.getElementById('rc-code').value.trim();
+        var newPassword = document.getElementById('rc-pass').value;
+        var res = await API.resetPassword({ nickname: nickname, code: code, newPassword: newPassword });
+        if (res.success) { toast('Password updated.', 'success'); closeModal(); }
+        else show(res.message);
+      });
     });
-  });
+  })();
 })();
 </script>
 </body>

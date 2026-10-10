@@ -1,6 +1,6 @@
 // backend/utils/db.js
 // backend.json ni o'qish/yozish uchun xavfsiz qatlam.
-// Node.js v20 va v24 uchun mos. Top-level await YO'Q.
+// RAM kesh bilan tezlashtirilgan.
 
 'use strict';
 
@@ -10,7 +10,11 @@ const path = require('path');
 const DATA_PATH = path.join(__dirname, '..', '..', 'data', 'backend.json');
 const DATA_DIR  = path.dirname(DATA_PATH);
 
-// Yozishni navbatga qo'yish (parallel write oldini olish)
+// RAM kesh
+let cachedData = null;
+let cachedMtime = 0;
+
+// Yozishni navbatga qo'yish
 let writeQueue = Promise.resolve();
 
 // ============================================================
@@ -32,45 +36,53 @@ function defaultData() {
         id: 'plan_plus',
         name: 'Plus',
         monthlyPriceUZS: 20000,
+        monthlyPriceAWC: 2,
         yearlyPriceUZS: 180000,
-        commission: 3.0,
+        yearlyPriceAWC: 18,
+        commission: 3,
         websitesPerMonth: 10,
         badge: false,
         enabled: true,
-        features: ['10 websites/month', '3% commission', 'Priority support']
+        features: ['10 websites / month', '3% commission', 'Priority support']
       },
       {
         id: 'plan_prime',
         name: 'Prime',
         monthlyPriceUZS: 40000,
+        monthlyPriceAWC: 4,
         yearlyPriceUZS: 360000,
-        commission: 1.0,
+        yearlyPriceAWC: 36,
+        commission: 1,
         websitesPerMonth: 20,
         badge: false,
         enabled: true,
-        features: ['20 websites/month', '1% commission', 'Priority support']
+        features: ['20 websites / month', '1% commission', 'Priority support']
       },
       {
         id: 'plan_pro',
         name: 'Pro',
         monthlyPriceUZS: 60000,
+        monthlyPriceAWC: 6,
         yearlyPriceUZS: 540000,
+        yearlyPriceAWC: 54,
         commission: 0.5,
         websitesPerMonth: 30,
         badge: false,
         enabled: true,
-        features: ['30 websites/month', '0.5% commission', 'Priority support']
+        features: ['30 websites / month', '0.5% commission', 'Priority support']
       },
       {
         id: 'plan_enterprise',
         name: 'Enterprise',
         monthlyPriceUZS: 100000,
+        monthlyPriceAWC: 10,
         yearlyPriceUZS: 900000,
-        commission: 0.0,
+        yearlyPriceAWC: 90,
+        commission: 0,
         websitesPerMonth: 50,
         badge: true,
         enabled: true,
-        features: ['50 websites/month', '0% commission', 'Premium badge', 'Dedicated support']
+        features: ['50 websites / month', '0% commission', 'Premium badge', 'Dedicated support']
       }
     ],
     promocodes: [],
@@ -102,6 +114,9 @@ function defaultData() {
     verificationCodes: [],
     sessions: [],
     loginAttempts: [],
+    userLogs: [],
+    webhooks: [],
+    forbiddenTelegramIds: [],
     settings: {
       siteName: 'AWebShop',
       logo: 'frontend/assets/image/logo.png',
@@ -120,17 +135,15 @@ function defaultData() {
       premiumCashbackPercent: 3,
       referralBonusAWC: 1,
       rewardedAdsPerFreeListing: 15,
-      social: {
-        github: 'https://github.com/ttnaceri/',
-        telegram: 'https://t.me/updateDevNews',
-        instagram: 'https://www.instagram.com/update.dev26/',
-        linkedin: 'https://www.linkedin.com/in/ttnaceri-fan-506b57431'
-      },
+      topics: ['AI', 'Online Shop', '3D Game', 'Other'],
+      social: {},
       moderation: {
         bannedWords: ['porn', 'porno', 'bet', '1x', 'xx'],
         unsalableDomains: ['google', 'github', 'chatgpt', 'deepseek']
       },
-      topics: ['AI', 'Online Shop', '3D Game', 'Other']
+      seo: {},
+      analytics: {},
+      telegramSettings: {}
     },
     apiConfig: {
       exchangeRate: {
@@ -143,7 +156,7 @@ function defaultData() {
 }
 
 // ============================================================
-// XAVFSIZ O'QISH
+// DIRECTORY
 // ============================================================
 function ensureDir() {
   try {
@@ -165,36 +178,55 @@ function writeFresh(data) {
   }
 }
 
+// ============================================================
+// XAVFSIZ O'QISH (RAM kesh bilan)
+// ============================================================
 function readData() {
   ensureDir();
 
-  // 1) Fayl mavjud emas
+  // Fayl mavjud emas
   if (!fs.existsSync(DATA_PATH)) {
     console.warn('[db] backend.json topilmadi. Yangi fayl yaratilmoqda…');
     const fresh = defaultData();
     writeFresh(fresh);
+    cachedData = fresh;
+    cachedMtime = 0;
     return fresh;
   }
 
-  // 2) Fayl bo'sh
+  // Fayl stat (mtime tekshiruvi uchun)
+  let stat;
+  try { stat = fs.statSync(DATA_PATH); }
+  catch (e) {
+    console.error('[db] stat xato:', e.message);
+    return cachedData || defaultData();
+  }
+
+  // Kesh tekshiruvi — agar fayl o'zgarmagan bo'lsa, RAM dan qaytaramiz
+  if (cachedData && cachedMtime === stat.mtimeMs) {
+    return cachedData;
+  }
+
+  // Faylni o'qish
   let raw = '';
   try {
     raw = fs.readFileSync(DATA_PATH, 'utf8');
   } catch (e) {
     console.error('[db] Faylni o\'qib bo\'lmadi:', e.message);
-    const fresh = defaultData();
-    writeFresh(fresh);
-    return fresh;
+    return cachedData || defaultData();
   }
 
+  // Bo'sh fayl
   if (!raw || !raw.trim()) {
     console.warn('[db] backend.json bo\'sh. Default bilan to\'ldirilmoqda…');
     const fresh = defaultData();
     writeFresh(fresh);
+    cachedData = fresh;
+    cachedMtime = 0;
     return fresh;
   }
 
-  // 3) JSON parse
+  // JSON parse
   let parsed;
   try {
     parsed = JSON.parse(raw);
@@ -210,18 +242,22 @@ function readData() {
 
     const fresh = defaultData();
     writeFresh(fresh);
+    cachedData = fresh;
+    cachedMtime = 0;
     return fresh;
   }
 
-  // 4) Obyekt emas
+  // Obyekt emas
   if (!parsed || typeof parsed !== 'object' || Array.isArray(parsed)) {
     console.warn('[db] backend.json obyekt emas. Default bilan almashtirilyapti…');
     const fresh = defaultData();
     writeFresh(fresh);
+    cachedData = fresh;
+    cachedMtime = 0;
     return fresh;
   }
 
-  // 5) Kerakli massivlarni tekshirish
+  // Kerakli massivlarni tekshirish
   const requiredArrays = [
     'users', 'admins', 'websites', 'orders', 'transactions', 'escrows',
     'withdrawals', 'refunds', 'premiumSubscriptions', 'premiumPlans',
@@ -229,7 +265,8 @@ function readData() {
     'messages', 'notifications', 'paymentCards', 'paymentMethods',
     'forceSubscribeChannels', 'environmentUsers', 'badges',
     'featuredWebsites', 'popupNotifications', 'scheduledTasks',
-    'adminLogs', 'securityLogs', 'verificationCodes', 'sessions', 'loginAttempts'
+    'adminLogs', 'securityLogs', 'verificationCodes', 'sessions', 'loginAttempts',
+    'userLogs', 'webhooks', 'forbiddenTelegramIds'
   ];
 
   let dirty = false;
@@ -242,46 +279,37 @@ function readData() {
     }
   }
 
-  // 6) settings
+  // Settings
   if (!parsed.settings || typeof parsed.settings !== 'object' || Array.isArray(parsed.settings)) {
     console.warn('[db] settings yo\'q — default qo\'shildi');
     parsed.settings = defaultData().settings;
     dirty = true;
   } else {
-    // Muhim maydonlar mavjudligini tekshirish
     const s = parsed.settings;
     const defaults = defaultData().settings;
 
-    if (typeof s.awcPriceUZS !== 'number') {
-      s.awcPriceUZS = defaults.awcPriceUZS;
-      dirty = true;
-    }
+    if (typeof s.awcPriceUZS !== 'number') { s.awcPriceUZS = defaults.awcPriceUZS; dirty = true; }
+    if (typeof s.listingFeeUZS !== 'number') { s.listingFeeUZS = defaults.listingFeeUZS; dirty = true; }
+
     if (!s.moderation || typeof s.moderation !== 'object') {
       s.moderation = defaults.moderation;
       dirty = true;
     } else {
-      if (!Array.isArray(s.moderation.bannedWords)) {
-        s.moderation.bannedWords = defaults.moderation.bannedWords;
-        dirty = true;
-      }
-      if (!Array.isArray(s.moderation.unsalableDomains)) {
-        s.moderation.unsalableDomains = defaults.moderation.unsalableDomains;
-        dirty = true;
-      }
+      if (!Array.isArray(s.moderation.bannedWords)) { s.moderation.bannedWords = defaults.moderation.bannedWords; dirty = true; }
+      if (!Array.isArray(s.moderation.unsalableDomains)) { s.moderation.unsalableDomains = defaults.moderation.unsalableDomains; dirty = true; }
     }
-    if (!s.social || typeof s.social !== 'object') {
-      s.social = defaults.social;
-      dirty = true;
-    }
+
+    if (!Array.isArray(s.topics)) { s.topics = defaults.topics; dirty = true; }
+    if (!s.social || typeof s.social !== 'object') { s.social = defaults.social; dirty = true; }
   }
 
-  // 7) apiConfig
+  // API config
   if (!parsed.apiConfig || typeof parsed.apiConfig !== 'object') {
     parsed.apiConfig = defaultData().apiConfig;
     dirty = true;
   }
 
-  // 8) Tuzatish kerak bo'lsa saqlash
+  // Agar tuzatish kerak bo'lsa, saqlash
   if (dirty) {
     try {
       fs.writeFileSync(DATA_PATH, JSON.stringify(parsed, null, 2), 'utf8');
@@ -290,6 +318,10 @@ function readData() {
       console.error('[db] Yozib bo\'lmadi:', e.message);
     }
   }
+
+  // Keshni yangilash
+  cachedData = parsed;
+  cachedMtime = stat.mtimeMs;
 
   return parsed;
 }
@@ -303,9 +335,13 @@ function writeDataSync(data) {
   try {
     fs.writeFileSync(tmp, JSON.stringify(data, null, 2), 'utf8');
     fs.renameSync(tmp, DATA_PATH);
+    // Keshni yangilash
+    try {
+      const stat = fs.statSync(DATA_PATH);
+      cachedMtime = stat.mtimeMs;
+    } catch (_) {}
   } catch (e) {
     console.error('[db] writeDataSync xato:', e.message);
-    // Tmp faylni tozalash
     try { if (fs.existsSync(tmp)) fs.unlinkSync(tmp); } catch (_) {}
     throw e;
   }
@@ -321,10 +357,11 @@ function update(mutate) {
     const current = readData();
     const updated = (typeof mutate === 'function' ? mutate(current) : current) || current;
     writeDataSync(updated);
+    // Keshni darhol yangilash
+    cachedData = updated;
     return updated;
   }).catch(err => {
     console.error('[db:update]', err.message);
-    // Navbatni tiklash
     writeQueue = Promise.resolve();
     throw err;
   });

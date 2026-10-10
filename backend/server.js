@@ -1,6 +1,9 @@
 // backend/server.js
 // AWebShop backend — vanilla Node.js, bitta backend.json.
 // Node.js v20 va v24 uchun mos. Top-level await YO'Q.
+//
+// Localhost:  node backend/server.js
+// Vercel:     avtomatik /api/* route'lar orqali
 
 'use strict';
 
@@ -17,6 +20,7 @@ try {
   config = require('../config');
 } catch (e) {
   console.warn('⚠  config.js topilmadi. Default sozlamalar ishlatiladi.');
+  console.warn('   → cp config.example.js config.js  va to\'ldiring.');
   config = {};
 }
 
@@ -29,6 +33,7 @@ config.telegram     = config.telegram || { enabled: false, botToken: '', botUser
 config.fees         = config.fees || { listingFeeUZS: 10000, saleCommissionPercent: 5, escrowFeePercent: 0.4, cashbackPercent: 1, premiumCashbackPercent: 3, referralBonusAWC: 1, rewardedAdsPerFreeListing: 15 };
 config.escrow       = config.escrow || { sellerTransferDays: 7, verificationDays: 3, autoReleaseDays: 7, disputeResponseDays: 3, refundProcessingDays: 5 };
 config.security     = config.security || { maxLoginAttempts: 5, lockoutMinutes: 15, rateLimitWindowMs: 60000, rateLimitMaxRequests: 120, passwordMinLength: 8 };
+config.cleanup      = config.cleanup || { enabled: true, intervalMs: 3600000, soldWebsiteTtlMs: 86400000, sessionTtlMs: 604800000 };
 
 const PORT = Number(process.env.PORT) || Number(config.server.port) || 3000;
 const HOST = process.env.HOST || config.server.host || '0.0.0.0';
@@ -38,7 +43,7 @@ config.server.host = HOST;
 config.server.baseUrl = config.server.baseUrl || `http://localhost:${PORT}`;
 
 // ============================================================
-// MODULES
+// SAFE REQUIRE
 // ============================================================
 function safeRequire(modPath, label) {
   try {
@@ -53,11 +58,20 @@ function safeRequire(modPath, label) {
   }
 }
 
-const { readData }        = safeRequire('./utils/db', 'utils/db.js');
-const { rateLimiter }     = safeRequire('./middleware/rateLimiter', 'middleware/rateLimiter.js');
-const { securityHeaders } = safeRequire('./middleware/security', 'middleware/security.js');
-const { authRequired }    = safeRequire('./middleware/auth', 'middleware/auth.js');
-const { adminRequired }   = safeRequire('./middleware/admin', 'middleware/admin.js');
+function optionalRequire(modPath, name) {
+  try {
+    return require(modPath);
+  } catch (_) {
+    console.warn(`ℹ  ${name} yo'q (optional)`);
+    return null;
+  }
+}
+
+const { readData, update } = safeRequire('./utils/db', 'utils/db.js');
+const { rateLimiter }      = safeRequire('./middleware/rateLimiter', 'middleware/rateLimiter.js');
+const { securityHeaders }  = safeRequire('./middleware/security', 'middleware/security.js');
+const { authRequired }     = safeRequire('./middleware/auth', 'middleware/auth.js');
+const { adminRequired }    = safeRequire('./middleware/admin', 'middleware/admin.js');
 
 const authApi     = safeRequire('./api/auth', 'api/auth.js');
 const websitesApi = safeRequire('./api/websites', 'api/websites.js');
@@ -66,20 +80,71 @@ const tokenApi    = safeRequire('./api/token', 'api/token.js');
 const adminApi    = safeRequire('./api/admin', 'api/admin.js');
 const premiumApi  = safeRequire('./api/premium', 'api/premium.js');
 
-// Optional modullar
-let uploadApi = null;
-try { uploadApi = require('./api/upload'); } catch (_) { console.warn('ℹ  api/upload.js yo\'q'); }
-
-let settingsApi = null;
-try { settingsApi = require('./api/settings'); } catch (_) { console.warn('ℹ  api/settings.js yo\'q'); }
-
-let webhooksApi = null;
-try { webhooksApi = require('./api/webhooks'); } catch (_) { console.warn('ℹ  api/webhooks.js yo\'q'); }
-
-let eventsApi = null;
-try { eventsApi = require('./api/events'); } catch (_) { console.warn('ℹ  api/events.js yo\'q'); }
+const uploadApi      = optionalRequire('./api/upload', 'api/upload.js');
+const settingsApi    = optionalRequire('./api/settings', 'api/settings.js');
+const webhooksApi    = optionalRequire('./api/webhooks', 'api/webhooks.js');
+const eventsApi      = optionalRequire('./api/events', 'api/events.js');
+const cardsApi       = optionalRequire('./api/cards', 'api/cards.js');
+const forbiddenTgApi = optionalRequire('./api/forbidden-telegram', 'api/forbidden-telegram.js');
 
 const ROOT = path.resolve(__dirname, '..');
+
+// ============================================================
+// STATIC FILE CACHE (RAM) — TEZLASHTIRISH
+// ============================================================
+const staticCache = new Map(); // filePath → { content, mtime, contentType, etag, size }
+
+const MIME = {
+  '.html': 'text/html; charset=utf-8',
+  '.css' : 'text/css; charset=utf-8',
+  '.js'  : 'application/javascript; charset=utf-8',
+  '.mjs' : 'application/javascript; charset=utf-8',
+  '.json': 'application/json; charset=utf-8',
+  '.png' : 'image/png',
+  '.jpg' : 'image/jpeg',
+  '.jpeg': 'image/jpeg',
+  '.gif' : 'image/gif',
+  '.svg' : 'image/svg+xml',
+  '.webp': 'image/webp',
+  '.ico' : 'image/x-icon',
+  '.woff': 'font/woff',
+  '.woff2':'font/woff2',
+  '.ttf' : 'font/ttf',
+  '.otf' : 'font/otf',
+  '.txt' : 'text/plain; charset=utf-8',
+  '.xml' : 'application/xml; charset=utf-8',
+  '.webmanifest': 'application/manifest+json; charset=utf-8',
+  '.map' : 'application/json; charset=utf-8',
+  '.pdf' : 'application/pdf'
+};
+
+function getCachedFile(filePath) {
+  let stat;
+  try { stat = fs.statSync(filePath); }
+  catch (_) { return null; }
+
+  const cached = staticCache.get(filePath);
+  if (cached && cached.mtime === stat.mtimeMs) {
+    return cached;
+  }
+
+  let content;
+  try { content = fs.readFileSync(filePath); }
+  catch (_) { return null; }
+
+  const ext = path.extname(filePath).toLowerCase();
+  const etag = '"' + stat.size + '-' + stat.mtimeMs.toString(36) + '"';
+
+  const entry = {
+    content: content,
+    mtime: stat.mtimeMs,
+    contentType: MIME[ext] || 'application/octet-stream',
+    etag: etag,
+    size: stat.size
+  };
+  staticCache.set(filePath, entry);
+  return entry;
+}
 
 // ============================================================
 // CORS
@@ -108,7 +173,7 @@ function corsHeaders(req) {
 }
 
 // ============================================================
-// HELPERS
+// JSON HELPERS
 // ============================================================
 function sendJson(req, res, status, body) {
   res.writeHead(status, {
@@ -127,80 +192,81 @@ function notFound(req, res) {
 }
 
 // ============================================================
-// STATIC FILE SERVING
+// STATIC FILE SERVING — TEZ (RAM kesh)
 // ============================================================
-const MIME = {
-  '.html': 'text/html; charset=utf-8',
-  '.css' : 'text/css; charset=utf-8',
-  '.js'  : 'application/javascript; charset=utf-8',
-  '.mjs' : 'application/javascript; charset=utf-8',
-  '.json': 'application/json; charset=utf-8',
-  '.png' : 'image/png',
-  '.jpg' : 'image/jpeg',
-  '.jpeg': 'image/jpeg',
-  '.gif' : 'image/gif',
-  '.svg' : 'image/svg+xml',
-  '.webp': 'image/webp',
-  '.ico' : 'image/x-icon',
-  '.woff': 'font/woff',
-  '.woff2':'font/woff2',
-  '.ttf' : 'font/ttf',
-  '.otf' : 'font/otf',
-  '.txt' : 'text/plain; charset=utf-8',
-  '.xml' : 'application/xml; charset=utf-8',
-  '.webmanifest': 'application/manifest+json; charset=utf-8',
-  '.map' : 'application/json; charset=utf-8',
-  '.pdf' : 'application/pdf'
-};
+function sendFile(req, res, filePath) {
+  const cached = getCachedFile(filePath);
+  if (!cached) return notFound(req, res);
 
-function streamFile(req, res, filePath) {
+  // ETag — 304 qaytarish (tez, 0 ta byte)
+  const ifNoneMatch = req.headers['if-none-match'];
+  if (ifNoneMatch && ifNoneMatch === cached.etag) {
+    res.writeHead(304);
+    return res.end();
+  }
+
   const ext = path.extname(filePath).toLowerCase();
-  const type = MIME[ext] || 'application/octet-stream';
+  const headers = {
+    'Content-Type': cached.contentType,
+    'Content-Length': cached.size,
+    'ETag': cached.etag
+  };
 
-  let stat;
-  try { stat = fs.statSync(filePath); }
-  catch { return notFound(req, res); }
+  // HTML — har doim yangi (no-cache)
+  // CSS/JS — 1 kun cache (immutable)
+  // Rasm/shrift — 7 kun cache (immutable)
+  if (ext === '.html') {
+    headers['Cache-Control'] = 'no-cache, no-store, must-revalidate, max-age=0';
+    headers['Pragma'] = 'no-cache';
+    headers['Expires'] = '0';
+  } else if (ext === '.css' || ext === '.js' || ext === '.mjs') {
+    headers['Cache-Control'] = 'public, max-age=86400, immutable';
+  } else {
+    headers['Cache-Control'] = 'public, max-age=604800, immutable';
+  }
 
-  res.writeHead(200, {
-    'Content-Type': type,
-    'Content-Length': stat.size,
-    'Cache-Control': ext === '.html' ? 'no-cache' : 'public, max-age=3600'
-  });
-  fs.createReadStream(filePath).pipe(res);
+  res.writeHead(200, headers);
+  res.end(cached.content); // RAM dan to'g'ridan-to'g'ri
 }
 
 function serveStatic(req, res, pathname) {
   // Favicon
   if (pathname === '/favicon.ico') {
     const fav = path.join(ROOT, 'frontend', 'assets', 'image', 'favicon.png');
-    if (fs.existsSync(fav)) return streamFile(req, res, fav);
+    if (fs.existsSync(fav)) return sendFile(req, res, fav);
     const logo = path.join(ROOT, 'frontend', 'assets', 'image', 'logo.png');
-    if (fs.existsSync(logo)) return streamFile(req, res, logo);
+    if (fs.existsSync(logo)) return sendFile(req, res, logo);
     res.writeHead(204);
     return res.end();
   }
 
-  // ---------- /search/:query → store.html ----------
+  // /search/:query → 302 redirect to search.html?q=...
   if (pathname.startsWith('/search/') && pathname.length > 8) {
-    const storeHtml = path.join(ROOT, 'frontend', 'pages', 'store.html');
-    if (fs.existsSync(storeHtml)) return streamFile(req, res, storeHtml);
+    const searchQuery = decodeURIComponent(pathname.slice(8)).replace(/\+/g, ' ');
+    res.writeHead(302, {
+      'Location': '/frontend/pages/search.html?q=' + encodeURIComponent(searchQuery)
+    });
+    return res.end();
   }
 
-  // Root
+  // /search (bo'sh) → search.html
+  if (pathname === '/search' || pathname === '/search/') {
+    res.writeHead(302, { 'Location': '/frontend/pages/search.html' });
+    return res.end();
+  }
+
+  // Root → index.html yoki main.html
   if (pathname === '/' || pathname === '') {
     const rootIndex = path.join(ROOT, 'index.html');
-    if (fs.existsSync(rootIndex)) return streamFile(req, res, rootIndex);
-    const mainHtml = path.join(ROOT, 'frontend', 'pages', 'main.html');
-    if (fs.existsSync(mainHtml)) {
-      res.writeHead(302, { Location: '/frontend/pages/main.html' });
-      return res.end();
-    }
-    return notFound(req, res);
+    if (fs.existsSync(rootIndex)) return sendFile(req, res, rootIndex);
+    res.writeHead(302, { 'Location': '/frontend/pages/main.html' });
+    return res.end();
   }
 
+  // Path traversal himoyasi
   let decoded;
   try { decoded = decodeURIComponent(pathname); }
-  catch { return notFound(req, res); }
+  catch (_) { return notFound(req, res); }
 
   const filePath = path.resolve(path.join(ROOT, decoded));
   if (!filePath.startsWith(ROOT + path.sep) && filePath !== ROOT) {
@@ -211,23 +277,23 @@ function serveStatic(req, res, pathname) {
     if (err) return notFound(req, res);
     if (stat.isDirectory()) {
       const idx = path.join(filePath, 'index.html');
-      if (fs.existsSync(idx)) return streamFile(req, res, idx);
+      if (fs.existsSync(idx)) return sendFile(req, res, idx);
       return notFound(req, res);
     }
     if (!stat.isFile()) return notFound(req, res);
-    return streamFile(req, res, filePath);
+    return sendFile(req, res, filePath);
   });
 }
 
 // ============================================================
-// GUARD
+// ADMIN GUARD
 // ============================================================
 function guard(min) {
   return adminRequired(min || 'moderator');
 }
 
 // ============================================================
-// SERVER
+// HTTP SERVER
 // ============================================================
 const server = http.createServer(async (req, res) => {
   const parsed = url.parse(req.url, true);
@@ -242,7 +308,7 @@ const server = http.createServer(async (req, res) => {
     return res.end();
   }
 
-  // Static files
+  // Static (API emas)
   if (!pathname.startsWith('/api/')) {
     return serveStatic(req, res, pathname);
   }
@@ -253,10 +319,11 @@ const server = http.createServer(async (req, res) => {
       success: true,
       data: {
         status: 'ok',
-        uptime: process.uptime(),
+        uptime: Math.round(process.uptime()),
         ts: new Date().toISOString(),
         port: PORT,
-        node: process.version
+        node: process.version,
+        cacheSize: staticCache.size
       }
     });
   }
@@ -293,15 +360,10 @@ const server = http.createServer(async (req, res) => {
     if (pathname === '/api/auth/reset-password'       && req.method === 'POST') return await authApi.resetPassword(req, res);
     if (pathname === '/api/auth/me'                   && req.method === 'GET')  return authRequired(req, res, () => authApi.me(req, res));
 
-    // ==================== PUBLIC SETTINGS ====================
-    if (pathname === '/api/settings/public' && req.method === 'GET' && settingsApi) {
-      return settingsApi.publicSettings(req, res);
-    }
-
-    // ==================== PUBLIC EVENTS ====================
-    if (pathname === '/api/events' && req.method === 'GET' && eventsApi) {
-      return eventsApi.list(req, res);
-    }
+    // ==================== PUBLIC ====================
+    if (pathname === '/api/settings/public' && req.method === 'GET' && settingsApi) return settingsApi.publicSettings(req, res);
+    if (pathname === '/api/events'          && req.method === 'GET' && eventsApi)   return eventsApi.list(req, res);
+    if (pathname === '/api/cards/public'    && req.method === 'GET' && cardsApi)    return cardsApi.publicCard(req, res);
 
     // ==================== UPLOAD ====================
     if (pathname === '/api/upload' && req.method === 'POST' && uploadApi) {
@@ -356,14 +418,17 @@ const server = http.createServer(async (req, res) => {
     if (pathname === '/api/admin/users/restore'        && req.method === 'POST') return guard('admin')(req, res, () => adminApi.restoreUser(req, res));
     if (pathname === '/api/admin/users/badge/assign'   && req.method === 'POST') return guard('admin')(req, res, () => adminApi.assignBadge(req, res));
     if (pathname === '/api/admin/users/badge/unassign' && req.method === 'POST') return guard('admin')(req, res, () => adminApi.unassignBadge(req, res));
+    if (pathname === '/api/admin/users/ban'            && req.method === 'POST') return guard('admin')(req, res, () => adminApi.banUser(req, res));
+    if (pathname === '/api/admin/users/unban'          && req.method === 'POST') return guard('admin')(req, res, () => adminApi.unbanUser(req, res));
+    if (pathname === '/api/admin/users/ban-duration'   && req.method === 'POST') return guard('admin')(req, res, () => adminApi.banUserWithDuration(req, res));
+    if (pathname === '/api/admin/users/awc-adjust'     && req.method === 'POST') return guard('admin')(req, res, () => adminApi.awcAdjust(req, res));
 
-    // ==================== ADMIN: BAN / UNBAN ====================
-    if (pathname === '/api/admin/users/ban'          && req.method === 'POST') return guard('admin')(req, res, () => adminApi.banUser(req, res));
-    if (pathname === '/api/admin/users/unban'        && req.method === 'POST') return guard('admin')(req, res, () => adminApi.unbanUser(req, res));
-    if (pathname === '/api/admin/users/ban-duration' && req.method === 'POST') return guard('admin')(req, res, () => adminApi.banUserWithDuration(req, res));
-
-    // ==================== ADMIN: AWC ADJUST ====================
-    if (pathname === '/api/admin/users/awc-adjust'   && req.method === 'POST') return guard('admin')(req, res, () => adminApi.awcAdjust(req, res));
+    // ==================== ADMIN: FORBIDDEN TELEGRAM ====================
+    if (forbiddenTgApi) {
+      if (pathname === '/api/admin/forbidden-telegram' && req.method === 'GET')    return guard('moderator')(req, res, () => forbiddenTgApi.list(req, res));
+      if (pathname === '/api/admin/forbidden-telegram' && req.method === 'POST')   return guard('admin')(req, res, () => forbiddenTgApi.create(req, res));
+      if (pathname === '/api/admin/forbidden-telegram' && req.method === 'DELETE') return guard('admin')(req, res, () => forbiddenTgApi.remove(req, res));
+    }
 
     // ==================== ADMIN: ADMINS ====================
     if (pathname === '/api/admin/admins' && req.method === 'GET')    return guard('admin')(req, res, () => adminApi.adminsList(req, res));
@@ -389,10 +454,10 @@ const server = http.createServer(async (req, res) => {
     if (pathname === '/api/admin/payments/verify' && req.method === 'POST') return guard('admin')(req, res, () => adminApi.verifyPayment(req, res));
 
     // ==================== ADMIN: CARDS ====================
-    if (pathname === '/api/admin/cards' && req.method === 'GET')    return guard('moderator')(req, res, () => adminApi.cardsList(req, res));
-    if (pathname === '/api/admin/cards' && req.method === 'POST')   return guard('admin')(req, res, () => adminApi.cardsCreate(req, res));
-    if (pathname === '/api/admin/cards' && req.method === 'PUT')    return guard('admin')(req, res, () => adminApi.cardsUpdate(req, res));
-    if (pathname === '/api/admin/cards' && req.method === 'DELETE') return guard('admin')(req, res, () => adminApi.cardsDelete(req, res));
+    if (pathname === '/api/admin/cards' && req.method === 'GET'    && cardsApi) return guard('moderator')(req, res, () => cardsApi.adminList(req, res));
+    if (pathname === '/api/admin/cards' && req.method === 'POST'   && cardsApi) return guard('admin')(req, res, () => cardsApi.adminCreate(req, res));
+    if (pathname === '/api/admin/cards' && req.method === 'PUT'    && cardsApi) return guard('admin')(req, res, () => cardsApi.adminUpdate(req, res));
+    if (pathname === '/api/admin/cards' && req.method === 'DELETE' && cardsApi) return guard('admin')(req, res, () => cardsApi.adminDelete(req, res));
 
     // ==================== ADMIN: PROMOCODES ====================
     if (pathname === '/api/admin/promocodes' && req.method === 'GET')    return guard('moderator')(req, res, () => adminApi.promocodesList(req, res));
@@ -427,10 +492,10 @@ const server = http.createServer(async (req, res) => {
     if (pathname === '/api/admin/featured/toggle' && req.method === 'POST') return guard('admin')(req, res, () => adminApi.featuredToggle(req, res));
 
     // ==================== ADMIN: BADGES ====================
-    if (pathname === '/api/admin/badges' && req.method === 'GET')    return guard('moderator')(req, res, () => adminApi.badgesList(req, res));
-    if (pathname === '/api/admin/badges' && req.method === 'POST')   return guard('admin')(req, res, () => adminApi.badgesCreate(req, res));
-    if (pathname === '/api/admin/badges' && req.method === 'PUT')    return guard('admin')(req, res, () => adminApi.badgesUpdate(req, res));
-    if (pathname === '/api/admin/badges' && req.method === 'DELETE') return guard('admin')(req, res, () => adminApi.badgesDelete(req, res));
+    if (pathname === '/api/admin/badges' && req.method === 'GET'    && adminApi.badgesList)   return guard('moderator')(req, res, () => adminApi.badgesList(req, res));
+    if (pathname === '/api/admin/badges' && req.method === 'POST'   && adminApi.badgesCreate) return guard('admin')(req, res, () => adminApi.badgesCreate(req, res));
+    if (pathname === '/api/admin/badges' && req.method === 'PUT'    && adminApi.badgesUpdate) return guard('admin')(req, res, () => adminApi.badgesUpdate(req, res));
+    if (pathname === '/api/admin/badges' && req.method === 'DELETE' && adminApi.badgesDelete) return guard('admin')(req, res, () => adminApi.badgesDelete(req, res));
 
     // ==================== ADMIN: MODERATION ====================
     if (pathname === '/api/admin/words' && req.method === 'GET') return guard('moderator')(req, res, () => adminApi.wordsList(req, res));
@@ -506,7 +571,7 @@ const server = http.createServer(async (req, res) => {
     if (pathname === '/api/admin/seo' && req.method === 'GET') return guard('moderator')(req, res, () => adminApi.seoGet(req, res));
     if (pathname === '/api/admin/seo' && req.method === 'PUT') return guard('admin')(req, res, () => adminApi.seoUpdate(req, res));
 
-    // ==================== ADMIN: TELEGRAM ====================
+    // ==================== ADMIN: TELEGRAM SETTINGS ====================
     if (pathname === '/api/admin/telegram'      && req.method === 'GET')  return guard('admin')(req, res, () => adminApi.telegramGet(req, res));
     if (pathname === '/api/admin/telegram'      && req.method === 'PUT')  return guard('admin')(req, res, () => adminApi.telegramUpdate(req, res));
     if (pathname === '/api/admin/telegram/test' && req.method === 'POST') return guard('admin')(req, res, () => adminApi.telegramTest(req, res));
@@ -537,6 +602,62 @@ const server = http.createServer(async (req, res) => {
 });
 
 // ============================================================
+// AUTO-CLEANUP
+// ============================================================
+function autoCleanup() {
+  if (!config.cleanup.enabled) return;
+
+  try {
+    const nowTs = Date.now();
+
+    update(d => {
+      // 1. Sold websites (24 soatdan keyin)
+      const soldCutoff = nowTs - config.cleanup.soldWebsiteTtlMs;
+      const beforeWebsites = (d.websites || []).length;
+
+      d.websites = (d.websites || []).filter(w => {
+        if (w.status === 'sold' && w.soldAt) {
+          const soldTime = new Date(w.soldAt).getTime();
+          if (soldTime < soldCutoff) {
+            console.log(`[cleanup] 🗑 Removed sold: ${w.webId} (${w.name})`);
+            return false;
+          }
+        }
+        return true;
+      });
+
+      const removedWebsites = beforeWebsites - d.websites.length;
+
+      // 2. Expired sessions
+      const sessionCutoff = nowTs - config.cleanup.sessionTtlMs;
+      const beforeSessions = (d.sessions || []).length;
+      d.sessions = (d.sessions || []).filter(s => {
+        const created = s.createdAt ? new Date(s.createdAt).getTime() : 0;
+        return created > sessionCutoff;
+      });
+      const removedSessions = beforeSessions - d.sessions.length;
+
+      // 3. Expired verification codes
+      const beforeCodes = (d.verificationCodes || []).length;
+      d.verificationCodes = (d.verificationCodes || []).filter(c => {
+        if (c.used) return false;
+        const exp = c.expiresAt ? new Date(c.expiresAt).getTime() : 0;
+        return exp > nowTs;
+      });
+      const removedCodes = beforeCodes - d.verificationCodes.length;
+
+      if (removedWebsites || removedSessions || removedCodes) {
+        console.log(`[cleanup] websites: -${removedWebsites}, sessions: -${removedSessions}, codes: -${removedCodes}`);
+      }
+
+      return d;
+    });
+  } catch (e) {
+    console.error('[cleanup]', e.message);
+  }
+}
+
+// ============================================================
 // LISTEN
 // ============================================================
 server.listen(PORT, HOST, () => {
@@ -552,18 +673,28 @@ server.listen(PORT, HOST, () => {
   console.log(`  🏠 Main:      http://localhost:${PORT}/frontend/pages/main.html`);
   console.log(`  🔑 Login:     http://localhost:${PORT}/frontend/pages/login.html`);
   console.log(`  🛒 Store:     http://localhost:${PORT}/frontend/pages/store.html`);
+  console.log(`  🔍 Search:    http://localhost:${PORT}/frontend/pages/search.html`);
   console.log(`  💰 Sell:      http://localhost:${PORT}/frontend/pages/sell.html`);
   console.log(`  👤 Profile:   http://localhost:${PORT}/frontend/pages/profile.html`);
-  console.log(`  🛠  Admin:     http://localhost:${PORT}/frontend/admin/dashboard.html`);
-  console.log(`  🔍 Search:    http://localhost:${PORT}/search/keyword`);
+  console.log(`  🛠  Admin:     http://localhost:${PORT}/frontend/admin/index.html`);
   console.log(`  ❤️  Health:    http://localhost:${PORT}/api/health`);
   console.log('  ' + line);
   try {
     console.log(`  📁 Data:      ${require('./utils/db').DATA_PATH}`);
   } catch (_) {}
   console.log('  ' + line);
+  console.log(`  🤖 Telegram:  ${config.telegram.enabled ? '✅ enabled' : '❌ disabled'}`);
+  console.log(`  🧹 Cleanup:   ${config.cleanup.enabled ? '✅ every ' + (config.cleanup.intervalMs / 60000) + ' min' : '❌ disabled'}`);
+  console.log(`  💾 Cache:     HTML=no-cache, JS/CSS=1d, RAM=${staticCache.size}`);
+  console.log('  ' + line);
   console.log('  To\'xtatish: Ctrl + C');
   console.log('');
+
+  // Cleanup taskni ishga tushirish
+  if (config.cleanup.enabled) {
+    setTimeout(autoCleanup, 10 * 1000);
+    setInterval(autoCleanup, config.cleanup.intervalMs);
+  }
 });
 
 server.on('error', (err) => {
@@ -584,6 +715,9 @@ server.on('error', (err) => {
   process.exit(1);
 });
 
+// ============================================================
+// GRACEFUL SHUTDOWN
+// ============================================================
 function shutdown(signal) {
   console.log(`\n⏹  ${signal} — server to'xtatilmoqda…`);
   server.close(() => {

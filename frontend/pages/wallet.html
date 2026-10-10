@@ -6,32 +6,86 @@
 <title>Wallet — AWebShop</title>
 
 <link rel="icon" type="image/png" href="../assets/image/logo.png"/>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" crossorigin="anonymous"/>
 <link rel="stylesheet" href="../css/main.css"/>
 <link rel="stylesheet" href="../css/navbar.css"/>
 <link rel="stylesheet" href="../css/responsive.css"/>
 </head>
 <body class="aw-body">
-<div id="aw-header"></div>
 
+<!-- ============ NAVBAR ============ -->
+<header class="aw-navbar">
+  <div class="aw-navbar-inner">
+    <a class="aw-navbar-brand" href="main.html">
+      <img src="../assets/image/logo.png" alt="AWebShop" onerror="this.style.display='none'"/>
+      <span>AWebShop</span>
+    </a>
+
+    <nav class="aw-navbar-links">
+      <a href="main.html"><i class="fa-solid fa-house"></i> Home</a>
+      <a href="store.html"><i class="fa-solid fa-store"></i> Store</a>
+      <a href="sell.html"><i class="fa-solid fa-tag"></i> Sell</a>
+      <a href="wallet.html" class="active"><i class="fa-solid fa-wallet"></i> Wallet</a>
+      <a href="profile.html"><i class="fa-solid fa-user"></i> Profile</a>
+    </nav>
+
+    <div class="aw-navbar-search">
+      <input type="text" id="aw-global-search" placeholder="Search websites…" autocomplete="off"/>
+    </div>
+
+    <div class="aw-navbar-right">
+      <button class="aw-icon-btn" id="aw-theme-btn" aria-label="Theme">
+        <i class="fa-solid fa-sun" id="aw-theme-icon"></i>
+      </button>
+
+      <select id="aw-lang" class="aw-lang-select">
+        <option value="en">EN</option>
+        <option value="uz">UZ</option>
+      </select>
+
+      <a class="aw-user-chip" href="profile.html" id="aw-user-chip" style="display:none">
+        <span class="aw-avatar" id="aw-avatar">?</span>
+        <span class="aw-user-name" id="aw-user-name">User</span>
+        <span class="aw-balance-mini" id="aw-balance">0 AWC</span>
+      </a>
+
+      <button class="aw-icon-btn" id="aw-logout-btn" aria-label="Logout" style="display:none">
+        <i class="fa-solid fa-right-from-bracket"></i>
+      </button>
+    </div>
+  </div>
+</header>
+
+<!-- ============ MAIN ============ -->
 <main class="aw-page">
   <h1>Wallet</h1>
 
+  <!-- Balance + Actions -->
   <div class="aw-wallet-top">
     <div class="aw-balance-card">
       <div class="aw-muted">AWC Balance</div>
       <div class="aw-balance-big" id="awc-balance">…</div>
-      <div class="aw-muted" id="awc-approx"></div>
+      <div class="aw-muted" id="awc-approx">—</div>
     </div>
 
     <div class="aw-wallet-actions">
-      <button class="aw-btn aw-btn-primary" id="btn-topup">Top up</button>
-      <button class="aw-btn" id="btn-transfer">Transfer</button>
-      <button class="aw-btn aw-btn-ghost" id="btn-withdraw">Withdraw</button>
+      <button class="aw-btn aw-btn-primary" id="btn-topup">
+        <i class="fa-solid fa-plus"></i> Top up
+      </button>
+      <button class="aw-btn" id="btn-transfer">
+        <i class="fa-solid fa-paper-plane"></i> Transfer
+      </button>
+      <button class="aw-btn aw-btn-ghost" id="btn-withdraw">
+        <i class="fa-solid fa-arrow-down"></i> Withdraw
+      </button>
     </div>
   </div>
 
+  <!-- Transactions -->
   <section class="aw-section">
-    <div class="aw-section-head"><h2>Recent transactions</h2></div>
+    <div class="aw-section-head">
+      <h2>Recent transactions</h2>
+    </div>
     <div class="aw-table-wrap">
       <table class="aw-table" id="tx-table">
         <thead>
@@ -42,110 +96,267 @@
     </div>
   </section>
 
+  <!-- Premium Plans -->
   <section class="aw-section" id="premium">
-    <div class="aw-section-head"><h2>Premium Plans</h2></div>
-    <div class="aw-grid aw-grid-plans" id="plans-grid"></div>
+    <div class="aw-section-head">
+      <h2>Premium Plans</h2>
+      <a class="aw-link" href="main.html">← Back to home</a>
+    </div>
+    <div class="aw-grid aw-grid-plans" id="plans-grid">
+      <div class="aw-loading">Loading…</div>
+    </div>
   </section>
 </main>
 
-<div id="aw-footer"></div>
+<!-- ============ MOBILE TAB BAR ============ -->
+<nav class="aw-tabbar" id="aw-tabbar">
+  <a href="main.html"><i class="fa-solid fa-house"></i><span>Home</span></a>
+  <a href="store.html"><i class="fa-solid fa-store"></i><span>Store</span></a>
+  <a href="sell.html" class="aw-tabbar-center"><i class="fa-solid fa-plus"></i><span>Sell</span></a>
+  <a href="wallet.html" class="active"><i class="fa-solid fa-wallet"></i><span>Wallet</span></a>
+  <a href="profile.html"><i class="fa-solid fa-user"></i><span>Profile</span></a>
+</nav>
 
+<!-- ============ FOOTER ============ -->
+<footer class="aw-footer">
+  <div class="aw-footer-grid">
+    <div>
+      <h4>AWebShop</h4>
+      <p class="aw-muted">Marketplace for buying and selling fully functional websites.</p>
+    </div>
+    <div>
+      <h4>Links</h4>
+      <ul>
+        <li><a href="about.html">About</a></li>
+        <li><a href="about.html#help">Help</a></li>
+        <li><a href="about.html#contact">Contact</a></li>
+      </ul>
+    </div>
+    <div>
+      <h4>Social</h4>
+      <ul>
+        <li><a href="https://github.com/ttnaceri/" target="_blank" rel="noopener">GitHub</a></li>
+        <li><a href="https://t.me/updateDevNews" target="_blank" rel="noopener">Telegram</a></li>
+        <li><a href="https://www.instagram.com/update.dev26/" target="_blank" rel="noopener">Instagram</a></li>
+      </ul>
+    </div>
+  </div>
+  <div class="aw-footer-bottom">
+    <span>© 2026 UPDATE Inc. All Rights Reserved.</span>
+    <span>Made with ❤️ in Uzbekistan</span>
+  </div>
+</footer>
+
+<!-- ============ SCRIPTS ============ -->
 <script src="../js/api.js"></script>
 <script src="../js/i18n.js"></script>
 <script src="../js/app.js"></script>
-<script src="../js/password-toggle.js"></script>
 <script src="../js/auth.js"></script>
-<script src="../components/header.js"></script>
-<script src="../components/footer.js"></script>
 <script src="../components/modals.js"></script>
-<script src="../js/shortcuts.js"></script>
 
 <script>
-(async () => {
-  await loadRates();
-  await Auth.load();
-  if (!Auth.requireLogin('wallet.html')) return;
+(function () {
+  'use strict';
+
+  console.log('[wallet] init');
+
+  // ============================================================
+  // HELPERS
+  // ============================================================
+  function fmtUZS(n) {
+    if (typeof window.fmtUZS === 'function') return window.fmtUZS(n);
+    return new Intl.NumberFormat('uz-UZ').format(Math.round(n || 0)) + " so'm";
+  }
+  function fmtUSD(n) {
+    if (typeof window.fmtUSD === 'function') return window.fmtUSD(n);
+    return '$' + Number(n || 0).toFixed(2);
+  }
+  function fmtAWC(n) {
+    if (typeof window.fmtAWC === 'function') return window.fmtAWC(n);
+    return Number(n || 0).toFixed(4).replace(/\.?0+$/, '') + ' AWC';
+  }
+  function fmtDate(iso) {
+    if (typeof window.fmtDate === 'function') return window.fmtDate(iso);
+    return iso ? new Date(iso).toLocaleString() : '—';
+  }
+  function esc(s) {
+    if (typeof window.esc === 'function') return window.esc(s);
+    return String(s == null ? '' : s)
+      .replace(/&/g, '&amp;').replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+  }
+
+  // ============================================================
+  // NAVBAR
+  // ============================================================
+  function setupNavbar() {
+    // Theme
+    var themeBtn = document.getElementById('aw-theme-btn');
+    var themeIcon = document.getElementById('aw-theme-icon');
+    if (themeBtn && themeIcon) {
+      var t = localStorage.getItem('aw_theme') || 'dark';
+      themeIcon.className = 'fa-solid ' + (t === 'light' ? 'fa-moon' : 'fa-sun');
+      themeBtn.addEventListener('click', function () {
+        var next = (localStorage.getItem('aw_theme') || 'dark') === 'dark' ? 'light' : 'dark';
+        localStorage.setItem('aw_theme', next);
+        document.documentElement.classList.toggle('dark', next === 'dark');
+        document.documentElement.classList.toggle('light', next === 'light');
+        themeIcon.className = 'fa-solid ' + (next === 'light' ? 'fa-moon' : 'fa-sun');
+      });
+    }
+
+    // Lang
+    var langSel = document.getElementById('aw-lang');
+    if (langSel) {
+      langSel.value = localStorage.getItem('aw_lang') || 'en';
+      langSel.addEventListener('change', function (e) {
+        localStorage.setItem('aw_lang', e.target.value);
+        location.reload();
+      });
+    }
+
+    // Search
+    var s = document.getElementById('aw-global-search');
+    if (s) s.addEventListener('keydown', function (e) {
+      if (e.key === 'Enter') {
+        var q = s.value.trim();
+        if (q) location.href = '/search/' + encodeURIComponent(q);
+      }
+    });
+
+    // User chip
+    var u = (window.Auth && window.Auth.user) || null;
+    if (u) {
+      var chip = document.getElementById('aw-user-chip');
+      if (chip) chip.style.display = 'flex';
+      document.getElementById('aw-avatar').textContent = (u.nickname || '?')[0].toUpperCase();
+      document.getElementById('aw-user-name').textContent = u.nickname || '';
+      document.getElementById('aw-balance').textContent = fmtAWC(u.balanceAWC);
+      var lb = document.getElementById('aw-logout-btn');
+      if (lb) {
+        lb.style.display = 'inline-flex';
+        lb.onclick = function () { window.Auth.logout(); };
+      }
+    }
+  }
 
   // ============================================================
   // LOAD BALANCE
   // ============================================================
   async function loadBalance() {
-    const res = await API.tokenBalance();
-    if (!res.success) return;
-    const { balanceAWC, balanceUZS, balanceUSD, awcPriceUZS } = res.data;
-    document.getElementById('awc-balance').textContent = fmtAWC(balanceAWC);
+    var res = await window.API.tokenBalance();
+    if (!res || !res.success) return;
+
+    var d = res.data;
+    document.getElementById('awc-balance').textContent = fmtAWC(d.balanceAWC);
     document.getElementById('awc-approx').textContent =
-      fmtUZS(balanceUZS) + '  ≈  ' + fmtUSD(balanceUSD) + `  •  1 AWC = ${fmtUZS(awcPriceUZS)}`;
+      fmtUZS(d.balanceUZS) + '  ≈  ' + fmtUSD(d.balanceUSD) +
+      '  •  1 AWC = ' + fmtUZS(d.awcPriceUZS);
   }
 
   // ============================================================
   // LOAD TRANSACTIONS
   // ============================================================
   async function loadTx() {
-    const res = await API.tokenHistory();
-    const tbody = document.querySelector('#tx-table tbody');
-    if (!res.success) { tbody.innerHTML = '<tr><td colspan="5">Failed.</td></tr>'; return; }
-    const items = res.data.items.slice(0, 50);
-    if (!items.length) { tbody.innerHTML = '<tr><td colspan="5" class="aw-muted">No transactions yet.</td></tr>'; return; }
-    tbody.innerHTML = items.map(t => `
-      <tr>
-        <td>${fmtDate(t.createdAt)}</td>
-        <td>${esc(t.type)}</td>
-        <td>${t.amountAWC ? fmtAWC(t.amountAWC) : (t.amountUZS ? fmtUZS(t.amountUZS) : '—')}</td>
-        <td><span class="aw-status aw-status-${esc(t.status)}">${esc(t.status)}</span></td>
-        <td>${esc(t.description || '')}</td>
-      </tr>
-    `).join('');
+    var res = await window.API.tokenHistory();
+    var tbody = document.querySelector('#tx-table tbody');
+
+    if (!res || !res.success) {
+      tbody.innerHTML = '<tr><td colspan="5">Failed.</td></tr>';
+      return;
+    }
+
+    var items = (res.data.items || []).slice(0, 50);
+    if (!items.length) {
+      tbody.innerHTML = '<tr><td colspan="5" class="aw-muted">No transactions yet.</td></tr>';
+      return;
+    }
+
+    tbody.innerHTML = items.map(function (t) {
+      return '<tr>' +
+        '<td>' + fmtDate(t.createdAt) + '</td>' +
+        '<td>' + esc(t.type) + '</td>' +
+        '<td>' + (t.amountAWC ? fmtAWC(t.amountAWC) : (t.amountUZS ? fmtUZS(t.amountUZS) : '—')) + '</td>' +
+        '<td><span class="aw-status aw-status-' + esc(t.status) + '">' + esc(t.status) + '</span></td>' +
+        '<td>' + esc(t.description || '') + '</td>' +
+        '</tr>';
+    }).join('');
   }
 
   // ============================================================
-  // LOAD PLANS
+  // LOAD PLANS (AWC narxlari bilan)
   // ============================================================
   async function loadPlans() {
-    const res = await API.premiumPlans();
-    const grid = document.getElementById('plans-grid');
-    if (!res.success) { grid.innerHTML = ''; return; }
-    grid.innerHTML = res.data.items.map(p => `
-      <div class="aw-plan-card">
-        <h3>${esc(p.name)}</h3>
-        <div class="aw-plan-price">
-          <strong>${fmtUZS(p.monthlyPriceUZS)}</strong>
-          <small>${fmtUSD(p.monthlyPriceUSD)} / month</small>
-          <div class="aw-muted">${fmtUZS(p.yearlyPriceUZS)} / year</div>
-        </div>
-        <ul class="aw-plan-features">${p.features.map(f => `<li>${esc(f)}</li>`).join('')}</ul>
-        <div class="aw-plan-commission">${p.commission}% commission</div>
-        <button class="aw-btn aw-btn-primary aw-btn-block" data-plan="${p.id}">Subscribe</button>
-      </div>
-    `).join('');
+    var grid = document.getElementById('plans-grid');
+    var res = await window.API.premiumPlans();
 
-    grid.querySelectorAll('button[data-plan]').forEach(btn => {
-      btn.addEventListener('click', () => openSubscribe(btn.dataset.plan));
+    if (!res || !res.success || !Array.isArray(res.data.items)) {
+      grid.innerHTML = '<div class="aw-empty">Plans unavailable.</div>';
+      return;
+    }
+
+    grid.innerHTML = res.data.items.map(function (p) {
+      var awcMonthly = p.monthlyPriceAWC != null
+        ? p.monthlyPriceAWC
+        : +(p.monthlyPriceUZS / 10000).toFixed(2);
+      var awcYearly = p.yearlyPriceAWC != null
+        ? p.yearlyPriceAWC
+        : +(p.yearlyPriceUZS / 10000).toFixed(2);
+
+      return '<div class="aw-plan-card">' +
+        '<h3>' + esc(p.name) + (p.badge ? ' 🏅' : '') + '</h3>' +
+        '<div class="aw-plan-price">' +
+        '<strong>' + fmtAWC(awcMonthly) + '</strong>' +
+        '<small>' + fmtUZS(p.monthlyPriceUZS) + ' • ' + fmtUSD(p.monthlyPriceUSD) + ' / month</small>' +
+        '<div class="aw-muted" style="font-size:12px;margin-top:4px">' + fmtAWC(awcYearly) + ' / year</div>' +
+        '</div>' +
+        '<ul class="aw-plan-features">' +
+        (Array.isArray(p.features) ? p.features.map(function (f) {
+          return '<li>' + esc(f) + '</li>';
+        }).join('') : '') +
+        '</ul>' +
+        '<div class="aw-plan-commission">' + esc(p.commission) + '% commission</div>' +
+        '<button class="aw-btn aw-btn-primary aw-btn-block" data-plan="' + esc(p.id) + '">Subscribe</button>' +
+        '</div>';
+    }).join('');
+
+    grid.querySelectorAll('button[data-plan]').forEach(function (btn) {
+      btn.addEventListener('click', function () {
+        openSubscribeModal(btn.dataset.plan);
+      });
     });
   }
 
-  function openSubscribe(planId) {
-    openModal({
+  // ============================================================
+  // SUBSCRIBE MODAL
+  // ============================================================
+  function openSubscribeModal(planId) {
+    window.openModal({
       title: 'Subscribe',
-      body: `
-        <div class="aw-form">
-          <label><span>Billing period</span>
-            <select id="sub-period">
-              <option value="monthly">Monthly</option>
-              <option value="yearly">Yearly (25% off)</option>
-            </select>
-          </label>
-          <p class="aw-muted">Payment is manual: admin verifies your card payment.</p>
-          <div class="aw-form-error" id="sub-err" hidden></div>
-        </div>
-      `,
+      body: '<div class="aw-form">' +
+        '<label><span>Billing period</span>' +
+        '<select id="sub-period">' +
+        '<option value="monthly">Monthly</option>' +
+        '<option value="yearly">Yearly (25% off)</option>' +
+        '</select></label>' +
+        '<p class="aw-muted">AWC will be deducted from your balance immediately.</p>' +
+        '<div class="aw-form-error" id="sub-err" hidden></div>' +
+        '</div>',
       actions: [
-        { label: 'Cancel', className: 'aw-btn-ghost', onClick: () => closeModal() },
-        { label: 'Continue', className: 'aw-btn-primary', onClick: async () => {
-          const billingPeriod = document.getElementById('sub-period').value;
-          const r = await API.premiumSubscribe({ planId, billingPeriod });
-          if (r.success) { toast('Subscription created. Awaiting verification.', 'success', 5000); closeModal(); }
-          else { const e = document.getElementById('sub-err'); e.textContent = r.message; e.hidden = false; }
+        { label: 'Cancel', className: 'aw-btn-ghost', onClick: function () { window.closeModal(); } },
+        { label: 'Continue', className: 'aw-btn-primary', onClick: async function () {
+          var period = document.getElementById('sub-period').value;
+          var r = await window.API.premiumSubscribe({ planId: planId, billingPeriod: period });
+          if (r && r.success) {
+            window.toast('Subscribed! AWC deducted.', 'success', 4000);
+            window.closeModal();
+            loadBalance();
+            loadTx();
+          } else {
+            var e = document.getElementById('sub-err');
+            e.textContent = (r && r.message) || 'Failed';
+            e.hidden = false;
+          }
         }}
       ]
     });
@@ -154,35 +365,41 @@
   // ============================================================
   // TOP UP
   // ============================================================
-  document.getElementById('btn-topup').addEventListener('click', () => {
-    openModal({
+  document.getElementById('btn-topup').addEventListener('click', function () {
+    window.openModal({
       title: 'Top up AWC',
-      body: `
-        <div class="aw-form">
-          <label><span>Amount (UZS)</span><input type="number" id="tu-amount" min="1000" step="1000" placeholder="50000"/></label>
-          <label><span>Payment reference (optional)</span><input type="text" id="tu-ref" placeholder="Card last 4 / transaction ID"/></label>
-          <p class="aw-muted">Admin card will be shown after submitting. Manual verification required.</p>
-          <div class="aw-form-error" id="tu-err" hidden></div>
-        </div>
-      `,
+      body: '<div class="aw-form">' +
+        '<label><span>Amount (UZS)</span>' +
+        '<input type="number" id="tu-amount" min="1000" step="1000" placeholder="50000"/></label>' +
+        '<label><span>Payment reference (optional)</span>' +
+        '<input type="text" id="tu-ref" placeholder="Card last 4 / transaction ID"/></label>' +
+        '<p class="aw-muted">Admin card will be shown after submit. Manual verification required.</p>' +
+        '<div class="aw-form-error" id="tu-err" hidden></div>' +
+        '</div>',
       actions: [
-        { label: 'Cancel', className: 'aw-btn-ghost', onClick: () => closeModal() },
-        { label: 'Submit', className: 'aw-btn-primary', onClick: async () => {
-          const amountUZS = Number(document.getElementById('tu-amount').value);
-          const reference = document.getElementById('tu-ref').value;
+        { label: 'Cancel', className: 'aw-btn-ghost', onClick: function () { window.closeModal(); } },
+        { label: 'Submit', className: 'aw-btn-primary', onClick: async function () {
+          var amountUZS = Number(document.getElementById('tu-amount').value);
+          var reference = document.getElementById('tu-ref').value;
           if (!amountUZS || amountUZS < 1000) {
-            const e = document.getElementById('tu-err'); e.textContent = 'Minimum 1000 UZS.'; e.hidden = false; return;
+            var e = document.getElementById('tu-err');
+            e.textContent = 'Minimum 1000 UZS'; e.hidden = false; return;
           }
-          const r = await API.tokenTopup({ amountUZS, reference });
-          if (r.success) {
-            const pm = r.data.paymentMethod;
+          var r = await window.API.tokenTopup({ amountUZS: amountUZS, reference: reference });
+          if (r && r.success) {
+            var pm = r.data && r.data.paymentMethod;
             if (pm && pm.cardNumber) {
-              toast(`Send payment to: ${pm.cardNumber} (${pm.bank || ''})`, 'info', 10000);
+              window.toast('Send payment to: ' + pm.cardNumber + ' (' + (pm.bank || '') + ')', 'info', 10000);
             } else {
-              toast('Top-up pending admin verification.', 'success', 5000);
+              window.toast('Top-up pending admin verification.', 'success', 5000);
             }
-            closeModal(); loadTx();
-          } else { const e = document.getElementById('tu-err'); e.textContent = r.message; e.hidden = false; }
+            window.closeModal();
+            loadTx();
+          } else {
+            var e2 = document.getElementById('tu-err');
+            e2.textContent = (r && r.message) || 'Failed';
+            e2.hidden = false;
+          }
         }}
       ]
     });
@@ -191,24 +408,30 @@
   // ============================================================
   // TRANSFER
   // ============================================================
-  document.getElementById('btn-transfer').addEventListener('click', () => {
-    openModal({
+  document.getElementById('btn-transfer').addEventListener('click', function () {
+    window.openModal({
       title: 'Transfer AWC',
-      body: `
-        <div class="aw-form">
-          <label><span>Recipient nickname</span><input id="tr-to"/></label>
-          <label><span>Amount (AWC)</span><input id="tr-amount" type="number" step="0.0001" min="0.0001"/></label>
-          <div class="aw-form-error" id="tr-err" hidden></div>
-        </div>
-      `,
+      body: '<div class="aw-form">' +
+        '<label><span>Recipient nickname</span><input id="tr-to"/></label>' +
+        '<label><span>Amount (AWC)</span><input id="tr-amount" type="number" step="0.0001" min="0.0001"/></label>' +
+        '<div class="aw-form-error" id="tr-err" hidden></div>' +
+        '</div>',
       actions: [
-        { label: 'Cancel', className: 'aw-btn-ghost', onClick: () => closeModal() },
-        { label: 'Send', className: 'aw-btn-primary', onClick: async () => {
-          const toNickname = document.getElementById('tr-to').value.trim();
-          const amountAWC = Number(document.getElementById('tr-amount').value);
-          const r = await API.tokenTransfer({ toNickname, amountAWC });
-          if (r.success) { toast('Transfer completed.', 'success'); closeModal(); loadBalance(); loadTx(); }
-          else { const e = document.getElementById('tr-err'); e.textContent = r.message; e.hidden = false; }
+        { label: 'Cancel', className: 'aw-btn-ghost', onClick: function () { window.closeModal(); } },
+        { label: 'Send', className: 'aw-btn-primary', onClick: async function () {
+          var toNickname = document.getElementById('tr-to').value.trim();
+          var amountAWC = Number(document.getElementById('tr-amount').value);
+          var r = await window.API.tokenTransfer({ toNickname: toNickname, amountAWC: amountAWC });
+          if (r && r.success) {
+            window.toast('Transfer completed.', 'success');
+            window.closeModal();
+            loadBalance();
+            loadTx();
+          } else {
+            var e = document.getElementById('tr-err');
+            e.textContent = (r && r.message) || 'Failed';
+            e.hidden = false;
+          }
         }}
       ]
     });
@@ -217,33 +440,65 @@
   // ============================================================
   // WITHDRAW
   // ============================================================
-  document.getElementById('btn-withdraw').addEventListener('click', () => {
-    openModal({
+  document.getElementById('btn-withdraw').addEventListener('click', function () {
+    window.openModal({
       title: 'Withdraw AWC',
-      body: `
-        <div class="aw-form">
-          <label><span>Amount (AWC)</span><input id="wd-amount" type="number" step="0.0001" min="0.0001"/></label>
-          <label><span>Card number (UZS payout)</span><input id="wd-card" placeholder="8600 1234 5678 9012"/></label>
-          <p class="aw-muted">Admin will review and process within 5 business days.</p>
-          <div class="aw-form-error" id="wd-err" hidden></div>
-        </div>
-      `,
+      body: '<div class="aw-form">' +
+        '<label><span>Amount (AWC)</span><input id="wd-amount" type="number" step="0.0001" min="0.0001"/></label>' +
+        '<label><span>Card number (UZS payout)</span><input id="wd-card" placeholder="8600 1234 5678 9012"/></label>' +
+        '<p class="aw-muted">Admin will review within 5 business days.</p>' +
+        '<div class="aw-form-error" id="wd-err" hidden></div>' +
+        '</div>',
       actions: [
-        { label: 'Cancel', className: 'aw-btn-ghost', onClick: () => closeModal() },
-        { label: 'Request', className: 'aw-btn-primary', onClick: async () => {
-          const amountAWC = Number(document.getElementById('wd-amount').value);
-          const cardNumber = document.getElementById('wd-card').value.trim();
-          const r = await API.tokenWithdraw({ amountAWC, cardNumber });
-          if (r.success) { toast('Withdrawal request created.', 'success'); closeModal(); loadTx(); }
-          else { const e = document.getElementById('wd-err'); e.textContent = r.message; e.hidden = false; }
+        { label: 'Cancel', className: 'aw-btn-ghost', onClick: function () { window.closeModal(); } },
+        { label: 'Request', className: 'aw-btn-primary', onClick: async function () {
+          var amountAWC = Number(document.getElementById('wd-amount').value);
+          var cardNumber = document.getElementById('wd-card').value.trim();
+          var r = await window.API.tokenWithdraw({ amountAWC: amountAWC, cardNumber: cardNumber });
+          if (r && r.success) {
+            window.toast('Withdrawal request created.', 'success');
+            window.closeModal();
+            loadTx();
+          } else {
+            var e = document.getElementById('wd-err');
+            e.textContent = (r && r.message) || 'Failed';
+            e.hidden = false;
+          }
         }}
       ]
     });
   });
 
-  loadBalance();
-  loadTx();
-  loadPlans();
+  // ============================================================
+  // START
+  // ============================================================
+  async function start() {
+    // Auth guard
+    if (window.Auth && typeof window.Auth.load === 'function') {
+      await window.Auth.load();
+    }
+
+    if (!window.Auth || !window.Auth.isLoggedIn()) {
+      location.href = 'login.html?next=' + encodeURIComponent('wallet.html');
+      return;
+    }
+
+    setupNavbar();
+
+    try { if (typeof window.loadRates === 'function') await window.loadRates(); } catch (_) {}
+
+    loadBalance();
+    loadTx();
+    loadPlans();
+
+    console.log('[wallet] ready');
+  }
+
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', start);
+  } else {
+    start();
+  }
 })();
 </script>
 </body>

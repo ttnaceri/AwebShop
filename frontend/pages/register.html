@@ -6,17 +6,40 @@
 <title>Register — AWebShop</title>
 
 <link rel="icon" type="image/png" href="../assets/image/logo.png"/>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" crossorigin="anonymous"/>
 <link rel="stylesheet" href="../css/main.css"/>
 <link rel="stylesheet" href="../css/navbar.css"/>
 <link rel="stylesheet" href="../css/responsive.css"/>
 </head>
 <body class="aw-body">
-<div id="aw-header"></div>
+
+<header class="aw-navbar">
+  <div class="aw-navbar-inner">
+    <a class="aw-navbar-brand" href="main.html">
+      <img src="../assets/image/logo.png" alt="AWebShop" onerror="this.style.display='none'"/>
+      <span>AWebShop</span>
+    </a>
+    <nav class="aw-navbar-links">
+      <a href="main.html"><i class="fa-solid fa-house"></i> Home</a>
+      <a href="store.html"><i class="fa-solid fa-store"></i> Store</a>
+      <a href="sell.html"><i class="fa-solid fa-tag"></i> Sell</a>
+      <a href="wallet.html"><i class="fa-solid fa-wallet"></i> Wallet</a>
+      <a href="profile.html"><i class="fa-solid fa-user"></i> Profile</a>
+    </nav>
+    <div class="aw-navbar-right">
+      <button class="aw-icon-btn" id="aw-theme-btn"><i class="fa-solid fa-sun" id="aw-theme-icon"></i></button>
+      <select id="aw-lang" class="aw-lang-select">
+        <option value="en">EN</option>
+        <option value="uz">UZ</option>
+      </select>
+    </div>
+  </div>
+</header>
 
 <main class="aw-page aw-auth-page">
   <div class="aw-auth-card aw-auth-card-wide">
     <h1>Create your account</h1>
-    <p class="aw-muted">Verification via Telegram. No Google OAuth.</p>
+    <p class="aw-muted">Verification via Telegram.</p>
 
     <form id="reg-form" class="aw-form" autocomplete="off">
       <div class="aw-form-row">
@@ -26,10 +49,9 @@
         </label>
         <label>
           <span>Telegram ID</span>
-          <input type="text" id="tg-id" placeholder="123456789" inputmode="numeric" required/>
+          <input type="text" id="tg-id" placeholder="123456789" required/>
         </label>
       </div>
-
       <div class="aw-form-row">
         <label>
           <span>Phone number</span>
@@ -38,12 +60,11 @@
         <label>
           <span>Verification code</span>
           <div class="aw-inline">
-            <input type="text" id="code" placeholder="6 digits" maxlength="6" inputmode="numeric" required/>
-            <button type="button" class="aw-btn aw-btn-ghost" id="send-code">Send code</button>
+            <input type="text" id="code" placeholder="6 digits" maxlength="6" required/>
+            <button type="button" class="aw-btn aw-btn-ghost" id="send-code">Send</button>
           </div>
         </label>
       </div>
-
       <div class="aw-form-row">
         <label>
           <span>Nickname</span>
@@ -54,7 +75,6 @@
           <input type="password" id="password" required/>
         </label>
       </div>
-
       <div class="aw-form-error" id="form-error" hidden></div>
       <button type="submit" class="aw-btn aw-btn-primary aw-btn-block">Create account</button>
     </form>
@@ -65,81 +85,101 @@
   </div>
 </main>
 
-<div id="aw-footer"></div>
+<nav class="aw-tabbar">
+  <a href="main.html"><i class="fa-solid fa-house"></i><span>Home</span></a>
+  <a href="store.html"><i class="fa-solid fa-store"></i><span>Store</span></a>
+  <a href="sell.html" class="aw-tabbar-center"><i class="fa-solid fa-plus"></i><span>Sell</span></a>
+  <a href="wallet.html"><i class="fa-solid fa-wallet"></i><span>Wallet</span></a>
+  <a href="profile.html"><i class="fa-solid fa-user"></i><span>Profile</span></a>
+</nav>
 
 <script src="../js/api.js"></script>
 <script src="../js/i18n.js"></script>
 <script src="../js/app.js"></script>
-<script src="../js/validation.js"></script>
-<script src="../js/password-toggle.js"></script>
 <script src="../js/auth.js"></script>
-<script src="../components/header.js"></script>
-<script src="../components/footer.js"></script>
+<script src="../js/password-toggle.js"></script>
 <script src="../components/modals.js"></script>
-<script src="../js/shortcuts.js"></script>
 
 <script>
-(async () => {
-  await loadRates();
+(function () {
+  'use strict';
 
-  const form = document.getElementById('reg-form');
-  const errBox = document.getElementById('form-error');
-  const showErr = m => { errBox.textContent = m; errBox.hidden = false; };
-  const hideErr = () => { errBox.hidden = true; };
+  // Navbar
+  var themeBtn = document.getElementById('aw-theme-btn');
+  var themeIcon = document.getElementById('aw-theme-icon');
+  if (themeBtn && themeIcon) {
+    var t = localStorage.getItem('aw_theme') || 'dark';
+    themeIcon.className = 'fa-solid ' + (t === 'light' ? 'fa-moon' : 'fa-sun');
+    themeBtn.addEventListener('click', function () {
+      var next = (localStorage.getItem('aw_theme') || 'dark') === 'dark' ? 'light' : 'dark';
+      localStorage.setItem('aw_theme', next);
+      document.documentElement.classList.toggle('dark', next === 'dark');
+      document.documentElement.classList.toggle('light', next === 'light');
+      themeIcon.className = 'fa-solid ' + (next === 'light' ? 'fa-moon' : 'fa-sun');
+    });
+  }
 
-  // Send verification code
-  document.getElementById('send-code').addEventListener('click', async () => {
-    hideErr();
-    const telegramUsername = document.getElementById('tg-username').value.trim();
-    const telegramId = document.getElementById('tg-id').value.trim();
-    if (!Validators.telegramUsername(telegramUsername)) return showErr('Invalid Telegram username.');
-    if (!Validators.telegramId(telegramId)) return showErr('Telegram ID must be numeric (5-15 digits).');
+  (async function () {
+    await loadRates();
 
-    const btn = document.getElementById('send-code');
-    btn.disabled = true; btn.textContent = 'Sending…';
+    var form = document.getElementById('reg-form');
+    var errBox = document.getElementById('form-error');
+    function showErr(m) { errBox.textContent = m; errBox.hidden = false; }
+    function hideErr() { errBox.hidden = true; }
 
-    const res = await API.requestVerification({ telegramUsername, telegramId });
-    btn.disabled = false; btn.textContent = 'Send code';
+    document.getElementById('send-code').addEventListener('click', async function () {
+      hideErr();
+      var tg = document.getElementById('tg-username').value.trim();
+      var id = document.getElementById('tg-id').value.trim();
 
-    if (res.success) {
-      toast('Code sent via Telegram.', 'success');
-      if (res.data.debugCode) toast('DEV code: ' + res.data.debugCode, 'warn', 10000);
-    } else showErr(res.message);
-  });
+      if (!/^@?[a-zA-Z0-9_]{5,32}$/.test(tg)) return showErr('Invalid Telegram username.');
+      if (!/^\d{5,15}$/.test(id)) return showErr('Telegram ID must be 5-15 digits.');
 
-  form.addEventListener('submit', async (e) => {
-    e.preventDefault();
-    hideErr();
+      var btn = document.getElementById('send-code');
+      btn.disabled = true; btn.textContent = '…';
 
-    const payload = {
-      telegramUsername: document.getElementById('tg-username').value.trim(),
-      telegramId: document.getElementById('tg-id').value.trim(),
-      phone: document.getElementById('phone').value.trim(),
-      code: document.getElementById('code').value.trim(),
-      nickname: document.getElementById('nickname').value.trim(),
-      password: document.getElementById('password').value
-    };
+      var res = await API.requestVerification({ telegramUsername: tg, telegramId: id });
+      btn.disabled = false; btn.textContent = 'Send';
 
-    if (!Validators.telegramUsername(payload.telegramUsername)) return showErr('Invalid Telegram username.');
-    if (!Validators.telegramId(payload.telegramId)) return showErr('Invalid Telegram ID.');
-    if (!Validators.phone(payload.phone)) return showErr('Invalid phone number.');
-    if (!Validators.code(payload.code)) return showErr('Verification code must be 6 digits.');
-    if (!Validators.nickname(payload.nickname)) return showErr('Invalid nickname (3-20 chars).');
-    if (!Validators.password(payload.password)) return showErr('Password must be at least 8 characters.');
+      if (res.success) {
+        toast('Code sent.', 'success');
+        if (res.data.debugCode) {
+          toast('DEV code: ' + res.data.debugCode, 'warn', 15000);
+          document.getElementById('code').value = res.data.debugCode;
+        }
+      } else showErr(res.message);
+    });
 
-    const btn = form.querySelector('button[type=submit]');
-    btn.disabled = true; btn.textContent = 'Creating…';
+    form.addEventListener('submit', async function (e) {
+      e.preventDefault();
+      hideErr();
 
-    const res = await API.register(payload);
-    btn.disabled = false; btn.textContent = 'Create account';
+      var payload = {
+        telegramUsername: document.getElementById('tg-username').value.trim(),
+        telegramId: document.getElementById('tg-id').value.trim(),
+        phone: document.getElementById('phone').value.trim(),
+        code: document.getElementById('code').value.trim(),
+        nickname: document.getElementById('nickname').value.trim(),
+        password: document.getElementById('password').value
+      };
 
-    if (res.success) {
-      API.setToken(res.data.token);
-      Auth.user = res.data.user;
-      toast('Welcome, ' + res.data.user.nickname + '!', 'success');
-      setTimeout(() => location.href = 'main.html', 400);
-    } else showErr(res.message);
-  });
+      if (!payload.nickname || payload.nickname.length < 3) return showErr('Invalid nickname.');
+      if (!payload.password || payload.password.length < 8) return showErr('Password must be 8+ chars.');
+
+      var btn = form.querySelector('button[type=submit]');
+      btn.disabled = true; btn.textContent = 'Creating…';
+
+      var res = await API.register(payload);
+      btn.disabled = false; btn.textContent = 'Create account';
+
+      if (res.success) {
+        API.setToken(res.data.token);
+        Auth.user = res.data.user;
+        toast('Welcome, ' + res.data.user.nickname + '!', 'success');
+        setTimeout(function () { location.href = 'main.html'; }, 400);
+      } else showErr(res.message);
+    });
+  })();
 })();
 </script>
 </body>

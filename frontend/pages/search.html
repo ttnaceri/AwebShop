@@ -1,0 +1,339 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1"/>
+<title>Search — AWebShop</title>
+
+<link rel="icon" type="image/png" href="../assets/image/logo.png"/>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" crossorigin="anonymous"/>
+<link rel="stylesheet" href="../css/main.css"/>
+<link rel="stylesheet" href="../css/navbar.css"/>
+<link rel="stylesheet" href="../css/responsive.css"/>
+</head>
+<body class="aw-body">
+
+<header class="aw-navbar">
+  <div class="aw-navbar-inner">
+    <a class="aw-navbar-brand" href="main.html">
+      <img src="../assets/image/logo.png" alt="AWebShop" onerror="this.style.display='none'"/>
+      <span>AWebShop</span>
+    </a>
+    <nav class="aw-navbar-links">
+      <a href="main.html"><i class="fa-solid fa-house"></i> Home</a>
+      <a href="store.html"><i class="fa-solid fa-store"></i> Store</a>
+      <a href="sell.html"><i class="fa-solid fa-tag"></i> Sell</a>
+      <a href="wallet.html"><i class="fa-solid fa-wallet"></i> Wallet</a>
+      <a href="profile.html"><i class="fa-solid fa-user"></i> Profile</a>
+    </nav>
+    <div class="aw-navbar-search">
+      <input type="text" id="aw-global-search" placeholder="Search websites…" autocomplete="off"/>
+    </div>
+    <div class="aw-navbar-right">
+      <button class="aw-icon-btn" id="aw-theme-btn"><i class="fa-solid fa-sun" id="aw-theme-icon"></i></button>
+      <select id="aw-lang" class="aw-lang-select">
+        <option value="en">EN</option>
+        <option value="uz">UZ</option>
+      </select>
+      <a class="aw-btn aw-btn-ghost" href="login.html" id="aw-login-btn">Login</a>
+      <a class="aw-btn aw-btn-primary" href="register.html" id="aw-register-btn">Register</a>
+      <a class="aw-user-chip" href="profile.html" id="aw-user-chip" style="display:none">
+        <span class="aw-avatar" id="aw-avatar">?</span>
+        <span class="aw-user-name" id="aw-user-name">User</span>
+        <span class="aw-balance-mini" id="aw-balance">0 AWC</span>
+      </a>
+      <button class="aw-icon-btn" id="aw-logout-btn" style="display:none">
+        <i class="fa-solid fa-right-from-bracket"></i>
+      </button>
+    </div>
+  </div>
+</header>
+
+<main class="aw-page">
+  <div class="aw-section-head">
+    <h1>Search results</h1>
+    <div class="aw-muted" id="count-label">…</div>
+  </div>
+
+  <div class="aw-filters">
+    <input id="aw-search-input" type="text" placeholder="Search websites…" autocomplete="off"/>
+    <select id="f-topic"><option value="">All themes</option></select>
+    <select id="f-type">
+      <option value="">All types</option>
+      <option value="frontend">Frontend</option>
+      <option value="backend">Backend</option>
+      <option value="fullstack">Fullstack</option>
+    </select>
+    <select id="f-sale">
+      <option value="">All sale types</option>
+      <option value="safe">Safe (escrow)</option>
+      <option value="fast">Fast (direct)</option>
+    </select>
+    <select id="f-sort">
+      <option value="newest">Newest</option>
+      <option value="price_asc">Price ↑</option>
+      <option value="price_desc">Price ↓</option>
+      <option value="popular">Popular</option>
+    </select>
+    <button class="aw-btn aw-btn-ghost" id="f-reset"><i class="fa-solid fa-rotate"></i> Reset</button>
+  </div>
+
+  <div class="aw-grid" id="search-grid">
+    <div class="aw-loading">Loading…</div>
+  </div>
+
+  <div class="aw-pagination" id="pager"></div>
+</main>
+
+<nav class="aw-tabbar">
+  <a href="main.html"><i class="fa-solid fa-house"></i><span>Home</span></a>
+  <a href="store.html"><i class="fa-solid fa-store"></i><span>Store</span></a>
+  <a href="sell.html" class="aw-tabbar-center"><i class="fa-solid fa-plus"></i><span>Sell</span></a>
+  <a href="wallet.html"><i class="fa-solid fa-wallet"></i><span>Wallet</span></a>
+  <a href="profile.html"><i class="fa-solid fa-user"></i><span>Profile</span></a>
+</nav>
+
+<footer class="aw-footer">
+  <div class="aw-footer-bottom">
+    <span>© 2026 UPDATE Inc. All Rights Reserved.</span>
+    <span>Made with ❤️ in Uzbekistan</span>
+  </div>
+</footer>
+
+<script src="../js/api.js"></script>
+<script src="../js/i18n.js"></script>
+<script src="../js/app.js"></script>
+<script src="../js/auth.js"></script>
+
+<script>
+(function () {
+  'use strict';
+
+  console.log('[search] init');
+
+  // Helpers
+  function fmtUZS(n) { return (window.fmtUZS || (x => new Intl.NumberFormat('uz-UZ').format(Math.round(x || 0)) + " so'm"))(n); }
+  function fmtUSD(n) { return (window.fmtUSD || (x => '$' + Number(x || 0).toFixed(2)))(n); }
+  function fmtAWC(n) { return (window.fmtAWC || (x => Number(x || 0).toFixed(4).replace(/\.?0+$/, '') + ' AWC'))(n); }
+  function esc(s) {
+    if (typeof window.esc === 'function') return window.esc(s);
+    return String(s == null ? '' : s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;');
+  }
+
+  // Navbar
+  var themeBtn = document.getElementById('aw-theme-btn');
+  var themeIcon = document.getElementById('aw-theme-icon');
+  if (themeBtn && themeIcon) {
+    var t = localStorage.getItem('aw_theme') || 'dark';
+    themeIcon.className = 'fa-solid ' + (t === 'light' ? 'fa-moon' : 'fa-sun');
+    themeBtn.addEventListener('click', function () {
+      var next = (localStorage.getItem('aw_theme') || 'dark') === 'dark' ? 'light' : 'dark';
+      localStorage.setItem('aw_theme', next);
+      document.documentElement.classList.toggle('dark', next === 'dark');
+      document.documentElement.classList.toggle('light', next === 'light');
+      themeIcon.className = 'fa-solid ' + (next === 'light' ? 'fa-moon' : 'fa-sun');
+    });
+  }
+  var langSel = document.getElementById('aw-lang');
+  if (langSel) {
+    langSel.value = localStorage.getItem('aw_lang') || 'en';
+    langSel.addEventListener('change', function (e) {
+      localStorage.setItem('aw_lang', e.target.value);
+      location.reload();
+    });
+  }
+  var globalSearch = document.getElementById('aw-global-search');
+  if (globalSearch) globalSearch.addEventListener('keydown', function (e) {
+    if (e.key === 'Enter') {
+      var q = globalSearch.value.trim();
+      if (q) location.href = '/search/' + encodeURIComponent(q);
+    }
+  });
+
+  // Auth UI
+  if (window.Auth && typeof window.Auth.load === 'function') {
+    window.Auth.load().then(function () {
+      var user = Auth.user;
+      if (user) {
+        var lg = document.getElementById('aw-login-btn');
+        var rg = document.getElementById('aw-register-btn');
+        var uc = document.getElementById('aw-user-chip');
+        var lb = document.getElementById('aw-logout-btn');
+        if (lg) lg.style.display = 'none';
+        if (rg) rg.style.display = 'none';
+        if (uc) {
+          uc.style.display = 'flex';
+          document.getElementById('aw-avatar').textContent = (user.nickname || '?')[0].toUpperCase();
+          document.getElementById('aw-user-name').textContent = user.nickname || '';
+          document.getElementById('aw-balance').textContent = fmtAWC(user.balanceAWC);
+        }
+        if (lb) {
+          lb.style.display = 'inline-flex';
+          lb.onclick = function () { Auth.logout(); };
+        }
+      }
+    });
+  }
+
+  // STATE
+  var state = {
+    page: 1,
+    perPage: 30,
+    search: '',
+    topic: '',
+    type: '',
+    saleType: '',
+    sort: 'newest'
+  };
+
+  var grid = document.getElementById('search-grid');
+  var pager = document.getElementById('pager');
+  var countLabel = document.getElementById('count-label');
+
+  // URL dan qidiruvni olish
+  function parseQ() {
+    var params = new URLSearchParams(location.search);
+    return params.get('q') || params.get('search') || '';
+  }
+
+  // Topics
+  async function loadTopics() {
+    try {
+      var r = await window.API.request('/api/settings/public', { auth: false });
+      var topics = (r && r.success && Array.isArray(r.data.topics)) ? r.data.topics : ['AI', 'Online Shop', '3D Game', 'Other'];
+      var sel = document.getElementById('f-topic');
+      sel.innerHTML = '<option value="">All themes</option>' + topics.map(function (t) {
+        return '<option value="' + esc(t) + '">' + esc(t) + '</option>';
+      }).join('');
+    } catch (e) { console.warn('[search] topics:', e.message); }
+  }
+
+  // Load
+  async function load() {
+    grid.innerHTML = '<div class="aw-loading">Loading…</div>';
+    countLabel.textContent = 'Loading…';
+
+    var res = await window.API.listWebsites(state);
+
+    if (!res || !res.success) {
+      grid.innerHTML = '<div class="aw-empty">Failed to load.</div>';
+      countLabel.textContent = '0 results';
+      return;
+    }
+
+    var items = (res.data && res.data.items) || [];
+    var total = (res.data && res.data.total) || 0;
+    var page = (res.data && res.data.page) || 1;
+    var totalPages = (res.data && res.data.totalPages) || 1;
+
+    countLabel.textContent = total + ' result' + (total !== 1 ? 's' : '') + (state.search ? ' for "' + state.search + '"' : '');
+
+    if (!items.length) {
+      grid.innerHTML = '<div class="aw-empty">No websites found.</div>';
+      pager.innerHTML = '';
+      return;
+    }
+
+    grid.innerHTML = items.map(function (w) {
+      return '<a class="aw-card" href="website-detail.html?id=' + encodeURIComponent(w.webId || '') + '">' +
+        '<div class="aw-card-img">' +
+        (w.imageUrl
+          ? '<img src="' + esc(w.imageUrl) + '" alt="" onerror="this.style.display=\'none\'"/>'
+          : '<div class="aw-card-noimg">' + esc((w.name || '?')[0]) + '</div>') +
+        '</div>' +
+        '<div class="aw-card-body">' +
+        '<div class="aw-card-top"><h3 class="aw-card-title">' + esc(w.name) + '</h3>' +
+        (w.saleType === 'safe' ? '<span class="aw-badge aw-badge-safe">Safe</span>' : '<span class="aw-badge aw-badge-fast">Fast</span>') +
+        '</div>' +
+        '<div class="aw-card-domain">' + esc(w.domain) + '</div>' +
+        '<div class="aw-card-topic">' + esc(w.topic) + '</div>' +
+        '<p class="aw-card-desc">' + esc(w.description || '') + '</p>' +
+        '<div class="aw-card-bottom">' +
+        '<div class="aw-price"><strong>' + fmtAWC(w.priceAWC) + '</strong><small>' + fmtUZS(w.priceUZS) + '</small></div>' +
+        '<div class="aw-card-meta">👁 ' + (w.views || 0) + '</div>' +
+        '</div>' +
+        '</div></a>';
+    }).join('');
+
+    if (totalPages > 1) renderPagination(page, totalPages);
+    else pager.innerHTML = '';
+  }
+
+  function renderPagination(page, totalPages) {
+    var html = '';
+    html += '<button class="aw-page-btn" data-page="' + (page - 1) + '" ' + (page === 1 ? 'disabled' : '') + '>‹</button>';
+    for (var p = 1; p <= totalPages; p++) {
+      if (p === 1 || p === totalPages || Math.abs(p - page) <= 2) {
+        html += '<button class="aw-page-btn ' + (p === page ? 'active' : '') + '" data-page="' + p + '">' + p + '</button>';
+      } else if (p === page - 3 || p === page + 3) {
+        html += '<span class="aw-page-gap">…</span>';
+      }
+    }
+    html += '<button class="aw-page-btn" data-page="' + (page + 1) + '" ' + (page === totalPages ? 'disabled' : '') + '>›</button>';
+    pager.innerHTML = html;
+
+    pager.querySelectorAll('button[data-page]').forEach(function (b) {
+      b.addEventListener('click', function () {
+        var p = Number(b.dataset.page);
+        if (p >= 1 && p <= totalPages && p !== page) {
+          state.page = p;
+          load();
+          window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+      });
+    });
+  }
+
+  // Init
+  async function init() {
+    await loadRates();
+
+    state.search = parseQ();
+    document.getElementById('aw-search-input').value = state.search;
+    if (globalSearch) globalSearch.value = state.search;
+
+    await loadTopics();
+
+    var searchTimer = null;
+    document.getElementById('aw-search-input').addEventListener('input', function (e) {
+      state.search = e.target.value.trim();
+      state.page = 1;
+      clearTimeout(searchTimer);
+      searchTimer = setTimeout(load, 350);
+    });
+
+    document.getElementById('f-topic').addEventListener('change', function (e) {
+      state.topic = e.target.value; state.page = 1; load();
+    });
+    document.getElementById('f-type').addEventListener('change', function (e) {
+      state.type = e.target.value; state.page = 1; load();
+    });
+    document.getElementById('f-sale').addEventListener('change', function (e) {
+      state.saleType = e.target.value; state.page = 1; load();
+    });
+    document.getElementById('f-sort').addEventListener('change', function (e) {
+      state.sort = e.target.value; state.page = 1; load();
+    });
+    document.getElementById('f-reset').addEventListener('click', function () {
+      state.page = 1; state.search = ''; state.topic = ''; state.type = ''; state.saleType = ''; state.sort = 'newest';
+      document.getElementById('aw-search-input').value = '';
+      document.getElementById('f-topic').value = '';
+      document.getElementById('f-type').value = '';
+      document.getElementById('f-sale').value = '';
+      document.getElementById('f-sort').value = 'newest';
+      load();
+    });
+
+    load();
+    console.log('[search] ready');
+  }
+
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', init);
+  } else {
+    init();
+  }
+})();
+</script>
+</body>
+</html>

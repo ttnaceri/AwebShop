@@ -1,5 +1,6 @@
 // backend/api/auth.js
-// AWebShop — auth: register, login, verification, recovery.
+// AWebShop — Auth: register, login, verification, recovery.
+// Kod Telegram'ga HTML formatda yuboriladi (copyable).
 
 'use strict';
 
@@ -14,11 +15,7 @@ const {
 } = require('../services/authService');
 
 const { validateRegistration } = require('../utils/validators');
-const {
-  hashPassword,
-  verifyPassword,
-  sanitizeString
-} = require('../utils/helpers');
+const { hashPassword, verifyPassword, sanitizeString } = require('../utils/helpers');
 const { readData, update } = require('../utils/db');
 const { notifyUser } = require('../services/telegramService');
 
@@ -56,14 +53,52 @@ function publicUser(u) {
   return rest;
 }
 
+function isTelegramEnabled() {
+  try {
+    const c = require('../../config');
+    return !!(c.telegram && c.telegram.enabled && c.telegram.botToken &&
+              !c.telegram.botToken.includes('YOUR_'));
+  } catch (_) {
+    return false;
+  }
+}
+
+/**
+ * Kodni Telegram'ga yuborish — HTML formatda (copyable).
+ * Xato bo'lsa ham davom etadi (javobni bloklamaydi).
+ */
+function sendCodeViaTelegram(telegramId, code, purpose) {
+  const title = purpose === 'recover' ? '🔐 Recovery code' : '🔐 Verification code';
+
+  const message =
+    '<b>' + title + '</b>\n\n' +
+    '<code>' + code + '</code>\n\n' +
+    'Expires in 10 minutes.';
+
+  // Xatolarni ushlash — javobni kutmasdan
+  try {
+    notifyUser(telegramId, message)
+      .then(function (res) {
+        if (res && res.ok) {
+          console.log('[auth:sendCode] ✅ Sent to ' + telegramId + ' code=' + code);
+        } else {
+          console.error('[auth:sendCode] ❌ Failed:', res && res.description);
+        }
+      })
+      .catch(function (e) {
+        console.error('[auth:sendCode] ❌ Exception:', e.message);
+      });
+  } catch (e) {
+    console.error('[auth:sendCode] ❌ Sync error:', e.message);
+  }
+}
+
 // ============================================================
 // REQUEST VERIFICATION
 // ============================================================
 async function requestVerification(req, res) {
   try {
     const body = await readBody(req);
-
-    // Faqat funksiya ichida telegramId ishlatiladi
     const telegramId = sanitizeString(body.telegramId, 20);
     const telegramUsername = sanitizeString(body.telegramUsername, 64);
 
@@ -75,13 +110,21 @@ async function requestVerification(req, res) {
       });
     }
 
-    // Allaqachon ro'yxatdan o'tganmi?
     const data = readData();
+
     if (data.users.some(u => u.telegramId === telegramId && !u.deleted)) {
       return send(res, 409, {
         success: false,
         message: 'This Telegram ID is already registered.',
         code: 'TELEGRAM_IN_USE'
+      });
+    }
+
+    if ((data.forbiddenTelegramIds || []).some(x => x.telegramId === telegramId)) {
+      return send(res, 403, {
+        success: false,
+        message: 'This Telegram ID is not allowed.',
+        code: 'FORBIDDEN_TELEGRAM_ID'
       });
     }
 
@@ -91,27 +134,21 @@ async function requestVerification(req, res) {
       purpose: 'register'
     });
 
-    // Telegram orqali yuborish
-    try {
-      await notifyUser(
-        telegramId,
-        `🔐 <b>AWebShop</b> verification code: <code>${code}</code>\n\nThis code expires in 10 minutes.`
-      );
-    } catch (e) {
-      console.warn('[auth:request-verification:notify]', e.message);
-    }
+    console.log('[auth:request-verification] Kod yaratildi: ' + telegramId + ' → ' + code);
 
-    // Telegram o'chirilgan bo'lsa, debug code ni qaytaramiz
-    const config = (() => {
-      try { return require('../../config'); } catch { return { telegram: { enabled: false } }; }
-    })();
-    const includeDebug = !config.telegram || !config.telegram.enabled;
+    const tgEnabled = isTelegramEnabled();
+
+    if (tgEnabled) {
+      sendCodeViaTelegram(telegramId, code, 'register');
+    } else {
+      console.log('[auth:request-verification] [DEV] Telegram disabled. Kod: ' + code);
+    }
 
     return send(res, 200, {
       success: true,
       data: {
-        message: 'Verification code sent via Telegram.',
-        ...(includeDebug ? { debugCode: code } : {})
+        message: tgEnabled ? 'Verification code sent via Telegram.' : 'Telegram disabled. Use debug code.',
+        debugCode: tgEnabled ? undefined : code
       }
     });
   } catch (err) {
@@ -130,8 +167,8 @@ async function requestVerification(req, res) {
 async function register(req, res) {
   try {
     const body = await readBody(req);
-
     const errors = validateRegistration(body);
+
     if (errors.length) {
       return send(res, 400, {
         success: false,
@@ -140,14 +177,13 @@ async function register(req, res) {
       });
     }
 
-    // Faqat funksiya ichida ishlatiladi
     const nickname = sanitizeString(body.nickname, 20);
     const telegramId = sanitizeString(body.telegramId, 20);
     const telegramUsername = sanitizeString(body.telegramUsername, 64);
     const phone = sanitizeString(body.phone, 20);
 
-    // Nickname bandligi
     const existing = readData();
+
     if (existing.users.some(u =>
       u.nickname && u.nickname.toLowerCase() === nickname.toLowerCase() && !u.deleted
     )) {
@@ -166,19 +202,14 @@ async function register(req, res) {
       });
     }
 
-    // Forbidden Telegram ID lar ro'yxatini tekshirish
-    try {
-      const forbidden = (existing.forbiddenTelegramIds || []).find(x => x.telegramId === telegramId);
-      if (forbidden) {
-        return send(res, 403, {
-          success: false,
-          message: 'This Telegram ID is not allowed to register.',
-          code: 'FORBIDDEN_TELEGRAM_ID'
-        });
-      }
-    } catch (_) {}
+    if ((existing.forbiddenTelegramIds || []).some(x => x.telegramId === telegramId)) {
+      return send(res, 403, {
+        success: false,
+        message: 'This Telegram ID is not allowed.',
+        code: 'FORBIDDEN_TELEGRAM_ID'
+      });
+    }
 
-    // Kodni tasdiqlash
     const codeOk = await consumeVerificationCode({
       telegramId,
       purpose: 'register',
@@ -193,7 +224,6 @@ async function register(req, res) {
       });
     }
 
-    // User yaratish
     await createUser({
       nickname,
       password: body.password,
@@ -212,6 +242,14 @@ async function register(req, res) {
     }
 
     const token = createSession(user.id, 'user');
+
+    // Welcome xabar — async
+    if (isTelegramEnabled()) {
+      notifyUser(
+        telegramId,
+        '🎉 Welcome to <b>AWebShop</b>, <b>' + nickname + '</b>!\n\nStart selling or buying websites today.'
+      ).catch(function () {});
+    }
 
     send(res, 201, {
       success: true,
@@ -248,13 +286,28 @@ async function login(req, res) {
         code: 'INVALID_CREDENTIALS'
       });
     }
-    if (user.blocked) {
+
+    if (user.banned) {
       return send(res, 403, {
         success: false,
-        message: 'Account is blocked. Contact support.',
-        code: 'ACCOUNT_BLOCKED'
+        message: 'Your account has been permanently banned.',
+        code: 'ACCOUNT_BANNED',
+        data: { reason: user.banReason || null }
       });
     }
+
+    if (user.blocked && user.blockedUntil) {
+      const until = new Date(user.blockedUntil).getTime();
+      if (until > Date.now()) {
+        return send(res, 403, {
+          success: false,
+          message: 'Your account is temporarily blocked.',
+          code: 'ACCOUNT_TEMP_BLOCKED',
+          data: { blockedUntil: user.blockedUntil }
+        });
+      }
+    }
+
     if (!verifyPassword(password, user.passwordHash)) {
       return send(res, 401, {
         success: false,
@@ -265,16 +318,12 @@ async function login(req, res) {
 
     const token = createSession(user.id, user.role || 'user');
 
-    // Login notification
-    try {
-      if (user.telegramId) {
-        await notifyUser(
-          user.telegramId,
-          `🔔 <b>AWebShop login</b>\nNickname: <b>${user.nickname}</b>\nTime: ${new Date().toISOString()}`
-        );
-      }
-    } catch (e) {
-      console.warn('[auth:login:notify]', e.message);
+    // Login xabari — async (javobni bloklamaydi)
+    if (isTelegramEnabled() && user.telegramId) {
+      notifyUser(
+        user.telegramId,
+        '🔔 <b>New login</b>\n\nNickname: <b>' + user.nickname + '</b>\nTime: ' + new Date().toISOString()
+      ).catch(function () {});
     }
 
     send(res, 200, {
@@ -345,37 +394,36 @@ async function forgotPassword(req, res) {
         purpose: 'recover'
       });
 
-      try {
-        await notifyUser(
-          user.telegramId,
-          `🔐 <b>AWebShop recovery code</b>: <code>${code}</code>\n\nExpires in 10 minutes.`
-        );
-      } catch (e) {
-        console.warn('[auth:forgot:notify]', e.message);
-      }
+      console.log('[auth:forgot-password] Recovery kod: ' + nickname + ' → ' + code);
 
-      const config = (() => {
-        try { return require('../../config'); } catch { return { telegram: { enabled: false } }; }
-      })();
-      const includeDebug = !config.telegram || !config.telegram.enabled;
+      const tgEnabled = isTelegramEnabled();
+
+      if (tgEnabled) {
+        sendCodeViaTelegram(user.telegramId, code, 'recover');
+      } else {
+        console.log('[auth:forgot-password] [DEV] Telegram disabled. Kod: ' + code);
+      }
 
       return send(res, 200, {
         success: true,
         data: {
-          message: 'Recovery code sent via Telegram.',
-          ...(includeDebug ? { debugCode: code } : {})
+          message: tgEnabled ? 'Recovery code sent via Telegram.' : 'Telegram disabled. Use debug code.',
+          debugCode: tgEnabled ? undefined : code
         }
       });
     }
 
-    // Xavfsizlik uchun bir xil javob
     send(res, 200, {
       success: true,
       data: { message: 'If the account exists, a recovery code was sent.' }
     });
   } catch (err) {
-    console.error('[auth:forgot]', err.stack || err.message);
-    send(res, 500, { success: false, message: 'Failed.', code: 'FORGOT_ERROR' });
+    console.error('[auth:forgot-password]', err.stack || err.message);
+    send(res, 500, {
+      success: false,
+      message: 'Failed.',
+      code: 'FORGOT_ERROR'
+    });
   }
 }
 
@@ -429,14 +477,22 @@ async function resetPassword(req, res) {
       return d;
     });
 
-    try {
-      await notifyUser(user.telegramId, '✅ Your AWebShop password was changed.');
-    } catch (_) {}
+    if (isTelegramEnabled()) {
+      notifyUser(user.telegramId, '✅ Your AWebShop password was changed successfully.')
+        .catch(function () {});
+    }
 
-    send(res, 200, { success: true, data: { message: 'Password updated.' } });
+    send(res, 200, {
+      success: true,
+      data: { message: 'Password updated.' }
+    });
   } catch (err) {
-    console.error('[auth:reset]', err.stack || err.message);
-    send(res, 500, { success: false, message: 'Failed.', code: 'RESET_ERROR' });
+    console.error('[auth:reset-password]', err.stack || err.message);
+    send(res, 500, {
+      success: false,
+      message: 'Failed.',
+      code: 'RESET_ERROR'
+    });
   }
 }
 

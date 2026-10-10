@@ -4,15 +4,40 @@
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1"/>
 <title>About — AWebShop</title>
-  <link rel="icon" type="image/png" href="/frontend/assets/image/logo.png">
+
+<link rel="icon" type="image/png" href="../assets/image/logo.png"/>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" crossorigin="anonymous"/>
 <link rel="stylesheet" href="../css/main.css"/>
+<link rel="stylesheet" href="../css/navbar.css"/>
 <link rel="stylesheet" href="../css/responsive.css"/>
 </head>
 <body class="aw-body">
-<div id="aw-header"></div>
+
+<header class="aw-navbar">
+  <div class="aw-navbar-inner">
+    <a class="aw-navbar-brand" href="main.html">
+      <img src="../assets/image/logo.png" alt="AWebShop" onerror="this.style.display='none'"/>
+      <span>AWebShop</span>
+    </a>
+    <nav class="aw-navbar-links">
+      <a href="main.html"><i class="fa-solid fa-house"></i> Home</a>
+      <a href="store.html"><i class="fa-solid fa-store"></i> Store</a>
+      <a href="sell.html"><i class="fa-solid fa-tag"></i> Sell</a>
+      <a href="wallet.html"><i class="fa-solid fa-wallet"></i> Wallet</a>
+      <a href="profile.html"><i class="fa-solid fa-user"></i> Profile</a>
+    </nav>
+    <div class="aw-navbar-right">
+      <button class="aw-icon-btn" id="aw-theme-btn"><i class="fa-solid fa-sun" id="aw-theme-icon"></i></button>
+      <select id="aw-lang" class="aw-lang-select">
+        <option value="en">EN</option>
+        <option value="uz">UZ</option>
+      </select>
+    </div>
+  </div>
+</header>
 
 <main class="aw-page">
-  <section class="aw-about-hero">
+  <section class="aw-section" style="padding-top:24px">
     <h1>About AWebShop</h1>
     <p class="aw-muted">The marketplace for buying and selling real, functional websites.</p>
   </section>
@@ -25,20 +50,20 @@
   <section class="aw-section">
     <h2>By the numbers</h2>
     <div class="aw-stats">
-      <div class="aw-stat"><div class="aw-stat-num" id="s-users">—</div><div>Users</div></div>
       <div class="aw-stat"><div class="aw-stat-num" id="s-websites">—</div><div>Websites</div></div>
-      <div class="aw-stat"><div class="aw-stat-num" id="s-orders">—</div><div>Orders</div></div>
+      <div class="aw-stat"><div class="aw-stat-num">4</div><div>Premium plans</div></div>
+      <div class="aw-stat"><div class="aw-stat-num" id="s-status">—</div><div>Status</div></div>
     </div>
   </section>
 
   <section class="aw-section" id="team">
     <h2>Team</h2>
-    <p class="aw-muted">Update Inc. Since 2026</p>
+    <p class="aw-muted">Built with ❤️ in Uzbekistan by UPDATE Inc.</p>
   </section>
 
   <section class="aw-section" id="contact">
     <h2>Contact</h2>
-    <ul>
+    <ul style="line-height:2">
       <li>GitHub: <a href="https://github.com/ttnaceri/" target="_blank" rel="noopener">github.com/ttnaceri</a></li>
       <li>Telegram: <a href="https://t.me/updateDevNews" target="_blank" rel="noopener">t.me/updateDevNews</a></li>
       <li>Instagram: <a href="https://www.instagram.com/update.dev26/" target="_blank" rel="noopener">@update.dev26</a></li>
@@ -57,24 +82,65 @@
   </section>
 </main>
 
-<div id="aw-footer"></div>
+<nav class="aw-tabbar">
+  <a href="main.html"><i class="fa-solid fa-house"></i><span>Home</span></a>
+  <a href="store.html"><i class="fa-solid fa-store"></i><span>Store</span></a>
+  <a href="sell.html" class="aw-tabbar-center"><i class="fa-solid fa-plus"></i><span>Sell</span></a>
+  <a href="wallet.html"><i class="fa-solid fa-wallet"></i><span>Wallet</span></a>
+  <a href="profile.html"><i class="fa-solid fa-user"></i><span>Profile</span></a>
+</nav>
+
+<footer class="aw-footer">
+  <div class="aw-footer-bottom">
+    <span>© 2026 UPDATE Inc. All Rights Reserved.</span>
+    <span>Made with ❤️ in Uzbekistan</span>
+  </div>
+</footer>
 
 <script src="../js/api.js"></script>
+<script src="../js/i18n.js"></script>
 <script src="../js/app.js"></script>
 <script src="../js/auth.js"></script>
-<script src="../components/header.js"></script>
-<script src="../components/footer.js"></script>
-<script src="../js/shortcuts.js"></script>
 
 <script>
-(async () => {
-  await loadRates();
-  const r = await API.listWebsites({ page: 1, perPage: 1 });
-  if (r.success) {
-    document.getElementById('s-websites').textContent = r.data.total;
+(function () {
+  'use strict';
+
+  var themeBtn = document.getElementById('aw-theme-btn');
+  var themeIcon = document.getElementById('aw-theme-icon');
+  if (themeBtn && themeIcon) {
+    var t = localStorage.getItem('aw_theme') || 'dark';
+    themeIcon.className = 'fa-solid ' + (t === 'light' ? 'fa-moon' : 'fa-sun');
+    themeBtn.addEventListener('click', function () {
+      var next = (localStorage.getItem('aw_theme') || 'dark') === 'dark' ? 'light' : 'dark';
+      localStorage.setItem('aw_theme', next);
+      document.documentElement.classList.toggle('dark', next === 'dark');
+      document.documentElement.classList.toggle('light', next === 'light');
+      themeIcon.className = 'fa-solid ' + (next === 'light' ? 'fa-moon' : 'fa-sun');
+    });
   }
-  document.getElementById('s-users').textContent = '—';
-  document.getElementById('s-orders').textContent = '—';
+  var langSel = document.getElementById('aw-lang');
+  if (langSel) {
+    langSel.value = localStorage.getItem('aw_lang') || 'en';
+    langSel.addEventListener('change', function (e) {
+      localStorage.setItem('aw_lang', e.target.value);
+      location.reload();
+    });
+  }
+
+  (async function () {
+    await loadRates();
+    try {
+      var r = await API.listWebsites({ page: 1, perPage: 1 });
+      if (r && r.success) document.getElementById('s-websites').textContent = r.data.total;
+    } catch (_) {}
+    try {
+      var h = await API.request('/api/health', { auth: false });
+      document.getElementById('s-status').textContent = (h && h.success) ? '✅ Online' : '—';
+    } catch (_) {
+      document.getElementById('s-status').textContent = '—';
+    }
+  })();
 })();
 </script>
 </body>

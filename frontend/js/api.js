@@ -1,132 +1,142 @@
 // frontend/js/api.js
-// Backend bilan bog'lanish uchun markaziy API klient.
-// Deploymentda API_BASE ni backend manziliga o'zgartiring.
+// AWebShop — markaziy API klient.
 
-const API_BASE =
-  window.AWEBSHOP_API_BASE ||
-  (location.hostname === 'localhost' || location.hostname === '127.0.0.1'
-    ? 'http://localhost:3000'
-    : 'https://ttnaceri.github.io/AwebShop/55668576'); // placeholder
+(function () {
+  'use strict';
 
-const TOKEN_KEY = 'aw_token';
+  var API_BASE =
+    window.AWEBSHOP_API_BASE ||
+    (location.hostname === 'localhost' || location.hostname === '127.0.0.1'
+      ? 'http://localhost:3000'
+      : 'https://ttnaceri.github.io/AwebShop/55668576');
 
-const API = {
-  getToken() {
-    return localStorage.getItem(TOKEN_KEY);
-  },
-  setToken(t) {
-    if (t) localStorage.setItem(TOKEN_KEY, t);
-    else localStorage.removeItem(TOKEN_KEY);
-  },
-  clearToken() {
-    localStorage.removeItem(TOKEN_KEY);
-  },
+  var TOKEN_KEY = 'aw_token';
 
-  async request(path, { method = 'GET', body = null, auth = true } = {}) {
-    const headers = { 'Content-Type': 'application/json' };
-    if (auth) {
-      const t = this.getToken();
-      if (t) headers['Authorization'] = 'Bearer ' + t;
-    }
-    const opts = { method, headers };
-    if (body) opts.body = JSON.stringify(body);
+  var API = {
+    getToken: function () {
+      try { return localStorage.getItem(TOKEN_KEY); }
+      catch (_) { return null; }
+    },
 
-    let res;
-    try {
-      res = await fetch(API_BASE + path, opts);
-    } catch (e) {
-      return { success: false, message: 'Network error. Backend ishlayaptimi?', code: 'NETWORK_ERROR' };
-    }
+    setToken: function (t) {
+      try {
+        if (t) localStorage.setItem(TOKEN_KEY, t);
+        else localStorage.removeItem(TOKEN_KEY);
+      } catch (_) {}
+    },
 
-    let data = null;
-    try { data = await res.json(); } catch { data = { success: false, message: 'Invalid response' }; }
+    clearToken: function () {
+      try { localStorage.removeItem(TOKEN_KEY); }
+      catch (_) {}
+    },
 
-    if (res.status === 401) {
-      API.clearToken();
-    }
-    return data;
-  },
+    request: async function (path, opts) {
+      var o = opts || {};
+      var method = o.method || 'GET';
+      var body = o.body || null;
+      var auth = o.auth !== false;
 
-  // ---------- AUTH ----------
-  requestVerification(payload) {
-    return this.request('/api/auth/request-verification', { method: 'POST', body: payload, auth: false });
-  },
-  register(payload) {
-    return this.request('/api/auth/register', { method: 'POST', body: payload, auth: false });
-  },
-  login(payload) {
-    return this.request('/api/auth/login', { method: 'POST', body: payload, auth: false });
-  },
-  logout() {
-    return this.request('/api/auth/logout', { method: 'POST', auth: true });
-  },
-  me() {
-    return this.request('/api/auth/me');
-  },
-  forgotPassword(payload) {
-    return this.request('/api/auth/forgot-password', { method: 'POST', body: payload, auth: false });
-  },
-  resetPassword(payload) {
-    return this.request('/api/auth/reset-password', { method: 'POST', body: payload, auth: false });
-  },
+      var headers = { 'Content-Type': 'application/json' };
+      if (auth) {
+        var t = this.getToken();
+        if (t) headers['Authorization'] = 'Bearer ' + t;
+      }
 
-  // ---------- USERS ----------
-  profile() { return this.request('/api/users/profile'); },
-  updateProfile(payload) { return this.request('/api/users/profile', { method: 'PUT', body: payload }); },
-  myWebsites() { return this.request('/api/users/websites'); },
-  myTransactions() { return this.request('/api/users/transactions'); },
-  myReviews() { return this.request('/api/users/reviews'); },
+      var fetchOpts = { method: method, headers: headers, credentials: 'omit' };
+      if (body) fetchOpts.body = JSON.stringify(body);
 
-  // ---------- WEBSITES ----------
-  listWebsites(params = {}) {
-    const q = new URLSearchParams(params).toString();
-    return this.request('/api/websites' + (q ? '?' + q : ''), { auth: false });
-  },
-  websiteDetail(webId) {
-    return this.request('/api/websites/' + webId, { auth: false });
-  },
-  createWebsite(payload) {
-    return this.request('/api/websites', { method: 'POST', body: payload });
-  },
-  buyWebsite(webId, payload = {}) {
-    return this.request('/api/websites/' + webId + '/buy', { method: 'POST', body: payload });
-  },
+      var res;
+      try {
+        res = await fetch(API_BASE + path, fetchOpts);
+      } catch (e) {
+        console.error('[api] Network error:', e.message, 'URL:', API_BASE + path);
+        return { success: false, message: 'Network error.', code: 'NETWORK_ERROR' };
+      }
 
-  // ---------- TOKEN ----------
-  tokenBalance() { return this.request('/api/token/balance'); },
-  tokenRate() { return this.request('/api/token/rate', { auth: false }); },
-  tokenHistory() { return this.request('/api/token/history'); },
-  tokenTopup(payload) { return this.request('/api/token/topup', { method: 'POST', body: payload }); },
-  tokenTransfer(payload) { return this.request('/api/token/transfer', { method: 'POST', body: payload }); },
-  tokenWithdraw(payload) { return this.request('/api/token/withdraw', { method: 'POST', body: payload }); },
+      var data = null;
+      try { data = await res.json(); }
+      catch (_) { data = { success: false, message: 'Invalid response', code: 'INVALID_JSON' }; }
 
-  // ---------- PREMIUM ----------
-  premiumPlans() { return this.request('/api/premium/plans', { auth: false }); },
-  premiumSubscribe(payload) { return this.request('/api/premium/subscribe', { method: 'POST', body: payload }); },
-  premiumStatus() { return this.request('/api/premium/status'); },
-  premiumCancel() { return this.request('/api/premium/cancel', { method: 'POST' }); },
-  premiumTrial() { return this.request('/api/premium/trial', { method: 'POST' }); },
+      // 401 — faqat TOKEN MUAMMOSI bo'lsa o'chirish
+      // (403 — permission muammosi, tokenni o'chirmaslik!)
+      if (res.status === 401) {
+        console.warn('[api] 401 Unauthorized — token cleared');
+        API.clearToken();
+      }
 
-  // ---------- ADMIN ----------
-  adminStats() { return this.request('/api/admin/stats'); },
-  adminUsers() { return this.request('/api/admin/users'); },
-  adminBlockUser(userId, blocked) {
-    return this.request('/api/admin/users/block', { method: 'POST', body: { userId, blocked } });
-  },
-  adminWebsites() { return this.request('/api/admin/websites'); },
-  adminEscrow() { return this.request('/api/admin/escrow'); },
-  adminEscrowUpdate(escrowId, status, adminNotes = '') {
-    return this.request('/api/admin/escrow/update', { method: 'POST', body: { escrowId, status, adminNotes } });
-  },
-  adminWithdrawals() { return this.request('/api/admin/withdraw'); },
-  adminWithdrawDecision(withdrawalId, decision) {
-    return this.request('/api/admin/withdraw/approve', { method: 'POST', body: { withdrawalId, decision } });
-  },
-  adminVerifyPayment(transactionId, decision, adminNotes = '') {
-    return this.request('/api/admin/payments/verify', { method: 'POST', body: { transactionId, decision, adminNotes } });
-  },
-  adminLogs() { return this.request('/api/admin/logs'); }
-};
+      return data;
+    },
 
-window.API = API;
-window.API_BASE = API_BASE;
+    // ---------- AUTH ----------
+    requestVerification: function (p) { return this.request('/api/auth/request-verification', { method: 'POST', body: p, auth: false }); },
+    register: function (p) { return this.request('/api/auth/register', { method: 'POST', body: p, auth: false }); },
+    login: function (p) { return this.request('/api/auth/login', { method: 'POST', body: p, auth: false }); },
+    logout: function () { return this.request('/api/auth/logout', { method: 'POST', auth: true }); },
+    me: function () { return this.request('/api/auth/me'); },
+    forgotPassword: function (p) { return this.request('/api/auth/forgot-password', { method: 'POST', body: p, auth: false }); },
+    resetPassword: function (p) { return this.request('/api/auth/reset-password', { method: 'POST', body: p, auth: false }); },
+
+    // ---------- USERS ----------
+    profile: function () { return this.request('/api/users/profile'); },
+    updateProfile: function (p) { return this.request('/api/users/profile', { method: 'PUT', body: p }); },
+    myWebsites: function () { return this.request('/api/users/websites'); },
+    myTransactions: function () { return this.request('/api/users/transactions'); },
+    myReviews: function () { return this.request('/api/users/reviews'); },
+
+    // ---------- WEBSITES ----------
+    listWebsites: function (params) {
+      var q = new URLSearchParams(params || {}).toString();
+      return this.request('/api/websites' + (q ? '?' + q : ''), { auth: false });
+    },
+    websiteDetail: function (webId) { return this.request('/api/websites/' + webId, { auth: false }); },
+    createWebsite: function (p) { return this.request('/api/websites', { method: 'POST', body: p }); },
+    buyWebsite: function (webId, p) { return this.request('/api/websites/' + webId + '/buy', { method: 'POST', body: p || {} }); },
+
+    // ---------- TOKEN ----------
+    tokenBalance: function () { return this.request('/api/token/balance'); },
+    tokenRate: function () { return this.request('/api/token/rate', { auth: false }); },
+    tokenHistory: function () { return this.request('/api/token/history'); },
+    tokenTopup: function (p) { return this.request('/api/token/topup', { method: 'POST', body: p }); },
+    tokenTransfer: function (p) { return this.request('/api/token/transfer', { method: 'POST', body: p }); },
+    tokenWithdraw: function (p) { return this.request('/api/token/withdraw', { method: 'POST', body: p }); },
+
+    // ---------- PREMIUM ----------
+    premiumPlans: function () { return this.request('/api/premium/plans', { auth: false }); },
+    premiumSubscribe: function (p) { return this.request('/api/premium/subscribe', { method: 'POST', body: p }); },
+    premiumStatus: function () { return this.request('/api/premium/status'); },
+    premiumCancel: function () { return this.request('/api/premium/cancel', { method: 'POST' }); },
+    premiumTrial: function () { return this.request('/api/premium/trial', { method: 'POST' }); },
+
+    // ---------- ADMIN ----------
+    adminStats: function () { return this.request('/api/admin/stats'); },
+    adminUsers: function () { return this.request('/api/admin/users'); },
+    adminBlockUser: function (userId, blocked) { return this.request('/api/admin/users/block', { method: 'POST', body: { userId: userId, blocked: blocked } }); },
+    adminWebsites: function () { return this.request('/api/admin/websites'); },
+    adminEscrow: function () { return this.request('/api/admin/escrow'); },
+    adminEscrowUpdate: function (escrowId, status, adminNotes) {
+      return this.request('/api/admin/escrow/update', { method: 'POST', body: { escrowId: escrowId, status: status, adminNotes: adminNotes || '' } });
+    },
+    adminWithdrawals: function () { return this.request('/api/admin/withdraw'); },
+    adminWithdrawDecision: function (withdrawalId, decision) {
+      return this.request('/api/admin/withdraw/approve', { method: 'POST', body: { withdrawalId: withdrawalId, decision: decision } });
+    },
+    adminVerifyPayment: function (transactionId, decision, adminNotes) {
+      return this.request('/api/admin/payments/verify', { method: 'POST', body: { transactionId: transactionId, decision: decision, adminNotes: adminNotes || '' } });
+    },
+    adminLogs: function () { return this.request('/api/admin/logs'); }
+  };
+
+  // Admin API helper
+  API.adminGet = function (path, params) {
+    var q = new URLSearchParams(params || {}).toString();
+    return this.request('/api/admin/' + path + (q ? '?' + q : ''));
+  };
+  API.adminPost   = function (path, body) { return this.request('/api/admin/' + path, { method: 'POST',   body: body }); };
+  API.adminPut    = function (path, body) { return this.request('/api/admin/' + path, { method: 'PUT',    body: body }); };
+  API.adminDelete = function (path, body) { return this.request('/api/admin/' + path, { method: 'DELETE', body: body }); };
+
+  window.API = API;
+  window.API_BASE = API_BASE;
+
+  console.log('[api] Loaded. API_BASE =', API_BASE);
+})();

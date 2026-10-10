@@ -63,3 +63,19 @@ add there messages for telegram:
 
 [help] - this is linked text and open special anonymus help page.
 [balance] - user`s new or real time balance.
+
+- remake admin panel design. (the design was very terrible.)
+- Admin panel entering error. login --> adminPanel or mainPage. (I cant enter to Admin Panel.)
+- web site`s Types / themes Select option`s design. (remake designs)
+- add exchange AWC to $ / So`m or $ / So`m to AWC (add control payments panel to Admin Panel.)
+- Register problem (I cant registering to web site)
+- Web Site Searching Problem (I added web site to sell but that not viewing.)
+- auto delete selled / bought website (delete selled / bought web sites in backend.)
+- chatting with telegram @username its for chating way for users. (this is for users for chating buyer and seller.)
+- connect bot. (the bot not connected. connect it)
+- galochka for official users, admins and Super Admin. the galochka in frontend/assets/image/galochka.png 
+- add logins for Admins. admins logins: "Behruz", "Bekhzod", "Lutfulla", "Shorahim", "Mirolim". (they create`s their custom password in next of login )
+(men bu loyihamni boshlaganimga ancha bo`ldi. va ko`p narsa esimda yo`q shuni ham hisobga oling.)
+
+
+keling undan ko`ra frontend/pages/ .html va frontend/css/ .css fayllarni 0 dan yozib chiqamiz jumladan server.js va seach.html ni ham
