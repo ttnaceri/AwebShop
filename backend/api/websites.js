@@ -1,6 +1,6 @@
 // backend/api/websites.js
 // AWebShop — Websites API: list, search, detail, create, buy.
-// AWC to'liq integratsiya + 3-strike system + ban checks.
+// AWC to'liq integratsiya + escrow + 3-strike system + ban checks.
 
 'use strict';
 
@@ -29,14 +29,18 @@ function safeGetAwcRate() {
   try {
     const d = readData();
     return (d.settings && d.settings.awcPriceUZS) || 10000;
-  } catch (_) { return 10000; }
+  } catch (_) {
+    return 10000;
+  }
 }
 
 function safeGetListingFee() {
   try {
     const d = readData();
     return (d.settings && d.settings.listingFeeUZS) || 10000;
-  } catch (_) { return 10000; }
+  } catch (_) {
+    return 10000;
+  }
 }
 
 function send(res, status, body) {
@@ -78,58 +82,20 @@ function safeReadData() {
     };
   } catch (e) {
     console.error('[websites:safeReadData]', e.message);
-    return { users: [], websites: [], orders: [], escrows: [], transactions: [], settings: {}, all: {} };
-  }
-}
-
-// Xavfsiz AWC operatsiyalari (tokenService mavjud bo'lmasa, fallback)
-async function adjustUserBalance(userId, deltaAWC) {
-  try {
-    return await update(data => {
-      const u = data.users.find(x => x.id === userId);
-      if (!u) return data;
-      u.balanceAWC = +(u.balanceAWC + deltaAWC).toFixed(4);
-      u.updatedAt = now();
-      return data;
-    });
-  } catch (e) {
-    console.error('[websites:adjustBalance]', e.message);
-  }
-}
-
-async function recordTx(userId, type, meta) {
-  try {
-    const { recordTransaction } = require('../services/tokenService');
-    return await recordTransaction(userId, type, meta);
-  } catch (e) {
-    console.warn('[websites:recordTx]', e.message);
-    // Fallback: to'g'ridan-to'g'ri yozish
-    try {
-      await update(data => {
-        if (!Array.isArray(data.transactions)) data.transactions = [];
-        data.transactions.push({
-          id: 'tx_' + Date.now().toString(36) + Math.random().toString(36).slice(2, 6),
-          userId,
-          type,
-          amountAWC: meta.amountAWC || 0,
-          amountUSD: meta.amountUSD || 0,
-          amountUZS: meta.amountUZS || 0,
-          status: meta.status || 'completed',
-          description: meta.description || '',
-          referenceId: meta.referenceId || null,
-          paymentMethod: meta.paymentMethod || null,
-          adminNotes: '',
-          createdAt: now(),
-          updatedAt: now()
-        });
-        return data;
-      });
-    } catch (_) {}
+    return {
+      users: [],
+      websites: [],
+      orders: [],
+      escrows: [],
+      transactions: [],
+      settings: {},
+      all: {}
+    };
   }
 }
 
 // ============================================================
-// PUBLIC WEBSITE (frontendga ko'rinadigan maydonlar)
+// PUBLIC WEBSITE
 // ============================================================
 function publicWebsite(w) {
   return {
@@ -152,7 +118,7 @@ function publicWebsite(w) {
 }
 
 // ============================================================
-// MODERATSIYA
+// MODERATION
 // ============================================================
 function moderate(settings, payload) {
   const mod = (settings && settings.moderation) || {};
@@ -166,28 +132,28 @@ function moderate(settings, payload) {
     payload.topic || ''
   ].join(' ').toLowerCase();
 
-  // Banned words — so'z chegarasi bilan
+  // Banned words — word boundary bilan
   for (const word of banned) {
     if (!word) continue;
     try {
-      const re = new RegExp(`\\b${word.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}\\b`, 'i');
+      const re = new RegExp('\\b' + word.replace(/[.*+?^${}()|[\]\\]/g, '\\$&') + '\\b', 'i');
       if (re.test(haystack)) {
         return {
-          reason: `Blocked word detected: "${word}"`,
+          reason: 'Blocked word detected: "' + word + '"',
           code: 'BANNED_WORD'
         };
       }
     } catch (_) {}
   }
 
-  // Unsalable domains — aniq mos kelish
+  // Unsalable domains
   for (const blocked of unsalable) {
     if (!blocked) continue;
     if (domain === blocked ||
         domain.endsWith('.' + blocked) ||
         domain.startsWith(blocked + '.')) {
       return {
-        reason: `Domain "${blocked}" cannot be sold on AWebShop.`,
+        reason: 'Domain "' + blocked + '" cannot be sold on AWebShop.',
         code: 'UNSALABLE_DOMAIN'
       };
     }
@@ -225,7 +191,7 @@ function checkUserBlocked(user) {
 }
 
 // ============================================================
-// LIST — Store sahifasi
+// LIST
 // ============================================================
 async function list(req, res, query) {
   try {
@@ -264,9 +230,9 @@ async function list(req, res, query) {
       success: true,
       data: {
         items: paged.map(publicWebsite),
-        total,
-        page,
-        perPage,
+        total: total,
+        page: page,
+        perPage: perPage,
         totalPages: Math.ceil(total / perPage) || 1
       }
     });
@@ -285,7 +251,7 @@ async function search(req, res, query) {
 }
 
 // ============================================================
-// DETAIL — bitta website
+// DETAIL — sotuvchi Telegram username bilan
 // ============================================================
 async function detail(req, res, webId) {
   try {
@@ -296,7 +262,7 @@ async function detail(req, res, webId) {
       const w = data.websites.find(x => x && x.webId === webId);
       if (w) {
         w.views = (w.views || 0) + 1;
-        website = { ...w };
+        website = Object.assign({}, w);
       }
       return data;
     });
@@ -321,7 +287,9 @@ async function detail(req, res, webId) {
           nickname: seller.nickname,
           rating: seller.rating || 0,
           verified: seller.verified,
-          createdAt: seller.createdAt
+          createdAt: seller.createdAt,
+          telegramUsername: seller.telegramUsername || '',
+          telegramId: seller.telegramId || ''
         } : null
       }
     });
@@ -405,14 +373,20 @@ async function create(req, res) {
 
       // Telegram ogohlantirish
       try {
-        if (user.telegramId && require('../services/telegramService').enabled()) {
-          const { notifyUser } = require('../services/telegramService');
-          if (blockedUntil) {
-            await notifyUser(user.telegramId,
-              `🚫 You have been blocked for 24 hours.\nReason: ${modResult.reason}\nUnblock at: ${new Date(blockedUntil).toLocaleString()}`);
-          } else {
-            await notifyUser(user.telegramId,
-              `⚠️ Warning ${newStrikes}/3\nReason: ${modResult.reason}\n3 warnings = 24h block.`);
+        if (user.telegramId) {
+          const { notifyUser, enabled } = require('../services/telegramService');
+          if (enabled()) {
+            if (blockedUntil) {
+              notifyUser(user.telegramId,
+                '🚫 You have been blocked for 24 hours.\nReason: ' + modResult.reason +
+                '\nUnblock at: ' + new Date(blockedUntil).toLocaleString()
+              ).catch(() => {});
+            } else {
+              notifyUser(user.telegramId,
+                '⚠️ Warning ' + newStrikes + '/3\nReason: ' + modResult.reason +
+                '\n3 warnings = 24h block.'
+              ).catch(() => {});
+            }
           }
         }
       } catch (_) {}
@@ -420,15 +394,15 @@ async function create(req, res) {
       if (blockedUntil) {
         return send(res, 403, {
           success: false,
-          message: `Blocked 24 hours. Unblock at ${new Date(blockedUntil).toLocaleString()}`,
+          message: 'Blocked 24 hours. Unblock at ' + new Date(blockedUntil).toLocaleString(),
           code: 'BLOCKED_TEMP',
-          data: { blockedUntil, strikes: 3 }
+          data: { blockedUntil: blockedUntil, strikes: 3 }
         });
       }
 
       return send(res, 400, {
         success: false,
-        message: `${modResult.reason} (Warning ${newStrikes}/3)`,
+        message: modResult.reason + ' (Warning ' + newStrikes + '/3)',
         code: 'MODERATION_REJECTED',
         data: { strikes: newStrikes, remaining: 3 - newStrikes }
       });
@@ -442,7 +416,8 @@ async function create(req, res) {
     if (user.balanceAWC < feeAWC) {
       return send(res, 400, {
         success: false,
-        message: `Insufficient AWC balance for listing fee. Required: ${feeAWC} AWC (${listingFee} UZS), you have: ${user.balanceAWC} AWC.`,
+        message: 'Insufficient AWC balance for listing fee. Required: ' + feeAWC +
+                 ' AWC (' + listingFee + ' UZS), you have: ' + user.balanceAWC + ' AWC.',
         code: 'INSUFFICIENT_AWC'
       });
     }
@@ -463,8 +438,8 @@ async function create(req, res) {
       const orderId = generateOrderId();
 
       const w = {
-        webId,
-        orderId,
+        webId: webId,
+        orderId: orderId,
         sellerId: req.user.userId,
         name: sanitizeString(body.name, 100),
         domain: normalizeDomain(body.domain),
@@ -473,9 +448,9 @@ async function create(req, res) {
         descriptionLength: descriptionLength(body.description),
         topic: sanitizeString(body.topic, 50),
         imageUrl: sanitizeString(body.imageUrl || '', 500),
-        priceUZS,
-        priceUSD,
-        priceAWC,
+        priceUZS: priceUZS,
+        priceUSD: priceUSD,
+        priceAWC: priceAWC,
         saleType: body.saleType,
         status: 'active',
         views: 0,
@@ -505,7 +480,7 @@ async function create(req, res) {
         amountUZS: -listingFee,
         amountUSD: 0,
         status: 'completed',
-        description: `Listing fee: ${w.name}`,
+        description: 'Listing fee: ' + w.name,
         referenceId: w.webId,
         paymentMethod: 'AWC',
         adminNotes: '',
@@ -516,14 +491,19 @@ async function create(req, res) {
       return data;
     });
 
-    console.log(`[websites:create] ✅ ${created.webId} (${created.name}) — fee: ${feeAWC} AWC`);
+    console.log('[websites:create] ✅ ' + created.webId + ' (' + created.name + ') — fee: ' + feeAWC + ' AWC');
 
-    // Telegram bildirishnoma
+    // Telegram bildirishnoma — async
     try {
       const { enabled, notifyUser } = require('../services/telegramService');
       if (enabled() && user.telegramId) {
-        await notifyUser(user.telegramId,
-          `Hello Dear <b>${user.nickname}</b>\nYou Are Selling Web site.\nThank You For Support us!\nIf you need help, we are ready to help you.\n\nby: UPDATE Inc.`);
+        notifyUser(user.telegramId,
+          'Hello Dear <b>' + user.nickname + '</b>\n' +
+          'You Are Selling Web site.\n' +
+          'Thank You For Support us!\n' +
+          'If you need help, we are ready to help you.\n\n' +
+          'by: UPDATE Inc.'
+        ).catch(() => {});
       }
     } catch (_) {}
 
@@ -546,7 +526,7 @@ async function create(req, res) {
 }
 
 // ============================================================
-// BUY — website sotib olish (AWC transfer)
+// BUY — website sotib olish (AWC transfer + escrow)
 // ============================================================
 async function buy(req, res, webId) {
   try {
@@ -555,7 +535,11 @@ async function buy(req, res, webId) {
     const website = data1.websites.find(w => w && w.webId === webId);
 
     if (!buyer) {
-      return send(res, 404, { success: false, message: 'Buyer not found.', code: 'NOT_FOUND' });
+      return send(res, 404, {
+        success: false,
+        message: 'Buyer not found.',
+        code: 'NOT_FOUND'
+      });
     }
 
     // 1. Buyer ban tekshiruvi
@@ -604,7 +588,9 @@ async function buy(req, res, webId) {
     if (buyer.balanceAWC < requiredAWC) {
       return send(res, 400, {
         success: false,
-        message: `Insufficient AWC. Required: ${requiredAWC} AWC (${website.priceUZS} UZS), you have: ${buyer.balanceAWC} AWC. Top up your wallet first.`,
+        message: 'Insufficient AWC. Required: ' + requiredAWC +
+                 ' AWC (' + website.priceUZS + ' UZS), you have: ' +
+                 buyer.balanceAWC + ' AWC. Top up your wallet first.',
         code: 'INSUFFICIENT_AWC',
         data: { required: requiredAWC, available: buyer.balanceAWC }
       });
@@ -629,19 +615,19 @@ async function buy(req, res, webId) {
         amountUSD: website.priceUSD,
         amountAWC: requiredAWC,
         saleType: website.saleType,
-        status: 'completed', // Fast to'lov, darhol
+        status: website.saleType === 'safe' ? 'pending_escrow' : 'completed',
         escrowId: null,
         createdAt: now(),
         updatedAt: now()
       };
 
-      // Safe bo'lsa — escrow yaratish
+      // ---------- SAFE: Escrow yaratish ----------
       if (website.saleType === 'safe') {
         const escrowId = uniqueId('esc', data.escrows.map(e => e.id));
         data.escrows.push({
           id: escrowId,
           websiteId: webId,
-          orderId,
+          orderId: orderId,
           buyerId: buyer.id,
           sellerId: website.sellerId,
           amountUZS: website.priceUZS,
@@ -650,12 +636,17 @@ async function buy(req, res, webId) {
           status: 'pending',
           adminNotes: '',
           createdAt: now(),
-          updatedAt: now()
+          updatedAt: now(),
+          timeline: [
+            { status: 'pending', at: now(), by: buyer.id, note: 'Escrow created' }
+          ]
         });
         order.escrowId = escrowId;
-        order.status = 'pending_escrow';
+
+        console.log('[websites:buy] 🔐 Escrow yaratildi: ' + escrowId + ' uchun ' + website.name);
+
+      // ---------- FAST: Darhol AWC transfer ----------
       } else {
-        // Fast: darhol sotuvchiga o'tkazish
         const b = data.users.find(x => x.id === buyer.id);
         const s = data.users.find(x => x.id === seller.id);
 
@@ -664,6 +655,8 @@ async function buy(req, res, webId) {
           s.balanceAWC = +(s.balanceAWC + requiredAWC).toFixed(4);
           b.totalSpent = (b.totalSpent || 0) + website.priceUZS;
           s.totalEarned = (s.totalEarned || 0) + website.priceUZS;
+          b.updatedAt = now();
+          s.updatedAt = now();
 
           // Buyer transaction
           data.transactions.push({
@@ -672,10 +665,12 @@ async function buy(req, res, webId) {
             type: 'purchase',
             amountAWC: -requiredAWC,
             amountUZS: -website.priceUZS,
+            amountUSD: -website.priceUSD,
             status: 'completed',
-            description: `Bought: ${website.name}`,
+            description: 'Bought: ' + website.name,
             referenceId: orderId,
             paymentMethod: 'AWC',
+            adminNotes: '',
             createdAt: now(),
             updatedAt: now()
           });
@@ -687,13 +682,17 @@ async function buy(req, res, webId) {
             type: 'sale_income',
             amountAWC: requiredAWC,
             amountUZS: website.priceUZS,
+            amountUSD: website.priceUSD,
             status: 'completed',
-            description: `Sold: ${website.name}`,
+            description: 'Sold: ' + website.name,
             referenceId: orderId,
             paymentMethod: 'AWC',
+            adminNotes: '',
             createdAt: now(),
             updatedAt: now()
           });
+
+          console.log('[websites:buy] ⚡ Fast sale — ' + requiredAWC + ' AWC transfer qilindi');
         }
       }
 
@@ -710,19 +709,28 @@ async function buy(req, res, webId) {
       return data;
     });
 
-    console.log(`[websites:buy] ✅ Order ${order.id} — ${requiredAWC} AWC`);
+    console.log('[websites:buy] ✅ Order ' + order.id + ' — ' + requiredAWC + ' AWC');
 
-    // Telegram bildirishnomalar
+    // 7. Telegram bildirishnomalar — async
     try {
       const { enabled, notifyUser } = require('../services/telegramService');
       if (enabled()) {
         if (buyer.telegramId) {
-          await notifyUser(buyer.telegramId,
-            `Hello Dear <b>${buyer.nickname}</b>.\nYou are Purchased New Web Site.\nIf you need help, we are ready to help you.\n\nby: UPDATE Inc.`);
+          notifyUser(buyer.telegramId,
+            'Hello Dear <b>' + buyer.nickname + '</b>.\n' +
+            'You are Purchased New Web Site.\n' +
+            'If you need help, we are ready to help you.\n\n' +
+            'by: UPDATE Inc.'
+          ).catch(() => {});
         }
         if (seller.telegramId) {
-          await notifyUser(seller.telegramId,
-            `🔔 Someone bought "<b>${website.name}</b>"!\n+${requiredAWC} AWC added to your balance.\nOrder ID: <code>${order.id}</code>`);
+          notifyUser(seller.telegramId,
+            '🔔 Someone bought "<b>' + website.name + '</b>"!\n' +
+            (website.saleType === 'safe'
+              ? 'Escrow: funds held until buyer confirms.\n'
+              : '+' + requiredAWC + ' AWC added to your balance.\n') +
+            'Order ID: <code>' + order.id + '</code>'
+          ).catch(() => {});
         }
       }
     } catch (_) {}
@@ -730,8 +738,11 @@ async function buy(req, res, webId) {
     send(res, 201, {
       success: true,
       data: {
-        order,
-        newBalance: (buyer.balanceAWC - requiredAWC).toFixed(4)
+        order: order,
+        escrowId: order.escrowId || null,
+        newBalance: website.saleType === 'fast'
+          ? (buyer.balanceAWC - requiredAWC).toFixed(4)
+          : buyer.balanceAWC.toFixed(4)
       }
     });
   } catch (e) {
@@ -748,10 +759,10 @@ async function buy(req, res, webId) {
 // EXPORTS
 // ============================================================
 module.exports = {
-  list,
-  search,
-  detail,
-  create,
-  buy,
-  publicWebsite
+  list: list,
+  search: search,
+  detail: detail,
+  create: create,
+  buy: buy,
+  publicWebsite: publicWebsite
 };

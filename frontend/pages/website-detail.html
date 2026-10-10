@@ -13,6 +13,7 @@
 </head>
 <body class="aw-body">
 
+<!-- ============ NAVBAR ============ -->
 <header class="aw-navbar">
   <div class="aw-navbar-inner">
     <a class="aw-navbar-brand" href="main.html">
@@ -30,7 +31,9 @@
       <input type="text" id="aw-global-search" placeholder="Search websites…" autocomplete="off"/>
     </div>
     <div class="aw-navbar-right">
-      <button class="aw-icon-btn" id="aw-theme-btn"><i class="fa-solid fa-sun" id="aw-theme-icon"></i></button>
+      <button class="aw-icon-btn" id="aw-theme-btn" aria-label="Theme">
+        <i class="fa-solid fa-sun" id="aw-theme-icon"></i>
+      </button>
       <select id="aw-lang" class="aw-lang-select">
         <option value="en">EN</option>
         <option value="uz">UZ</option>
@@ -42,19 +45,21 @@
         <span class="aw-user-name" id="aw-user-name">User</span>
         <span class="aw-balance-mini" id="aw-balance">0 AWC</span>
       </a>
-      <button class="aw-icon-btn" id="aw-logout-btn" style="display:none">
+      <button class="aw-icon-btn" id="aw-logout-btn" style="display:none" aria-label="Logout">
         <i class="fa-solid fa-right-from-bracket"></i>
       </button>
     </div>
   </div>
 </header>
 
+<!-- ============ MAIN ============ -->
 <main class="aw-page">
   <div id="detail-root">
     <div class="aw-loading">Loading…</div>
   </div>
 </main>
 
+<!-- ============ MOBILE TAB BAR ============ -->
 <nav class="aw-tabbar">
   <a href="main.html"><i class="fa-solid fa-house"></i><span>Home</span></a>
   <a href="store.html"><i class="fa-solid fa-store"></i><span>Store</span></a>
@@ -63,6 +68,37 @@
   <a href="profile.html"><i class="fa-solid fa-user"></i><span>Profile</span></a>
 </nav>
 
+<!-- ============ FOOTER ============ -->
+<footer class="aw-footer">
+  <div class="aw-footer-grid">
+    <div>
+      <h4>AWebShop</h4>
+      <p class="aw-muted">Marketplace for buying and selling fully functional websites.</p>
+    </div>
+    <div>
+      <h4>Links</h4>
+      <ul>
+        <li><a href="about.html">About</a></li>
+        <li><a href="about.html#help">Help</a></li>
+        <li><a href="about.html#contact">Contact</a></li>
+      </ul>
+    </div>
+    <div>
+      <h4>Social</h4>
+      <ul>
+        <li><a href="https://github.com/ttnaceri/" target="_blank" rel="noopener">GitHub</a></li>
+        <li><a href="https://t.me/updateDevNews" target="_blank" rel="noopener">Telegram</a></li>
+        <li><a href="https://www.instagram.com/update.dev26/" target="_blank" rel="noopener">Instagram</a></li>
+      </ul>
+    </div>
+  </div>
+  <div class="aw-footer-bottom">
+    <span>© 2026 UPDATE Inc. All Rights Reserved.</span>
+    <span>Made with ❤️ in Uzbekistan</span>
+  </div>
+</footer>
+
+<!-- ============ SCRIPTS ============ -->
 <script src="../js/api.js"></script>
 <script src="../js/i18n.js"></script>
 <script src="../js/app.js"></script>
@@ -73,6 +109,31 @@
 (function () {
   'use strict';
 
+  // ============================================================
+  // HELPERS
+  // ============================================================
+  function fmtUZS(n) {
+    if (typeof window.fmtUZS === 'function') return window.fmtUZS(n);
+    return new Intl.NumberFormat('uz-UZ').format(Math.round(n || 0)) + " so'm";
+  }
+  function fmtUSD(n) {
+    if (typeof window.fmtUSD === 'function') return window.fmtUSD(n);
+    return '$' + Number(n || 0).toFixed(2);
+  }
+  function fmtAWC(n) {
+    if (typeof window.fmtAWC === 'function') return window.fmtAWC(n);
+    return Number(n || 0).toFixed(4).replace(/\.?0+$/, '') + ' AWC';
+  }
+  function esc(s) {
+    if (typeof window.esc === 'function') return window.esc(s);
+    return String(s == null ? '' : s)
+      .replace(/&/g, '&amp;').replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+  }
+
+  // ============================================================
+  // NAVBAR
+  // ============================================================
   var themeBtn = document.getElementById('aw-theme-btn');
   var themeIcon = document.getElementById('aw-theme-icon');
   if (themeBtn && themeIcon) {
@@ -86,14 +147,53 @@
       themeIcon.className = 'fa-solid ' + (next === 'light' ? 'fa-moon' : 'fa-sun');
     });
   }
-  var searchInput = document.getElementById('aw-global-search');
-  if (searchInput) searchInput.addEventListener('keydown', function (e) {
+  var langSel = document.getElementById('aw-lang');
+  if (langSel) {
+    langSel.value = localStorage.getItem('aw_lang') || 'en';
+    langSel.addEventListener('change', function (e) {
+      localStorage.setItem('aw_lang', e.target.value);
+      location.reload();
+    });
+  }
+  var globalSearch = document.getElementById('aw-global-search');
+  if (globalSearch) globalSearch.addEventListener('keydown', function (e) {
     if (e.key === 'Enter') {
-      var q = searchInput.value.trim();
+      var q = globalSearch.value.trim();
       if (q) location.href = '/search/' + encodeURIComponent(q);
     }
   });
 
+  // ============================================================
+  // AUTH UI
+  // ============================================================
+  function updateAuthUI() {
+    var user = (window.Auth && window.Auth.user) || null;
+    var lg = document.getElementById('aw-login-btn');
+    var rg = document.getElementById('aw-register-btn');
+    var uc = document.getElementById('aw-user-chip');
+    var lb = document.getElementById('aw-logout-btn');
+
+    if (user) {
+      if (lg) lg.style.display = 'none';
+      if (rg) rg.style.display = 'none';
+      if (uc) {
+        uc.style.display = 'flex';
+        document.getElementById('aw-avatar').textContent = (user.nickname || '?')[0].toUpperCase();
+        document.getElementById('aw-user-name').textContent = user.nickname || '';
+        document.getElementById('aw-balance').textContent = fmtAWC(user.balanceAWC);
+      }
+      if (lb) {
+        lb.style.display = 'inline-flex';
+        lb.onclick = function () {
+          if (window.Auth && window.Auth.logout) window.Auth.logout();
+        };
+      }
+    }
+  }
+
+  // ============================================================
+  // MAIN
+  // ============================================================
   (async function () {
     await loadRates();
     await Auth.load();
@@ -112,6 +212,7 @@
       root.innerHTML = '<div class="aw-empty">' + esc(res.message || 'Not found') + '</div>';
       return;
     }
+
     var w = res.data.website;
     var seller = res.data.seller;
 
@@ -119,49 +220,116 @@
       : w.type === 'backend' ? '⚙️ Backend'
       : w.type === 'fullstack' ? '🚀 Fullstack' : '';
 
-    root.innerHTML = '<div class="aw-detail-grid">' +
-      '<div class="aw-detail-img">' +
-      (w.imageUrl ? '<img src="' + esc(w.imageUrl) + '" alt="" onerror="this.style.display=\'none\'"/>' : '<div class="aw-card-noimg">' + esc((w.name || '?')[0]) + '</div>') +
-      '</div>' +
-      '<div class="aw-detail-info">' +
-      '<div class="aw-detail-top">' +
-      '<h1>' + esc(w.name) + '</h1>' +
-      (w.saleType === 'safe' ? '<span class="aw-badge aw-badge-safe">Safe (escrow)</span>' : '<span class="aw-badge aw-badge-fast">Fast (direct)</span>') +
-      '</div>' +
-      '<div class="aw-detail-domain">' + esc(w.domain) + '</div>' +
-      '<div class="aw-detail-topic">' + esc(w.topic) + ' • ' + typeLabel + '</div>' +
-      '<div class="aw-detail-price">' +
-      '<strong>' + fmtAWC(w.priceAWC) + '</strong>' +
-      '<small>' + fmtUZS(w.priceUZS) + ' • ' + fmtUSD(w.priceUSD) + '</small>' +
-      '</div>' +
-      '<p class="aw-detail-desc">' + esc(w.description) + '</p>' +
-      '<div class="aw-detail-meta">' +
-      '<div>👁 ' + (w.views || 0) + '</div>' +
-      '<div>⭐ ' + (w.rating || 0).toFixed(1) + '</div>' +
-      '<div>Web ID: <code>' + esc(w.webId) + '</code></div>' +
-      '</div>' +
-      '<div class="aw-sale-note ' + (w.saleType === 'safe' ? 'safe' : 'fast') + '">' +
-      (w.saleType === 'safe' ? 'Escrow-protected. Admin holds funds until you confirm.' : 'Direct seller-to-buyer. Fewer protections.') +
-      '</div>' +
-      '<div class="aw-detail-actions">' +
-      '<button class="aw-btn aw-btn-primary" id="buy-btn">Buy Now</button>' +
-      '<a class="aw-btn aw-btn-ghost" href="store.html">Back to store</a>' +
-      '</div>' +
-      (seller ? '<div class="aw-seller">' +
-        '<h4>Seller</h4>' +
-        '<div class="aw-seller-row">' +
-        '<span class="aw-avatar">' + esc((seller.nickname || '?')[0].toUpperCase()) + '</span>' +
-        '<div><div><strong>' + esc(seller.nickname) + '</strong> ' + (seller.verified ? '✔' : '') + '</div>' +
-        '<div class="aw-muted">⭐ ' + (seller.rating || 0).toFixed(1) + '</div></div>' +
-        '</div></div>' : '') +
-      '</div></div>';
+    // ============================================================
+    // SELLER TELEGRAM USERNAME
+    // ============================================================
+    var sellerTelegram = (seller && seller.telegramUsername) ? String(seller.telegramUsername).trim() : '';
+    // @ belgisini olib tashlaymiz
+    var tgHandle = sellerTelegram.replace(/^@/, '');
+    var hasTelegram = tgHandle.length >= 5;
 
+    var sellerBlock = '';
+
+    if (seller) {
+      // Telegram tugmasi
+      var tgButton = '';
+      if (hasTelegram) {
+        tgButton =
+          '<a class="aw-btn aw-btn-primary" ' +
+            'href="https://t.me/' + esc(tgHandle) + '" ' +
+            'target="_blank" rel="noopener" ' +
+            'title="Chat with seller on Telegram">' +
+            '<i class="fa-brands fa-telegram"></i> @' + esc(tgHandle) +
+          '</a>';
+      } else {
+        tgButton =
+          '<button class="aw-btn aw-btn-ghost" disabled title="Seller has not linked Telegram">' +
+            '<i class="fa-brands fa-telegram"></i> No Telegram' +
+          '</button>';
+      }
+
+      sellerBlock =
+        '<div class="aw-seller">' +
+          '<h4>Seller</h4>' +
+          '<div class="aw-seller-row">' +
+            '<span class="aw-avatar">' + esc((seller.nickname || '?')[0].toUpperCase()) + '</span>' +
+            '<div style="flex:1;min-width:0">' +
+              '<div><strong>' + esc(seller.nickname || '—') + '</strong> ' +
+                (seller.verified ? '<span class="aw-verified-badge" title="Verified">✔</span>' : '') +
+              '</div>' +
+              '<div class="aw-muted" style="font-size:13px">' +
+                '⭐ ' + (seller.rating || 0).toFixed(1) +
+                ' • Joined ' + (seller.createdAt ? new Date(seller.createdAt).toLocaleDateString() : '—') +
+              '</div>' +
+              (hasTelegram
+                ? '<div class="aw-muted" style="font-size:12px">Telegram: <code>@' + esc(tgHandle) + '</code></div>'
+                : '<div class="aw-muted" style="font-size:12px">Telegram not linked</div>') +
+            '</div>' +
+          '</div>' +
+          '<div class="aw-seller-actions">' +
+            tgButton +
+          '</div>' +
+        '</div>';
+    }
+
+    // ============================================================
+    // RENDER
+    // ============================================================
+    root.innerHTML =
+      '<div class="aw-detail-grid">' +
+        '<div class="aw-detail-img">' +
+          (w.imageUrl
+            ? '<img src="' + esc(w.imageUrl) + '" alt="' + esc(w.name) + '" onerror="this.style.display=\'none\'"/>'
+            : '<div class="aw-card-noimg">' + esc((w.name || '?')[0]) + '</div>') +
+        '</div>' +
+        '<div class="aw-detail-info">' +
+          '<div class="aw-detail-top">' +
+            '<h1>' + esc(w.name) + '</h1>' +
+            (w.saleType === 'safe'
+              ? '<span class="aw-badge aw-badge-safe">Safe (escrow)</span>'
+              : '<span class="aw-badge aw-badge-fast">Fast (direct)</span>') +
+          '</div>' +
+          '<div class="aw-detail-domain">' + esc(w.domain) + '</div>' +
+          '<div class="aw-detail-topic">' + esc(w.topic) + ' • ' + typeLabel + '</div>' +
+          '<div class="aw-detail-price">' +
+            '<strong>' + fmtAWC(w.priceAWC) + '</strong>' +
+            '<small>' + fmtUZS(w.priceUZS) + ' • ' + fmtUSD(w.priceUSD) + '</small>' +
+          '</div>' +
+          '<p class="aw-detail-desc">' + esc(w.description) + '</p>' +
+          '<div class="aw-detail-meta">' +
+            '<div><i class="fa-solid fa-eye"></i> ' + (w.views || 0) + '</div>' +
+            '<div><i class="fa-solid fa-star"></i> ' + (w.rating || 0).toFixed(1) + '</div>' +
+            '<div>Web ID: <code>' + esc(w.webId) + '</code></div>' +
+          '</div>' +
+          '<div class="aw-sale-note ' + (w.saleType === 'safe' ? 'safe' : 'fast') + '">' +
+            (w.saleType === 'safe'
+              ? '<i class="fa-solid fa-lock"></i> Escrow-protected. Admin holds funds until you confirm.'
+              : '<i class="fa-solid fa-bolt"></i> Direct seller-to-buyer. Fewer protections.') +
+          '</div>' +
+          '<div class="aw-detail-actions">' +
+            '<button class="aw-btn aw-btn-primary" id="buy-btn">' +
+              '<i class="fa-solid fa-cart-shopping"></i> Buy Now' +
+            '</button>' +
+            '<a class="aw-btn aw-btn-ghost" href="store.html">Back to store</a>' +
+          '</div>' +
+          sellerBlock +
+        '</div>' +
+      '</div>';
+
+    // ============================================================
+    // BUY BUTTON
+    // ============================================================
     document.getElementById('buy-btn').addEventListener('click', async function () {
       if (!Auth.isLoggedIn()) {
         location.href = 'login.html?next=' + encodeURIComponent('website-detail.html?id=' + webId);
         return;
       }
-      var ok = await confirmModal('Confirm purchase', 'Buy "' + w.name + '" for ' + fmtAWC(w.priceAWC) + '?');
+      if (Auth.isBanned && Auth.isBanned()) return;
+
+      var ok = await confirmModal(
+        'Confirm purchase',
+        'Buy "' + w.name + '" for ' + fmtAWC(w.priceAWC) + '?'
+      );
       if (!ok) return;
 
       var buyRes = await API.buyWebsite(webId, {});
@@ -172,30 +340,59 @@
         toast(buyRes.message || 'Purchase failed', 'error', 5000);
       }
     });
-
-    function updateAuthUI() {
-      var user = (window.Auth && window.Auth.user) || null;
-      if (user) {
-        var lg = document.getElementById('aw-login-btn');
-        var rg = document.getElementById('aw-register-btn');
-        var uc = document.getElementById('aw-user-chip');
-        var lb = document.getElementById('aw-logout-btn');
-        if (lg) lg.style.display = 'none';
-        if (rg) rg.style.display = 'none';
-        if (uc) {
-          uc.style.display = 'flex';
-          document.getElementById('aw-avatar').textContent = (user.nickname || '?')[0].toUpperCase();
-          document.getElementById('aw-user-name').textContent = user.nickname || '';
-          document.getElementById('aw-balance').textContent = fmtAWC(user.balanceAWC);
-        }
-        if (lb) {
-          lb.style.display = 'inline-flex';
-          lb.onclick = function () { Auth.logout(); };
-        }
-      }
-    }
   })();
 })();
 </script>
+
+<style>
+/* Seller block qo'shimcha stillar */
+.aw-seller {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+.aw-seller h4 {
+  margin: 0 0 4px;
+  font-size: 14px;
+  color: var(--muted);
+  text-transform: uppercase;
+  letter-spacing: 0.4px;
+}
+.aw-seller-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.aw-seller-actions {
+  display: flex;
+  gap: 8px;
+  margin-top: 4px;
+}
+.aw-seller-actions .aw-btn {
+  flex: 1;
+}
+.aw-verified-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 16px;
+  height: 16px;
+  background: var(--primary);
+  color: #fff;
+  border-radius: 50%;
+  font-size: 10px;
+  font-weight: 700;
+  margin-left: 4px;
+  vertical-align: middle;
+}
+.aw-btn[disabled] {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+</style>
 </body>
 </html>
