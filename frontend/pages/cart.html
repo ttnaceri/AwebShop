@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1"/>
+<title>Cart — AwebShop</title>
+<link rel="icon" type="image/png" href="../assets/image/logo.png"/>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" crossorigin="anonymous"/>
+<link rel="stylesheet" href="../css/main.css"/>
+<link rel="stylesheet" href="../css/navbar.css"/>
+<link rel="stylesheet" href="../css/responsive.css"/>
+</head>
+<body class="aw-body">
+
+<header class="aw-navbar">
+  <div class="aw-navbar-inner">
+    <a class="aw-navbar-brand" href="main.html">
+      <img src="../assets/image/logo.png" alt="AwebShop" onerror="this.style.display='none'"/>
+      <span>AwebShop</span>
+    </a>
+    <nav class="aw-navbar-links">
+      <a href="main.html"><i class="fa-solid fa-house"></i> Home</a>
+      <a href="shop.html"><i class="fa-solid fa-store"></i> Shop</a>
+      <a href="cart.html" class="active"><i class="fa-solid fa-shopping-cart"></i> Cart</a>
+      <a href="profile.html"><i class="fa-solid fa-user"></i> Profile</a>
+    </nav>
+  </div>
+</header>
+
+<main class="aw-page">
+  <h1>Cart</h1>
+  <div id="cart-items"></div>
+
+  <div class="aw-card" style="margin-top:20px">
+    <div style="display:flex;gap:10px;align-items:center;margin-bottom:12px">
+      <input id="promo-code" placeholder="Promokod" style="flex:1;padding:10px;border-radius:10px;border:1px solid #333;background:#1a1a1e;color:#fff"/>
+      <button class="aw-btn aw-btn-ghost" id="apply-promo">Qo'llash</button>
+    </div>
+    <div id="promo-msg" class="aw-muted" style="font-size:13px"></div>
+  </div>
+
+  <div class="aw-card" style="margin-top:20px;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap">
+    <div>
+      <div class="aw-muted">Jami</div>
+      <div style="font-size:28px;font-weight:800" id="cart-total">0 so'm</div>
+      <div class="aw-muted" id="cart-discount" style="font-size:13px"></div>
+    </div>
+    <button class="aw-btn aw-btn-primary" id="checkout-btn">
+      <i class="fa-solid fa-check"></i> Buyurtma berish
+    </button>
+  </div>
+</main>
+
+<script src="../js/backend-api.js"></script>
+<script src="../js/cart.js"></script>
+<script src="../js/auth-ext.js"></script>
+<script src="../js/promocode.js"></script>
+<script src="../js/orders.js"></script>
+
+<script>
+(function () {
+  'use strict';
+
+  function render() {
+    var items = window.Cart.load();
+    var host = document.getElementById('cart-items');
+
+    if (!items.length) {
+      host.innerHTML = '<div class="aw-empty">Savatcha bo\'sh.</div>';
+    } else {
+      host.innerHTML = items.map(function (i) {
+        return '<div class="aw-card" style="display:flex;gap:14px;align-items:center;margin-bottom:10px;padding:14px">' +
+          '<div style="flex:1">' +
+          '<div><b>' + window.escapeHtml(i.name) + '</b></div>' +
+          '<div class="aw-muted">' + window.fmtUZS(i.priceUZS) + '</div>' +
+          '</div>' +
+          '<input type="number" min="1" value="' + i.qty + '" data-qty="' + window.escapeHtml(i.id) + '" style="width:70px;padding:6px;border-radius:8px;border:1px solid #333;background:#1a1a1e;color:#fff"/>' +
+          '<button class="admin-btn-sm bad" data-del="' + window.escapeHtml(i.id) + '">X</button>' +
+          '</div>';
+      }).join('');
+
+      host.querySelectorAll('input[data-qty]').forEach(function (el) {
+        el.addEventListener('change', function () {
+          window.Cart.setQty(el.dataset.qty, Number(el.value));
+          render();
+        });
+      });
+      host.querySelectorAll('button[data-del]').forEach(function (b) {
+        b.addEventListener('click', function () {
+          window.Cart.remove(b.dataset.del);
+          render();
+        });
+      });
+    }
+
+    var total = window.Cart.total();
+    var calc = window.Promocode.calculate(total);
+    document.getElementById('cart-total').textContent = window.fmtUZS(calc.total);
+    if (calc.discount > 0) {
+      document.getElementById('cart-discount').textContent = 'Chegirma: -' + window.fmtUZS(calc.discount) + ' (' + calc.promo.code + ')';
+    } else {
+      document.getElementById('cart-discount').textContent = '';
+    }
+  }
+
+  document.getElementById('apply-promo').addEventListener('click', async function () {
+    var code = document.getElementById('promo-code').value.trim();
+    var r = await window.Promocode.apply(code);
+    var msg = document.getElementById('promo-msg');
+    if (r.success) {
+      msg.textContent = r.message;
+      msg.style.color = '#00c851';
+    } else {
+      msg.textContent = r.message;
+      msg.style.color = '#ff4c4c';
+    }
+    render();
+  });
+
+  document.getElementById('checkout-btn').addEventListener('click', async function () {
+    var r = await window.Orders.create();
+    if (r.success) {
+      window.showToast('Buyurtma: ' + r.order.id, 'success');
+      render();
+    } else {
+      window.showToast(r.message, 'error');
+    }
+  });
+
+  render();
+})();
+</script>
+</body>
+</html>

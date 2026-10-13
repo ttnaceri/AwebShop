@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1"/>
+<title>Shop — AwebShop</title>
+<link rel="icon" type="image/png" href="../assets/image/logo.png"/>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" crossorigin="anonymous"/>
+<link rel="stylesheet" href="../css/main.css"/>
+<link rel="stylesheet" href="../css/navbar.css"/>
+<link rel="stylesheet" href="../css/responsive.css"/>
+</head>
+<body class="aw-body">
+
+<header class="aw-navbar">
+  <div class="aw-navbar-inner">
+    <a class="aw-navbar-brand" href="main.html">
+      <img src="../assets/image/logo.png" alt="AwebShop" onerror="this.style.display='none'"/>
+      <span>AwebShop</span>
+    </a>
+    <nav class="aw-navbar-links">
+      <a href="main.html"><i class="fa-solid fa-house"></i> Home</a>
+      <a href="shop.html" class="active"><i class="fa-solid fa-store"></i> Shop</a>
+      <a href="cart.html"><i class="fa-solid fa-shopping-cart"></i> Cart <span id="cart-count" class="aw-badge" style="background:#7b5cff;color:#fff;padding:2px 8px;border-radius:999px;font-size:11px;">0</span></a>
+      <a href="profile.html"><i class="fa-solid fa-user"></i> Profile</a>
+    </nav>
+    <div class="aw-navbar-right">
+      <button class="aw-icon-btn" id="aw-theme-btn"><i class="fa-solid fa-sun" id="aw-theme-icon"></i></button>
+      <a class="aw-btn aw-btn-ghost" href="login.html" id="aw-login-btn">Login</a>
+      <a class="aw-btn aw-btn-primary" href="register.html" id="aw-register-btn">Register</a>
+      <a class="aw-user-chip" href="profile.html" id="aw-user-chip" style="display:none">
+        <span class="aw-avatar" id="aw-avatar">?</span>
+        <span class="aw-user-name" id="aw-user-name">User</span>
+      </a>
+    </div>
+  </div>
+</header>
+
+<main class="aw-page">
+  <div class="aw-section-head">
+    <h1>Shop</h1>
+    <div class="aw-muted" id="count-label">Loading…</div>
+  </div>
+
+  <div class="aw-filters">
+    <input id="shop-search" placeholder="Search products…"/>
+    <button class="aw-btn aw-btn-ghost" id="shop-refresh">Refresh</button>
+  </div>
+
+  <div id="shop-grid" class="aw-grid">
+    <div class="aw-loading">Loading…</div>
+  </div>
+</main>
+
+<script src="../js/backend-api.js"></script>
+<script src="../js/cart.js"></script>
+<script src="../js/auth-ext.js"></script>
+<script src="../js/favorites.js"></script>
+<script src="../js/promocode.js"></script>
+<script src="../js/orders.js"></script>
+
+<script>
+(async () => {
+  // Theme
+  var themeBtn = document.getElementById('aw-theme-btn');
+  var themeIcon = document.getElementById('aw-theme-icon');
+  if (themeBtn && themeIcon) {
+    var t = localStorage.getItem('aw_theme') || 'dark';
+    themeIcon.className = 'fa-solid ' + (t === 'light' ? 'fa-moon' : 'fa-sun');
+    themeBtn.addEventListener('click', () => {
+      var next = (localStorage.getItem('aw_theme') || 'dark') === 'dark' ? 'light' : 'dark';
+      localStorage.setItem('aw_theme', next);
+      document.documentElement.classList.toggle('dark', next === 'dark');
+      document.documentElement.classList.toggle('light', next === 'light');
+      themeIcon.className = 'fa-solid ' + (next === 'light' ? 'fa-moon' : 'fa-sun');
+    });
+  }
+
+  // Auth UI
+  function updateAuthUI() {
+    var user = window.AuthExt ? window.AuthExt.getUser() : null;
+    var lg = document.getElementById('aw-login-btn');
+    var rg = document.getElementById('aw-register-btn');
+    var uc = document.getElementById('aw-user-chip');
+    if (user) {
+      if (lg) lg.style.display = 'none';
+      if (rg) rg.style.display = 'none';
+      if (uc) {
+        uc.style.display = 'flex';
+        document.getElementById('aw-avatar').textContent = (user.nickname || '?')[0].toUpperCase();
+        document.getElementById('aw-user-name').textContent = user.nickname;
+      }
+    }
+  }
+  updateAuthUI();
+
+  // Cart count
+  function updateCartCount() {
+    var c = document.getElementById('cart-count');
+    if (c) c.textContent = window.Cart ? window.Cart.count() : 0;
+  }
+  updateCartCount();
+
+  var allProducts = [];
+
+  async function loadProducts() {
+    var grid = document.getElementById('shop-grid');
+    grid.innerHTML = '<div class="aw-loading">Loading…</div>';
+
+    var res = await window.BackendAPI.listProducts();
+    if (!res || !res.success) {
+      grid.innerHTML = '<div class="aw-empty">Failed: ' + window.escapeHtml((res && res.message) || '') + '</div>';
+      return;
+    }
+    var items = Array.isArray(res.data) ? res.data : (res.data && res.data.items) || [];
+    allProducts = items;
+    renderProducts();
+    document.getElementById('count-label').textContent = items.length + ' products';
+  }
+
+  function renderProducts() {
+    var grid = document.getElementById('shop-grid');
+    var q = (document.getElementById('shop-search').value || '').toLowerCase();
+    var list = allProducts.filter(function (p) {
+      return !q || (p.name || '').toLowerCase().includes(q);
+    });
+
+    if (!list.length) {
+      grid.innerHTML = '<div class="aw-empty">No products.</div>';
+      return;
+    }
+
+    grid.innerHTML = list.map(function (p) {
+      var img = p.imageUrl
+        ? '<img src="' + window.escapeHtml(p.imageUrl) + '" alt="" onerror="this.style.display=\'none\'"/>'
+        : '<div class="aw-card-noimg">' + window.escapeHtml((p.name || '?')[0]) + '</div>';
+      return '<div class="aw-card">' +
+        '<div class="aw-card-img">' + img + '</div>' +
+        '<div class="aw-card-body">' +
+        '<h3 class="aw-card-title">' + window.escapeHtml(p.name || 'Unnamed') + '</h3>' +
+        '<div class="aw-price"><strong>' + window.fmtUZS(p.priceUZS) + '</strong></div>' +
+        '<button class="aw-btn aw-btn-primary aw-btn-block" data-add="' + window.escapeHtml(p.id) + '">' +
+        '<i class="fa-solid fa-cart-plus"></i> Add to cart' +
+        '</button>' +
+        '</div>' +
+        '</div>';
+    }).join('');
+
+    grid.querySelectorAll('button[data-add]').forEach(function (b) {
+      b.addEventListener('click', function () {
+        var p = allProducts.find(function (x) { return x.id === b.dataset.add; });
+        if (!p) return;
+        window.Cart.add(p);
+        updateCartCount();
+        window.showToast('Qo\'shildi: ' + p.name, 'success');
+      });
+    });
+  }
+
+  document.getElementById('shop-search').addEventListener('input', renderProducts);
+  document.getElementById('shop-refresh').addEventListener('click', loadProducts);
+
+  loadProducts();
+})();
+</script>
+</body>
+</html>
