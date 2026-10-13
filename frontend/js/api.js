@@ -1,14 +1,17 @@
 // frontend/js/api.js
-// AWebShop — markaziy API klient.
+// AwebShop — API klient.
 
 (function () {
   'use strict';
 
+  // ============================================================
+  // API BASE — MUHIM: production uchun Render/Cloudflare URL
+  // ============================================================
   var API_BASE =
     window.AWEBSHOP_API_BASE ||
     (location.hostname === 'localhost' || location.hostname === '127.0.0.1'
       ? 'http://localhost:3000'
-      : 'https://ttnaceri.github.io/AwebShop/55668576');
+      : 'https://aweb-shop-api.onrender.com');   // ← Render URL
 
   var TOKEN_KEY = 'aw_token';
 
@@ -17,17 +20,14 @@
       try { return localStorage.getItem(TOKEN_KEY); }
       catch (_) { return null; }
     },
-
     setToken: function (t) {
       try {
         if (t) localStorage.setItem(TOKEN_KEY, t);
         else localStorage.removeItem(TOKEN_KEY);
       } catch (_) {}
     },
-
     clearToken: function () {
-      try { localStorage.removeItem(TOKEN_KEY); }
-      catch (_) {}
+      try { localStorage.removeItem(TOKEN_KEY); } catch (_) {}
     },
 
     request: async function (path, opts) {
@@ -42,7 +42,7 @@
         if (t) headers['Authorization'] = 'Bearer ' + t;
       }
 
-      var fetchOpts = { method: method, headers: headers, credentials: 'omit' };
+      var fetchOpts = { method: method, headers: headers };
       if (body) fetchOpts.body = JSON.stringify(body);
 
       var res;
@@ -57,33 +57,27 @@
       try { data = await res.json(); }
       catch (_) { data = { success: false, message: 'Invalid response', code: 'INVALID_JSON' }; }
 
-      // 401 — faqat TOKEN MUAMMOSI bo'lsa o'chirish
-      // (403 — permission muammosi, tokenni o'chirmaslik!)
       if (res.status === 401) {
-        console.warn('[api] 401 Unauthorized — token cleared');
         API.clearToken();
       }
 
       return data;
     },
 
-    // ---------- AUTH ----------
     requestVerification: function (p) { return this.request('/api/auth/request-verification', { method: 'POST', body: p, auth: false }); },
     register: function (p) { return this.request('/api/auth/register', { method: 'POST', body: p, auth: false }); },
     login: function (p) { return this.request('/api/auth/login', { method: 'POST', body: p, auth: false }); },
-    logout: function () { return this.request('/api/auth/logout', { method: 'POST', auth: true }); },
+    logout: function () { return this.request('/api/auth/logout', { method: 'POST' }); },
     me: function () { return this.request('/api/auth/me'); },
     forgotPassword: function (p) { return this.request('/api/auth/forgot-password', { method: 'POST', body: p, auth: false }); },
     resetPassword: function (p) { return this.request('/api/auth/reset-password', { method: 'POST', body: p, auth: false }); },
 
-    // ---------- USERS ----------
     profile: function () { return this.request('/api/users/profile'); },
     updateProfile: function (p) { return this.request('/api/users/profile', { method: 'PUT', body: p }); },
     myWebsites: function () { return this.request('/api/users/websites'); },
     myTransactions: function () { return this.request('/api/users/transactions'); },
     myReviews: function () { return this.request('/api/users/reviews'); },
 
-    // ---------- WEBSITES ----------
     listWebsites: function (params) {
       var q = new URLSearchParams(params || {}).toString();
       return this.request('/api/websites' + (q ? '?' + q : ''), { auth: false });
@@ -92,7 +86,6 @@
     createWebsite: function (p) { return this.request('/api/websites', { method: 'POST', body: p }); },
     buyWebsite: function (webId, p) { return this.request('/api/websites/' + webId + '/buy', { method: 'POST', body: p || {} }); },
 
-    // ---------- TOKEN ----------
     tokenBalance: function () { return this.request('/api/token/balance'); },
     tokenRate: function () { return this.request('/api/token/rate', { auth: false }); },
     tokenHistory: function () { return this.request('/api/token/history'); },
@@ -100,17 +93,17 @@
     tokenTransfer: function (p) { return this.request('/api/token/transfer', { method: 'POST', body: p }); },
     tokenWithdraw: function (p) { return this.request('/api/token/withdraw', { method: 'POST', body: p }); },
 
-    // ---------- PREMIUM ----------
     premiumPlans: function () { return this.request('/api/premium/plans', { auth: false }); },
     premiumSubscribe: function (p) { return this.request('/api/premium/subscribe', { method: 'POST', body: p }); },
     premiumStatus: function () { return this.request('/api/premium/status'); },
     premiumCancel: function () { return this.request('/api/premium/cancel', { method: 'POST' }); },
     premiumTrial: function () { return this.request('/api/premium/trial', { method: 'POST' }); },
 
-    // ---------- ADMIN ----------
     adminStats: function () { return this.request('/api/admin/stats'); },
     adminUsers: function () { return this.request('/api/admin/users'); },
-    adminBlockUser: function (userId, blocked) { return this.request('/api/admin/users/block', { method: 'POST', body: { userId: userId, blocked: blocked } }); },
+    adminBlockUser: function (userId, blocked) {
+      return this.request('/api/admin/users/block', { method: 'POST', body: { userId: userId, blocked: blocked } });
+    },
     adminWebsites: function () { return this.request('/api/admin/websites'); },
     adminEscrow: function () { return this.request('/api/admin/escrow'); },
     adminEscrowUpdate: function (escrowId, status, adminNotes) {
@@ -126,7 +119,7 @@
     adminLogs: function () { return this.request('/api/admin/logs'); }
   };
 
-  // Admin API helper
+  // Admin helper API
   API.adminGet = function (path, params) {
     var q = new URLSearchParams(params || {}).toString();
     return this.request('/api/admin/' + path + (q ? '?' + q : ''));

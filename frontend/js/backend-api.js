@@ -202,7 +202,7 @@
       var res = await apiRequest('/api/v1/all');
       if (!res || !res.success) return { success: false, data: [] };
       var all = res.data || res;
-      var customs = [];
+      var customs = []; 
       if (Array.isArray(all)) customs = all.filter(function (x) { return x && x.type === 'custom'; });
       else if (typeof all === 'object' && Array.isArray(all.custom)) customs = all.custom;
       else if (typeof all === 'object' && Array.isArray(all.items)) customs = all.items.filter(function (x) { return x && x.type === 'custom'; });
